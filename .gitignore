@@ -1,0 +1,5 @@
+# Dependency directories
+node_modules/
+
+# Webpack build / generate output
+dist
