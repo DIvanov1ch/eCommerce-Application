@@ -1,15 +1,12 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const EslintWebpackPlugin = require('eslint-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV == 'production';
 
-
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
-
-
 
 const config = {
     entry: './src/index.ts',
@@ -25,6 +22,7 @@ const config = {
             template: 'index.html',
         }),
         new CleanWebpackPlugin(),
+        new EslintWebpackPlugin({ extensions: 'ts' }),
     ],
     module: {
         rules: [
