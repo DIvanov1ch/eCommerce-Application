@@ -12,7 +12,10 @@
     "serve": "webpack serve",
     "prepare": "husky install",
     "lint": "eslint . --ext .ts",
-    "lint-fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier . --check",
+    "format:fix": "prettier . --write",
+    "lint-format:fix": "eslint . --ext .ts --fix && prettier . --write"
   },
   "repository": {
     "type": "git",
