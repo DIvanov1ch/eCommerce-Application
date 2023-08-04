@@ -10,7 +10,9 @@
     "build:prod": "webpack --mode=production --node-env=production",
     "watch": "webpack --watch",
     "serve": "webpack serve",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "eslint . --ext .ts",
+    "lint-fix": "eslint . --ext .ts --fix"
   },
   "repository": {
     "type": "git",
