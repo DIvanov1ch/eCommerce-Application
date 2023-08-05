@@ -1,8 +1,5 @@
 {
-  "plugins": [
-    "import",
-    "@typescript-eslint"
-  ],
+  "plugins": ["import", "@typescript-eslint"],
   "extends": [
     "airbnb-base",
     "airbnb-typescript/base",
@@ -43,15 +40,10 @@
         }
       }
     ],
-    "max-lines-per-function": [
-      "error",
-      40
-    ],
+    "max-lines-per-function": ["error", 40],
     "@typescript-eslint/explicit-function-return-type": "error",
     "@typescript-eslint/no-unnecessary-type-assertion": "error",
     "@typescript-eslint/no-non-null-assertion": "error"
   },
-  "ignorePatterns": [
-    "webpack.config.js"
-  ]
+  "ignorePatterns": ["webpack.config.js"]
 }
