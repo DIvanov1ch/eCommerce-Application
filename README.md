@@ -1,6 +1,5 @@
 # eCommerce-Application
 ## Product description:
-***
 
 Welcome to our eCommerce application! This platform replicates real-world shopping experiences in a digital environment 🏪.
 
@@ -19,38 +18,38 @@ Key pages in the application include:
 - User Profile page 👤
 - Basket page 🛒
 - About Us page 🙋‍♂️🙋‍♀️
+***
 
 ## Product purposes:
-***
 
  - to provide an interactive and seamless experience to users from product discovery to checkout
  - to ensure a smooth journey for the users, enhancing their engagement and boosting their purchasing confidence 🚀
-
-## The technology stack:
 ***
 
-[Windows](https://www.microsoft.com/)
-[HTML](https://html.spec.whatwg.org/multipage/)
-[CSS]( https://www.w3.org/Style/CSS/specs.en.html)
-[Typescript](https://www.typescriptlang.org/)
-[Node.js](https://nodejs.org)
-[JSON](https://www.json.org/)
-[Webpack](https://webpack.js.org/)
-[Eslint](https://eslint.org/)
-[Prettier](https://prettier.io/)
-[Husky](https://typicode.github.io/husky/)
-[Jest](https://jestjs.io/)
+## The technology stack
+
+- [Windows](https://www.microsoft.com/)
+- [HTML](https://html.spec.whatwg.org/multipage/)
+- [CSS]( https://www.w3.org/Style/CSS/specs.en.html)
+- [Typescript](https://www.typescriptlang.org/)
+- [Node.js](https://nodejs.org)
+- [JSON](https://www.json.org/)
+- [Webpack](https://webpack.js.org/)
+- [Eslint](https://eslint.org/)
+- [Prettier](https://prettier.io/)
+- [Husky](https://typicode.github.io/husky/)
+- [Jest](https://jestjs.io/)
+***
 
 ## Setup and Usage:
-***
 
 - Clone this repo to your desktop by `git clone https://github.com/DIvanov1ch/eCommerce-Application.git`
 - Install Node.js if you haven’t got it already. [Node.js](https://nodejs.org)
 - Go to application root directory and run `npm install` or `npm i` to install its dependencies
 - Once the dependencies are installed, you can run `node src/index.ts` to start the application or `npm run build` to build the bundle of application in dist directory
+***
 
 ## Scripts usage:
-***
 
 - `npm run test` - runs Jest tests, streamlining the process of executing tests and generating reports on test outcomes
 - `npm run build` or `npm run build:prod`- enables production mode for webpack and node.
@@ -63,3 +62,4 @@ Key pages in the application include:
 - `npm run format` - runs Prettier across the codebase, simplifying code formatting and ensuring uniform code style
 - `npm run format:fix` - runs Prettier across the codebase, simplifying code formatting, ensuring uniform code style and fixing potential errors
 - `lint-format:fix` - runs ESLint across the codebase, making it possible to quickly and efficiently identify code style issues and fix potential errors, after that runs Prettier across the codebase, simplifying code formatting, ensuring uniform code style and fixing potential errors
+***
