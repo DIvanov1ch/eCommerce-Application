@@ -1,5 +1,5 @@
 # eCommerce-Application
-##Product description:
+## Product description:
 ***
 
 Welcome to our eCommerce application! This platform replicates real-world shopping experiences in a digital environment 🏪.
@@ -20,13 +20,13 @@ Key pages in the application include:
 - Basket page 🛒
 - About Us page 🙋‍♂️🙋‍♀️
 
-##Product purposes:
+## Product purposes:
 ***
 
  - to provide an interactive and seamless experience to users from product discovery to checkout
  - to ensure a smooth journey for the users, enhancing their engagement and boosting their purchasing confidence 🚀
 
-The technology stack:
+## The technology stack:
 ***
 
 [Windows](https://www.microsoft.com/)
@@ -41,7 +41,7 @@ The technology stack:
 [Husky](https://typicode.github.io/husky/)
 [Jest](https://jestjs.io/)
 
-##Setup and Usage:
+## Setup and Usage:
 ***
 
 - Clone this repo to your desktop by `git clone https://github.com/DIvanov1ch/eCommerce-Application.git`
@@ -49,7 +49,7 @@ The technology stack:
 - Go to application root directory and run `npm install` or `npm i` to install its dependencies
 - Once the dependencies are installed, you can run `node src/index.ts` to start the application or `npm run build` to build the bundle of application in dist directory
 
-##Scripts usage:
+## Scripts usage:
 ***
 
 - `npm run test` - runs Jest tests, streamlining the process of executing tests and generating reports on test outcomes
