@@ -9,11 +9,6 @@ An important aspect of our application is that it's responsive 📲, ensuring it
 
 The application is powered by CommerceTools 🌐, a leading provider of commerce solutions for B2C and B2B enterprises. CommerceTools offers a cloud-native, microservices-based commerce platform that enables brands to create unique and engaging digital commerce experiences.
 
-Product purposes:
-
- - to provide an interactive and seamless experience to users from product discovery to checkout
- - to ensure a smooth journey for the users, enhancing their engagement and boosting their purchasing confidence 🚀
-
 Key pages in the application include:
 
 - Login and Registration pages 🖥️
@@ -23,6 +18,25 @@ Key pages in the application include:
 - User Profile page 👤
 - Basket page 🛒
 - About Us page 🙋‍♂️🙋‍♀️
+
+Product purposes:
+
+ - to provide an interactive and seamless experience to users from product discovery to checkout
+ - to ensure a smooth journey for the users, enhancing their engagement and boosting their purchasing confidence 🚀
+
+The technology stack:
+
+[Windows](https://www.microsoft.com/)
+[HTML](https://html.spec.whatwg.org/multipage/)
+[CSS]( https://www.w3.org/Style/CSS/specs.en.html)
+[Typescript](https://www.typescriptlang.org/)
+[Node.js](https://nodejs.org)
+[JSON](https://www.json.org/)
+[Webpack](https://webpack.js.org/)
+[Eslint](https://eslint.org/)
+[Prettier](https://prettier.io/)
+[Husky](https://typicode.github.io/husky/)
+[Jest](https://jestjs.io/)
 
 Setup and Usage:
 
