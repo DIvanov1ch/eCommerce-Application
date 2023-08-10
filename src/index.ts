@@ -1,1 +1,3 @@
-console.log('Hello World!');
+import Login from './pages/login/login';
+
+Login.create();

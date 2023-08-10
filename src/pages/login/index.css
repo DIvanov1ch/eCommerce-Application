@@ -1,0 +1,37 @@
+.login__form {
+  margin: auto;
+  width: 20vw;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.login__button {
+  cursor: pointer;
+}
+
+.login__user-email {
+  border-radius: 5px;
+}
+
+.login__user-password {
+  border-radius: 5px;
+}
+
+.login__user-password.correct {
+  box-shadow: 0 0 5px 1px green;
+}
+
+.login__user-password.incorrect {
+  box-shadow: 0 0 5px 1px red;
+}
+
+input:focus {
+  outline: 0;
+}
+
+input:invalid {
+  box-shadow: 0 0 5px 1px red;
+}
