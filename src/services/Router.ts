@@ -1,12 +1,11 @@
-import { StateData } from '../types/StateData';
-
 export default class Router {
   #start = '/';
 
   #routes: Record<string, string> = {
-    '/': 'home-page',
-    '/login': 'login-page',
-    '/registration': 'registration-page',
+    '': 'home-page',
+    login: 'login-page',
+    registration: 'registration-page',
+    project: 'project-page',
   };
 
   #main: HTMLElement | null;
@@ -16,29 +15,15 @@ export default class Router {
   }
 
   public init(): void {
-    window.addEventListener('click', (event) => {
-      const { target } = event;
-      if (target instanceof HTMLAnchorElement) {
-        event.preventDefault();
-        this.go(target.pathname);
-      }
+    window.addEventListener('hashchange', () => {
+      this.go(window.location.hash);
     });
 
-    window.addEventListener('popstate', (event) => {
-      const { route } = event.state as StateData;
-      if (route) {
-        this.go(route, false);
-      }
-    });
-
-    this.go(window.location.pathname);
+    this.go(window.location.hash);
   }
 
-  private go(route: string, addToHistory = true): void {
-    if (addToHistory) {
-      const stateData: StateData = { route };
-      window.history.pushState(stateData, '', route);
-    }
+  private go(hash: string): void {
+    const route = hash.slice(1);
 
     if (!(route in this.#routes)) {
       this.errorPage();
