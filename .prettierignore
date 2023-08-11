@@ -1,0 +1,13 @@
+**/.git
+**/.svn
+**/.hg
+**/node_modules
+
+# Ignore all MD files:
+**/*.md
+
+# Ignore all HTML files:
+**/*.html
+
+# Ignore all CSS files:
+**/*.scss
