@@ -36,3 +36,14 @@ input:focus {
   display: flex;
   justify-content: center;
 }
+
+.login__user-password-error,
+.login__user-email-error {
+  position: absolute;
+  box-shadow: 0 0 5px 1px red; 
+}
+
+.login__user-password-error.hidden,
+.login__user-email-error.hidden {
+  opacity: 0;
+}
