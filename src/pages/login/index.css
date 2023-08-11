@@ -8,23 +8,23 @@
   justify-content: center;
 }
 
-.login__button {
+.login__button,
+.login__password-check-box {
   cursor: pointer;
 }
 
-.login__user-email {
-  border-radius: 5px;
-}
-
+.login__user-email,
 .login__user-password {
   border-radius: 5px;
 }
 
-.login__user-password.correct {
+.login__user-password.correct,
+.login__user-email.correct {
   box-shadow: 0 0 5px 1px green;
 }
 
-.login__user-password.incorrect {
+.login__user-password.incorrect,
+.login__user-email.incorrect {
   box-shadow: 0 0 5px 1px red;
 }
 
@@ -32,6 +32,7 @@ input:focus {
   outline: 0;
 }
 
-input:invalid {
-  box-shadow: 0 0 5px 1px red;
+.login__password-check-box-block {
+  display: flex;
+  justify-content: center;
 }
