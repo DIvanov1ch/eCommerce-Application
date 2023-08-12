@@ -1,16 +1,31 @@
 .login__form {
   margin: auto;
-  width: 20vw;
+  width: 30vw;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   align-items: center;
   justify-content: center;
+  border: solid 2px green;
+  padding-bottom: 10px;
+}
+
+.login__heading {
+  padding-bottom: 10px;
 }
 
 .login__button,
 .login__password-check-box {
   cursor: pointer;
+}
+
+.login__button {
+  box-shadow: 0 0 5px 1px green;
+  pointer-events: all;
+}
+
+.login__button.inactive {
+  pointer-events: none;
+  box-shadow: 0 0 5px 1px red;
 }
 
 .login__user-email,
@@ -35,15 +50,28 @@ input:focus {
 .login__password-check-box-block {
   display: flex;
   justify-content: center;
+  padding-bottom: 10px;
 }
 
 .login__user-password-error,
 .login__user-email-error {
-  position: absolute;
-  box-shadow: 0 0 5px 1px red; 
+  margin-top: 10px;
+  box-shadow: 0 0 5px 1px red;
+  font-weight: bold;
 }
 
 .login__user-password-error.hidden,
 .login__user-email-error.hidden {
+  margin-top: 10px;
   opacity: 0;
+}
+
+.login__pasword-block,
+.login__email-block {
+  margin-bottom: 10px;
+  position: relative;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

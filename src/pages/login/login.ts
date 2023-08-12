@@ -1,16 +1,19 @@
 import './index.css';
 import { EmailRules, PasswordRules } from '../../types/enum';
+import emailPattern from '../../constants/pattern';
 
 export default class Login {
-  private static hasCorrectLength: boolean;
+  private static hasCorrectLengthPassword: boolean;
 
-  private static hasLowerAndUpperCaseLetters: boolean;
+  private static hasLowerAndUpperCaseLettersPassword: boolean;
 
-  private static hasNumbers: boolean;
+  private static hasNumbersPassword: boolean;
 
-  private static hasSpecialSymbols: boolean;
+  private static hasSpecialSymbolsPassword: boolean;
 
-  private static createPasswordBlocks = (parentElement: HTMLElement): void => {
+  private static isCreated: boolean;
+
+  private static createPasswordBlock = (parentElement: HTMLElement): void => {
     const passwordBlock = document.createElement('div');
     passwordBlock.classList.add('login__pasword-block');
     const inputUserPassword = document.createElement('input');
@@ -37,13 +40,7 @@ export default class Login {
     checkBoxPasswordBlock.append(inputShowOrHidePasswordCheckBox);
   };
 
-  private static createHTMLCode = (): void => {
-    const body = document.querySelector('body') as HTMLElement;
-    const loginForm = document.createElement('form');
-    loginForm.classList.add('login__form');
-    const loginFormHeading = document.createElement('H2');
-    loginFormHeading.classList.add('login__heading');
-    loginFormHeading.innerText = 'Login';
+  private static createEmailBlock = (parentElement: HTMLElement): void => {
     const emailBlock = document.createElement('div');
     emailBlock.classList.add('login__email-block');
     const inputUserEmail = document.createElement('input');
@@ -51,17 +48,35 @@ export default class Login {
     inputUserEmail.setAttribute('placeholder', 'User email');
     const errorBlockForEmail = document.createElement('div');
     errorBlockForEmail.classList.add('login__user-email-error');
+    errorBlockForEmail.innerText = 'error';
     errorBlockForEmail.classList.add('hidden');
+    parentElement.append(emailBlock);
+    emailBlock.append(inputUserEmail);
+    emailBlock.append(errorBlockForEmail);
+  };
+
+  private static createSubmitBlock = (parentElement: HTMLElement): void => {
     const inputLoginFormSubmit = document.createElement('input');
     inputLoginFormSubmit.setAttribute('type', 'button');
     inputLoginFormSubmit.classList.add('login__button');
-    inputLoginFormSubmit.value = 'Login';
+    inputLoginFormSubmit.classList.add('inactive');
+    inputLoginFormSubmit.value = 'Enter';
+    parentElement.append(inputLoginFormSubmit);
+  };
+
+  private static createHTMLCode = (): void => {
+    const body = document.querySelector('body') as HTMLElement;
+    const loginForm = document.createElement('form');
+    loginForm.classList.add('login__form');
+    const loginFormHeading = document.createElement('H2');
+    loginFormHeading.classList.add('login__heading');
+    loginFormHeading.innerText = 'Login';
     body.append(loginForm);
     loginForm.append(loginFormHeading);
-    loginForm.append(emailBlock);
-    this.createPasswordBlocks(loginForm);
-    emailBlock.append(inputUserEmail);
-    loginForm.append(inputLoginFormSubmit);
+    this.createEmailBlock(loginForm);
+    this.createPasswordBlock(loginForm);
+    this.createSubmitBlock(loginForm);
+    this.isCreated = true;
   };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
@@ -70,17 +85,17 @@ export default class Login {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForPassword.classList.add('hidden');
-      this.hasCorrectLength = true;
+      this.hasCorrectLengthPassword = true;
     } else if (element.value.length < 8 && element.value.length > 0) {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
       errorBlockForPassword.innerText = PasswordRules.length;
-      this.hasCorrectLength = false;
+      this.hasCorrectLengthPassword = false;
     } else {
       element.classList.remove('incorrect');
       errorBlockForPassword.classList.add('hidden');
-      this.hasCorrectLength = false;
+      this.hasCorrectLengthPassword = false;
     }
   };
 
@@ -90,7 +105,7 @@ export default class Login {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForPassword.classList.add('hidden');
-      this.hasLowerAndUpperCaseLetters = true;
+      this.hasLowerAndUpperCaseLettersPassword = true;
     } else {
       if (element.value === element.value.toLowerCase()) {
         errorBlockForPassword.classList.remove('hidden');
@@ -102,7 +117,7 @@ export default class Login {
       }
       element.classList.remove('correct');
       element.classList.add('incorrect');
-      this.hasLowerAndUpperCaseLetters = false;
+      this.hasLowerAndUpperCaseLettersPassword = false;
     }
   };
 
@@ -112,13 +127,13 @@ export default class Login {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForPassword.classList.add('hidden');
-      this.hasNumbers = true;
+      this.hasNumbersPassword = true;
     } else {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
       errorBlockForPassword.innerText = PasswordRules.numbers;
-      this.hasNumbers = false;
+      this.hasNumbersPassword = false;
     }
   };
 
@@ -128,13 +143,13 @@ export default class Login {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForPassword.classList.add('hidden');
-      this.hasSpecialSymbols = true;
+      this.hasSpecialSymbolsPassword = true;
     } else {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
       errorBlockForPassword.innerText = PasswordRules.specialCharacters;
-      this.hasSpecialSymbols = false;
+      this.hasSpecialSymbolsPassword = false;
     }
   };
 
@@ -142,24 +157,22 @@ export default class Login {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
     const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
     if (!element.value.match(/^\s+|\s+$/g)) {
-      if (element.classList.contains('login__user-password')) {
-        errorBlockForPassword.classList.add('hidden');
-      }
       if (element.classList.contains('login__user-email')) {
         errorBlockForEmail.classList.add('hidden');
+      } else {
+        errorBlockForPassword.classList.add('hidden');
       }
       element.classList.add('correct');
       element.classList.remove('incorrect');
     } else {
       element.classList.remove('correct');
       element.classList.add('incorrect');
-      if (element.classList.contains('login__user-password')) {
-        errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerText = PasswordRules.noWhiteSpaces;
-      }
       if (element.classList.contains('login__user-email')) {
         errorBlockForEmail.classList.remove('hidden');
-        errorBlockForEmail.innerText = EmailRules.noWhiteSpaces;
+        errorBlockForEmail.innerText = EmailRules.noWhiteSpaceLeadingAndTrailing;
+      } else {
+        errorBlockForPassword.classList.remove('hidden');
+        errorBlockForPassword.innerText = PasswordRules.noWhiteSpacesLeadingOrTrailing;
       }
     }
   };
@@ -168,47 +181,72 @@ export default class Login {
     const inputUserPassword = document.querySelector('.login__user-password') as HTMLInputElement;
     inputUserPassword.addEventListener('input', (): void => {
       this.checkPasswordLength(inputUserPassword);
-      if (this.hasCorrectLength === true) {
+      if (this.hasCorrectLengthPassword === true) {
         this.checkPasswordForOneUpperOrLowerCaseLetter(inputUserPassword);
       }
-      if (this.hasCorrectLength === true && this.hasLowerAndUpperCaseLetters === true) {
+      if (this.hasCorrectLengthPassword === true && this.hasLowerAndUpperCaseLettersPassword === true) {
         this.checkPasswordForOneNumber(inputUserPassword);
       }
-      if (this.hasCorrectLength === true && this.hasLowerAndUpperCaseLetters === true && this.hasNumbers) {
+      if (
+        this.hasCorrectLengthPassword === true &&
+        this.hasLowerAndUpperCaseLettersPassword === true &&
+        this.hasNumbersPassword
+      ) {
         this.checkPasswordForSpecialSymbols(inputUserPassword);
       }
       if (
-        this.hasCorrectLength === true &&
-        this.hasLowerAndUpperCaseLetters === true &&
-        this.hasNumbers &&
-        this.hasSpecialSymbols
+        this.hasCorrectLengthPassword === true &&
+        this.hasLowerAndUpperCaseLettersPassword === true &&
+        this.hasNumbersPassword &&
+        this.hasSpecialSymbolsPassword
       ) {
         this.checkInputForWhiteSpaces(inputUserPassword);
       }
     });
   };
 
-  private static checkEmailForEmailSymbolAndDomains = (element: HTMLInputElement): void => {
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(element.value)) {
+  private static checkEmailForEmailSymbolDomainsAndFormat = (element: HTMLInputElement): void => {
+    const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
+    if (emailPattern.test(element.value)) {
       element.classList.add('correct');
       element.classList.remove('incorrect');
+      errorBlockForEmail.classList.add('hidden');
     } else {
       element.classList.remove('correct');
       element.classList.add('incorrect');
+      errorBlockForEmail.classList.remove('hidden');
+      errorBlockForEmail.innerText = EmailRules.domain;
+      if (!element.value.match('@')) {
+        errorBlockForEmail.innerText = EmailRules.emailSymbol;
+      }
+      if (element.value.match(' ')) {
+        errorBlockForEmail.innerText = EmailRules.noWhitespaces;
+      }
+      if (element.value.match(/[А-ЯЁа-яё]/)) {
+        errorBlockForEmail.innerText = EmailRules.englishAlphaphet;
+      }
+      if (element.value.match(/[A-Z]/)) {
+        errorBlockForEmail.innerText = EmailRules.lowerCase;
+      }
+      if (element.value.split('').filter((el) => el === '@').length > 1) {
+        errorBlockForEmail.innerText = EmailRules.emailContainsTwoEmailSymbols;
+      }
     }
   };
 
   private static checkEmailValidation = (): void => {
     const inputUserEmail = document.querySelector('.login__user-email') as HTMLInputElement;
+    const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
     inputUserEmail.addEventListener('input', (): void => {
       if (inputUserEmail.value.length > 0) {
         this.checkInputForWhiteSpaces(inputUserEmail);
         if (inputUserEmail.classList.contains('correct')) {
-          this.checkEmailForEmailSymbolAndDomains(inputUserEmail);
+          this.checkEmailForEmailSymbolDomainsAndFormat(inputUserEmail);
         }
       } else {
         inputUserEmail.classList.remove('correct');
         inputUserEmail.classList.remove('incorrect');
+        errorBlockForEmail.classList.add('hidden');
       }
     });
   };
@@ -229,10 +267,39 @@ export default class Login {
     });
   };
 
+  private static activateOrDeactivateSubmit = (): void => {
+    const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
+    const inputUserEmail = document.querySelector('.login__user-email') as HTMLInputElement;
+    const inputUserPassword = document.querySelector('.login__user-password') as HTMLInputElement;
+    inputUserEmail.addEventListener('input', (): void => {
+      if (inputUserEmail.classList.contains('correct') && inputUserPassword.classList.contains('correct')) {
+        inputLoginFormSubmit.classList.remove('inactive');
+      } else {
+        inputLoginFormSubmit.classList.add('inactive');
+      }
+    });
+    inputUserPassword.addEventListener('input', (): void => {
+      if (inputUserEmail.classList.contains('correct') && inputUserPassword.classList.contains('correct')) {
+        inputLoginFormSubmit.classList.remove('inactive');
+      } else {
+        inputLoginFormSubmit.classList.add('inactive');
+      }
+    });
+  };
+
   public static create = (): void => {
     this.createHTMLCode();
     this.checkPasswordValidation();
     this.checkEmailValidation();
     this.showOrHidePassword();
+    this.activateOrDeactivateSubmit();
+  };
+
+  public static delete = (): void => {
+    const loginForm = document.querySelector('.login__form') as HTMLElement;
+    if (this.isCreated === true) {
+      this.isCreated = false;
+      loginForm?.remove();
+    }
   };
 }

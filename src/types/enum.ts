@@ -1,8 +1,12 @@
 export enum EmailRules {
-  format = 'Email address must be properly formatted',
-  noWhiteSpaces = 'Email address must not contain leading or trailing whitespace',
-  domain = 'Email address must contain a domain name',
-  emailSymbol = 'Email address must contain an @ symbol separating local part and domain name',
+  format = 'Emai address wrong format',
+  noWhitespaces = 'Email address must not contain whitespaces',
+  lowerCase = 'Email address must contain only lowercase letters',
+  englishAlphaphet = 'Email address must contain only english letters',
+  noWhiteSpaceLeadingAndTrailing = 'Email address must not contain leading or trailing whitespace',
+  domain = 'Email address must contain a right domain name (top with at least two characters)',
+  emailSymbol = 'Email address must contain @ symbol separating local part and domain name',
+  emailContainsTwoEmailSymbols = 'Email address must not contain two or more @ symbols',
 }
 
 export enum PasswordRules {
@@ -11,5 +15,5 @@ export enum PasswordRules {
   lowerCaseLetter = 'Password must contain at least one lowercase letter (a-z)',
   numbers = 'Password must contain at least one digit (0-9)',
   specialCharacters = 'Password must contain at least one special character (e.g., !@#$%^&*)',
-  noWhiteSpaces = 'Password must not contain leading or trailing whitespace',
+  noWhiteSpacesLeadingOrTrailing = 'Password must not contain leading or trailing whitespace',
 }
