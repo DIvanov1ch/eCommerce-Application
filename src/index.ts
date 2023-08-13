@@ -1,3 +1,3 @@
-import Login from './pages/login/login';
+import LoginPage from './pages/loginPage/login';
 
-Login.create();
+LoginPage.render(document.body);

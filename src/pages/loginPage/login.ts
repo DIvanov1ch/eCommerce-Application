@@ -2,7 +2,7 @@ import './index.css';
 import { EmailRules, PasswordRules } from '../../types/enum';
 import emailPattern from '../../constants/pattern';
 
-export default class Login {
+export default class LoginPage {
   private static hasCorrectLengthPassword: boolean;
 
   private static hasLowerAndUpperCaseLettersPassword: boolean;
@@ -64,14 +64,13 @@ export default class Login {
     parentElement.append(inputLoginFormSubmit);
   };
 
-  private static createHTMLCode = (): void => {
-    const body = document.querySelector('body') as HTMLElement;
+  private static createHTMLCode = (elementToAppend: HTMLElement): void => {
     const loginForm = document.createElement('form');
     loginForm.classList.add('login__form');
     const loginFormHeading = document.createElement('H2');
     loginFormHeading.classList.add('login__heading');
     loginFormHeading.innerText = 'Login';
-    body.append(loginForm);
+    elementToAppend.append(loginForm);
     loginForm.append(loginFormHeading);
     this.createEmailBlock(loginForm);
     this.createPasswordBlock(loginForm);
@@ -257,7 +256,6 @@ export default class Login {
     const inputShowOrHidePasswordLabel = document.querySelector('.login__password-check-box-label') as HTMLElement;
     inputShowOrHidePassword.addEventListener('click', (): void => {
       if (inputUserPassword.getAttribute('type') === 'password') {
-        console.log(inputShowOrHidePasswordLabel);
         inputUserPassword.setAttribute('type', 'text');
         inputShowOrHidePasswordLabel.innerText = 'Hide password';
       } else {
@@ -287,12 +285,13 @@ export default class Login {
     });
   };
 
-  public static create = (): void => {
-    this.createHTMLCode();
+  public static render = (elementToAppend: HTMLElement): void => {
+    this.createHTMLCode(elementToAppend);
     this.checkPasswordValidation();
     this.checkEmailValidation();
     this.showOrHidePassword();
     this.activateOrDeactivateSubmit();
+    this.isCreated = true;
   };
 
   public static delete = (): void => {
