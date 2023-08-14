@@ -1,0 +1,77 @@
+.login__form {
+  margin: auto;
+  width: 30vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: solid 2px green;
+  padding-bottom: 10px;
+}
+
+.login__heading {
+  padding-bottom: 10px;
+}
+
+.login__button,
+.login__password-check-box {
+  cursor: pointer;
+}
+
+.login__button {
+  box-shadow: 0 0 5px 1px green;
+  pointer-events: all;
+}
+
+.login__button.inactive {
+  pointer-events: none;
+  box-shadow: 0 0 5px 1px red;
+}
+
+.login__user-email,
+.login__user-password {
+  border-radius: 5px;
+}
+
+.login__user-password.correct,
+.login__user-email.correct {
+  box-shadow: 0 0 5px 1px green;
+}
+
+.login__user-password.incorrect,
+.login__user-email.incorrect {
+  box-shadow: 0 0 5px 1px red;
+}
+
+input:focus {
+  outline: 0;
+}
+
+.login__password-check-box-block {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.login__user-password-error,
+.login__user-email-error {
+  margin-top: 10px;
+  box-shadow: 0 0 5px 1px red;
+  font-weight: bold;
+}
+
+.login__user-password-error.hidden,
+.login__user-email-error.hidden {
+  margin-top: 10px;
+  opacity: 0;
+}
+
+.login__pasword-block,
+.login__email-block {
+  margin-bottom: 10px;
+  position: relative;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
