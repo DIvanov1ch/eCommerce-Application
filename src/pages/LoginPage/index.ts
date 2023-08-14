@@ -219,7 +219,7 @@ export default class LoginPage extends HTMLElement {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     const inputUserEmail = document.querySelector('.login__user-email') as HTMLInputElement;
     const inputUserPassword = document.querySelector('.login__user-password') as HTMLInputElement;
-    inputUserEmail.addEventListener('input', (): void => {
+    const checkCorrectnessOfInputsAndStoreIt = (): void => {
       if (inputUserEmail.classList.contains('correct') && inputUserPassword.classList.contains('correct')) {
         inputLoginFormSubmit.classList.remove('inactive');
         this.userEmail = inputUserEmail.value;
@@ -227,15 +227,12 @@ export default class LoginPage extends HTMLElement {
       } else {
         inputLoginFormSubmit.classList.add('inactive');
       }
+    };
+    inputUserEmail.addEventListener('input', (): void => {
+      checkCorrectnessOfInputsAndStoreIt();
     });
     inputUserPassword.addEventListener('input', (): void => {
-      if (inputUserEmail.classList.contains('correct') && inputUserPassword.classList.contains('correct')) {
-        inputLoginFormSubmit.classList.remove('inactive');
-        this.userEmail = inputUserEmail.value;
-        this.userPassword = inputUserEmail.value;
-      } else {
-        inputLoginFormSubmit.classList.add('inactive');
-      }
+      checkCorrectnessOfInputsAndStoreIt();
     });
   };
 }
