@@ -1,5 +1,5 @@
 export enum EmailRules {
-  format = 'Emai address wrong format',
+  format = 'Email address wrong format',
   noWhitespaces = 'Email address must not contain whitespaces',
   lowerCase = 'Email address must contain only lowercase letters',
   englishAlphaphet = 'Email address must contain only english letters',
