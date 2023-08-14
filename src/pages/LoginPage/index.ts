@@ -1,6 +1,8 @@
 import html from './login.html';
 import './login.scss';
 import createTemplate from '../../utils';
+import { EmailRules, PasswordRules } from '../../types/enums';
+import emailPattern from '../../constants/pattern';
 
 const template = createTemplate(html);
 
@@ -8,14 +10,12 @@ export default class LoginPage extends HTMLElement {
   private connectedCallback(): void {
     const content = template.content.cloneNode(true);
     this.append(content);
+    LoginPage.checkPasswordValidation();
+    LoginPage.checkEmailValidation();
+    LoginPage.showOrHidePassword();
+    LoginPage.activateOrDeactivateSubmit();
   }
-}
 
-/* import { EmailRules, PasswordRules } from '../../types/enum';
-import emailPattern from '../../constants/pattern';
-import CLIENT_AUTORIZATION from '../../utils/login/clientLogin';
-
-export default class LoginPage {
   private static hasCorrectLengthPassword: boolean;
 
   private static hasLowerAndUpperCaseLettersPassword: boolean;
@@ -24,76 +24,9 @@ export default class LoginPage {
 
   private static hasSpecialSymbolsPassword: boolean;
 
-  private static isCreated: boolean;
-
   private static userPassword: string;
 
   private static userEmail: string;
-
-  private static createPasswordBlock = (parentElement: HTMLElement): void => {
-    const passwordBlock = document.createElement('div');
-    passwordBlock.classList.add('login__pasword-block');
-    const inputUserPassword = document.createElement('input');
-    inputUserPassword.setAttribute('type', 'password');
-    inputUserPassword.setAttribute('placeholder', 'User password');
-    inputUserPassword.classList.add('login__user-password');
-    const errorBlockForPassword = document.createElement('div');
-    errorBlockForPassword.classList.add('login__user-password-error');
-    errorBlockForPassword.classList.add('hidden');
-    errorBlockForPassword.innerText = 'error';
-    const checkBoxPasswordBlock = document.createElement('div');
-    checkBoxPasswordBlock.classList.add('login__password-check-box-block');
-    const inputShowOrHidePasswordLabel = document.createElement('label');
-    inputShowOrHidePasswordLabel.classList.add('login__password-check-box-label');
-    inputShowOrHidePasswordLabel.innerText = 'Show password';
-    const inputShowOrHidePasswordCheckBox = document.createElement('input');
-    inputShowOrHidePasswordCheckBox.setAttribute('type', 'checkbox');
-    inputShowOrHidePasswordCheckBox.classList.add('login__password-check-box');
-    parentElement.append(passwordBlock);
-    passwordBlock.append(inputUserPassword);
-    passwordBlock.append(errorBlockForPassword);
-    parentElement.append(checkBoxPasswordBlock);
-    checkBoxPasswordBlock.append(inputShowOrHidePasswordLabel);
-    checkBoxPasswordBlock.append(inputShowOrHidePasswordCheckBox);
-  };
-
-  private static createEmailBlock = (parentElement: HTMLElement): void => {
-    const emailBlock = document.createElement('div');
-    emailBlock.classList.add('login__email-block');
-    const inputUserEmail = document.createElement('input');
-    inputUserEmail.classList.add('login__user-email');
-    inputUserEmail.setAttribute('placeholder', 'User email');
-    const errorBlockForEmail = document.createElement('div');
-    errorBlockForEmail.classList.add('login__user-email-error');
-    errorBlockForEmail.innerText = 'error';
-    errorBlockForEmail.classList.add('hidden');
-    parentElement.append(emailBlock);
-    emailBlock.append(inputUserEmail);
-    emailBlock.append(errorBlockForEmail);
-  };
-
-  private static createSubmitBlock = (parentElement: HTMLElement): void => {
-    const inputLoginFormSubmit = document.createElement('input');
-    inputLoginFormSubmit.setAttribute('type', 'button');
-    inputLoginFormSubmit.classList.add('login__button');
-    inputLoginFormSubmit.classList.add('inactive');
-    inputLoginFormSubmit.value = 'Enter';
-    parentElement.append(inputLoginFormSubmit);
-  };
-
-  private static createHTMLCode = (elementToAppend: HTMLElement): void => {
-    const loginForm = document.createElement('form');
-    loginForm.classList.add('login__form');
-    const loginFormHeading = document.createElement('H2');
-    loginFormHeading.classList.add('login__heading');
-    loginFormHeading.innerText = 'Login';
-    elementToAppend.append(loginForm);
-    loginForm.append(loginFormHeading);
-    this.createEmailBlock(loginForm);
-    this.createPasswordBlock(loginForm);
-    this.createSubmitBlock(loginForm);
-    this.isCreated = true;
-  };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
@@ -305,42 +238,4 @@ export default class LoginPage {
       }
     });
   };
-
-  private static async login() {
-    return fetch('https://auth.europe-west1.gcp.commercetools.com/oauth/trialversion2023/customers/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${CLIENT_AUTORIZATION}`,
-      },
-      body: `grant_type=password&username=example@example.com&password=secretsecret&scope=view_published_products:trialversion2023 manage_my_orders:trialversion2023 manage_my_profile:trialversion2023`,
-    })
-      .then((resp) => resp.json())
-      .then((data) => console.log('token', data));
-  }
-
-  private static submitAction = (): void => {
-    const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
-    inputLoginFormSubmit.addEventListener('click', (): void => {
-      this.login();
-    });
-  };
-
-  public static render = (elementToAppend: HTMLElement): void => {
-    this.createHTMLCode(elementToAppend);
-    this.checkPasswordValidation();
-    this.checkEmailValidation();
-    this.showOrHidePassword();
-    this.activateOrDeactivateSubmit();
-    this.submitAction();
-    this.isCreated = true;
-  };
-
-  public static delete = (): void => {
-    const loginForm = document.querySelector('.login__form') as HTMLElement;
-    if (this.isCreated === true) {
-      this.isCreated = false;
-      loginForm?.remove();
-    }
-  };
-} */
+}
