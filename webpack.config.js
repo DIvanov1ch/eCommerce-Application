@@ -43,6 +43,10 @@ const config = {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: 'asset',
       },
+      {
+        test: /\.html$/i,
+        use: ['html-loader'],
+      },
     ],
   },
   resolve: {
@@ -55,7 +59,10 @@ module.exports = () => {
     config.mode = 'production';
     config.plugins.push(new MiniCssExtractPlugin());
   } else {
-    config.mode = 'development';
+    Object.assign(config, {
+      mode: 'development',
+      devtool: 'inline-source-map',
+    });
   }
   return config;
 };

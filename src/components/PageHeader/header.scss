@@ -1,0 +1,15 @@
+.header {
+  background: rgb(241, 220, 220);
+}
+
+.nav {
+  padding: 1em;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1em;
+}
