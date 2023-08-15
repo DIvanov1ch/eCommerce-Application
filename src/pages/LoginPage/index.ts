@@ -1,15 +1,16 @@
 import html from './login.html';
 import './login.scss';
-import createTemplate from '../../utils';
+import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../types/enums';
 import emailPattern from '../../constants/pattern';
 
-const template = createTemplate(html);
+export default class LoginPage extends Page {
+  constructor() {
+    super(html);
+  }
 
-export default class LoginPage extends HTMLElement {
-  private connectedCallback(): void {
-    const content = template.content.cloneNode(true);
-    this.append(content);
+  protected connectedCallback(): void {
+    super.connectedCallback();
     LoginPage.checkPasswordValidation();
     LoginPage.checkEmailValidation();
     LoginPage.showOrHidePassword();
