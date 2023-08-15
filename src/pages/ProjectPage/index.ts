@@ -1,14 +1,15 @@
 import './project.scss';
 import html from './project.html';
-import createTemplate from '../../utils';
 import { getProject } from '../../services/API';
+import Page from '../Page';
 
-const template = createTemplate(html);
+export default class ProjectPage extends Page {
+  constructor() {
+    super(html);
+  }
 
-export default class ProjectPage extends HTMLElement {
-  private connectedCallback(): void {
-    const content = template.content.cloneNode(true);
-    this.append(content);
+  protected connectedCallback(): void {
+    super.connectedCallback();
     this.showProjectInfo();
   }
 

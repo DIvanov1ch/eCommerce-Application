@@ -1,12 +1,13 @@
 import './error.scss';
 import html from './error.html';
-import createTemplate from '../../utils';
+import Page from '../Page';
 
-const template = createTemplate(html);
+export default class ErrorPage extends Page {
+  constructor() {
+    super(html);
+  }
 
-export default class ErrorPage extends HTMLElement {
-  private connectedCallback(): void {
-    const content = template.content.cloneNode(true);
-    this.append(content);
+  protected connectedCallback(): void {
+    super.connectedCallback();
   }
 }
