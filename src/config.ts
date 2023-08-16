@@ -17,3 +17,5 @@ export const API_SCOPES = [
   'manage_my_orders',
   'view_project_settings',
 ];
+
+export const APP_NAME = 'eComm';

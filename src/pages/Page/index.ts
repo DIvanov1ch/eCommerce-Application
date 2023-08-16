@@ -1,16 +1,16 @@
-import createTemplate from '../../utils';
+import BaseComponent from '../../components/BaseComponent';
+import { APP_NAME } from '../../config';
 
-export default class Page extends HTMLElement {
-  #html: string;
+export default class Page extends BaseComponent {
+  #pageTitle: string;
 
-  constructor(html: string) {
-    super();
-    this.#html = html;
+  constructor(html: string, title = '') {
+    super(html);
+    this.#pageTitle = title;
   }
 
   protected connectedCallback(): void {
-    const template = createTemplate(this.#html);
-    const content = template.content.cloneNode(true);
-    this.append(content);
+    super.connectedCallback();
+    document.title = [APP_NAME, this.#pageTitle].filter((e) => e).join(': ');
   }
 }

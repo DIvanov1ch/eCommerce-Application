@@ -1,6 +1,6 @@
 import html from './login.html';
 import './login.scss';
-import createTemplate from '../../utils';
+import { createTemplate } from '../../utils';
 import { EmailRules, PasswordRules } from '../../types/enums';
 import emailPattern from '../../constants/pattern';
 
