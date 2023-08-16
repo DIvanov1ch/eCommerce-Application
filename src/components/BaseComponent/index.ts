@@ -24,4 +24,8 @@ export default class BaseComponent extends HTMLElement {
   protected $$<TagName extends string>(selector: string): HtmlElementFromTagName<TagName>[] {
     return [...this.querySelectorAll<HtmlElementFromTagName<TagName>>(selector)];
   }
+
+  public clear(): void {
+    [...this.children].forEach((node) => node.remove());
+  }
 }

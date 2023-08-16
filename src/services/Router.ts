@@ -1,6 +1,6 @@
-export default class Router {
-  #start = '/';
+import PageMain from '../components/PageMain';
 
+class Router {
   #routes: Record<string, string> = {
     '': 'home-page',
     login: 'login-page',
@@ -10,13 +10,11 @@ export default class Router {
     'test-logout': 'test-logout-page',
   };
 
-  #main: HTMLElement | null;
-
-  constructor() {
-    this.#main = document.querySelector('page-main');
-  }
+  #main!: PageMain | null;
 
   public init(): void {
+    this.#main = document.querySelector('page-main');
+
     window.addEventListener('hashchange', () => {
       this.go(window.location.hash);
     });
@@ -37,19 +35,12 @@ export default class Router {
   }
 
   private render(page: string): void {
-    if (!this.#main) {
-      return;
-    }
-
     this.clear();
-    this.#main.append(document.createElement(page));
+    this.#main?.append(document.createElement(page));
   }
 
   private clear(): void {
-    if (!this.#main) {
-      return;
-    }
-    [...this.#main.children].forEach((child) => child.remove());
+    this.#main?.clear();
   }
 
   private errorPage(): void {
@@ -57,3 +48,5 @@ export default class Router {
     this.render('error-page');
   }
 }
+
+export default new Router();
