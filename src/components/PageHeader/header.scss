@@ -1,5 +1,8 @@
 .header {
   background: rgb(241, 220, 220);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .nav {

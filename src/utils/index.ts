@@ -23,3 +23,8 @@ export function createTemplate(html: string): HTMLTemplateElement {
   template.innerHTML = html.trim();
   return template;
 }
+
+export function dispatch<T>(type: string, detail?: T): void {
+  const event = new CustomEvent<T>(type, { detail });
+  window.dispatchEvent(event);
+}

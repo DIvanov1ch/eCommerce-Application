@@ -1,5 +1,23 @@
+import { dispatch } from '../utils';
+
 const Store = {
-  currentPage: '/',
+  user: {
+    loggedIn: false,
+  },
 };
 
-export default Store;
+type Keys = keyof typeof Store;
+type Values = (typeof Store)[Keys];
+
+const proxiedStore = new Proxy(Store, {
+  set(_, property: Keys, value: Values): boolean {
+    Store[property] = value;
+
+    if (property === 'user') {
+      dispatch('userchange');
+    }
+    return true;
+  },
+});
+
+export default proxiedStore;

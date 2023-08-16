@@ -1,3 +1,4 @@
+import { HtmlElementFromTagName } from '../../types/elements';
 import { createTemplate } from '../../utils';
 
 export default class BaseComponent extends HTMLElement {
@@ -14,5 +15,13 @@ export default class BaseComponent extends HTMLElement {
       const content = template.content.cloneNode(true);
       this.append(content);
     }
+  }
+
+  protected $<TagName extends string>(selector: string): HtmlElementFromTagName<TagName> | null {
+    return this.querySelector(selector);
+  }
+
+  protected $$<TagName extends string>(selector: string): HtmlElementFromTagName<TagName>[] {
+    return [...this.querySelectorAll<HtmlElementFromTagName<TagName>>(selector)];
   }
 }

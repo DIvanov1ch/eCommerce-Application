@@ -6,6 +6,8 @@ export default class Router {
     login: 'login-page',
     registration: 'registration-page',
     project: 'project-page',
+    'test-login': 'test-login-page',
+    'test-logout': 'test-logout-page',
   };
 
   #main: HTMLElement | null;
