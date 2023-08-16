@@ -3,6 +3,7 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../types/enums';
 import emailPattern from '../../constants/pattern';
+import { login } from '../../services/API';
 
 export default class LoginPage extends Page {
   constructor() {
@@ -15,6 +16,7 @@ export default class LoginPage extends Page {
     LoginPage.checkEmailValidation();
     LoginPage.showOrHidePassword();
     LoginPage.activateOrDeactivateSubmit();
+    LoginPage.submitAction();
   }
 
   private static hasCorrectLengthPassword: boolean;
@@ -28,6 +30,14 @@ export default class LoginPage extends Page {
   private static userPassword: string;
 
   private static userEmail: string;
+
+  public static getPassword = (): string => {
+    return this.userPassword || '';
+  };
+
+  public static getEmail = (): string => {
+    return this.userEmail || '';
+  };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
@@ -224,7 +234,7 @@ export default class LoginPage extends Page {
       if (inputUserEmail.classList.contains('correct') && inputUserPassword.classList.contains('correct')) {
         inputLoginFormSubmit.classList.remove('inactive');
         this.userEmail = inputUserEmail.value;
-        this.userPassword = inputUserEmail.value;
+        this.userPassword = inputUserPassword.value;
       } else {
         inputLoginFormSubmit.classList.add('inactive');
       }
@@ -234,6 +244,30 @@ export default class LoginPage extends Page {
     });
     inputUserPassword.addEventListener('input', (): void => {
       checkCorrectnessOfInputsAndStoreIt();
+    });
+  };
+
+  private static showErrorOnLogin = (): void => {
+    const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
+    const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
+    errorBlockForEmail.classList.remove('hidden');
+    errorBlockForPassword.classList.remove('hidden');
+    errorBlockForEmail.innerText = 'Login Error';
+    errorBlockForPassword.innerText = 'Login Error';
+  };
+
+  private static submitAction = (): void => {
+    const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
+    inputLoginFormSubmit.addEventListener('click', (): void => {
+      login(this.getEmail(), this.getPassword())
+        .then(({ body }): void => {
+          console.log(body);
+        })
+        .catch((err: Error) => {
+          if (err.message === 'Customer account with the given credentials not found.') {
+            this.showErrorOnLogin();
+          }
+        });
     });
   };
 }
