@@ -28,3 +28,8 @@ export function dispatch<T>(type: string, detail?: T): void {
   const event = new CustomEvent<T>(type, { detail });
   window.dispatchEvent(event);
 }
+
+export const pause = (msec: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, msec, `pause ${msec}`);
+  });
