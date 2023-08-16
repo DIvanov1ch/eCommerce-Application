@@ -4,6 +4,7 @@ import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../types/enums';
 import emailPattern from '../../constants/pattern';
 import { login } from '../../services/API';
+import { errorAlert, errorMessages } from '../../types/errors';
 
 export default class LoginPage extends Page {
   constructor() {
@@ -29,7 +30,11 @@ export default class LoginPage extends Page {
 
   private static userPassword: string;
 
+  private static hasSubmitErrorMessage: boolean;
+
   private static userEmail: string;
+
+  private static isLogIn: boolean;
 
   public static getPassword = (): string => {
     return this.userPassword || '';
@@ -50,7 +55,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerText = PasswordRules.length;
+      errorBlockForPassword.innerHTML = PasswordRules.length + errorAlert;
       this.hasCorrectLengthPassword = false;
     } else {
       element.classList.remove('incorrect');
@@ -69,11 +74,11 @@ export default class LoginPage extends Page {
     } else {
       if (element.value === element.value.toLowerCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerText = PasswordRules.upperCaseLetter;
+        errorBlockForPassword.innerHTML = PasswordRules.upperCaseLetter + errorAlert;
       }
       if (element.value === element.value.toUpperCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerText = PasswordRules.lowerCaseLetter;
+        errorBlockForPassword.innerHTML = PasswordRules.lowerCaseLetter + errorAlert;
       }
       element.classList.remove('correct');
       element.classList.add('incorrect');
@@ -92,7 +97,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerText = PasswordRules.numbers;
+      errorBlockForPassword.innerHTML = PasswordRules.numbers + errorAlert;
       this.hasNumbersPassword = false;
     }
   };
@@ -108,7 +113,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerText = PasswordRules.specialCharacters;
+      errorBlockForPassword.innerHTML = PasswordRules.specialCharacters + errorAlert;
       this.hasSpecialSymbolsPassword = false;
     }
   };
@@ -129,10 +134,10 @@ export default class LoginPage extends Page {
       element.classList.add('incorrect');
       if (element.classList.contains('login__user-email')) {
         errorBlockForEmail.classList.remove('hidden');
-        errorBlockForEmail.innerText = EmailRules.noWhiteSpaceLeadingAndTrailing;
+        errorBlockForEmail.innerHTML = EmailRules.noWhiteSpaceLeadingAndTrailing + errorAlert;
       } else {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerText = PasswordRules.noWhiteSpacesLeadingOrTrailing;
+        errorBlockForPassword.innerHTML = PasswordRules.noWhiteSpacesLeadingOrTrailing + errorAlert;
       }
     }
   };
@@ -175,21 +180,21 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForEmail.classList.remove('hidden');
-      errorBlockForEmail.innerText = EmailRules.domain;
+      errorBlockForEmail.innerHTML = EmailRules.domain + errorAlert;
       if (!element.value.match('@')) {
-        errorBlockForEmail.innerText = EmailRules.emailSymbol;
+        errorBlockForEmail.innerHTML = EmailRules.emailSymbol + errorAlert;
       }
       if (element.value.match(' ')) {
-        errorBlockForEmail.innerText = EmailRules.noWhitespaces;
+        errorBlockForEmail.innerHTML = EmailRules.noWhitespaces + errorAlert;
       }
       if (element.value.match(/[А-ЯЁа-яё]/)) {
-        errorBlockForEmail.innerText = EmailRules.englishAlphaphet;
+        errorBlockForEmail.innerHTML = EmailRules.englishAlphaphet + errorAlert;
       }
       if (element.value.match(/[A-Z]/)) {
-        errorBlockForEmail.innerText = EmailRules.lowerCase;
+        errorBlockForEmail.innerHTML = EmailRules.lowerCase + errorAlert;
       }
       if (element.value.split('').filter((el) => el === '@').length > 1) {
-        errorBlockForEmail.innerText = EmailRules.emailContainsTwoEmailSymbols;
+        errorBlockForEmail.innerHTML = EmailRules.emailContainsTwoEmailSymbols + errorAlert;
       }
     }
   };
@@ -198,6 +203,7 @@ export default class LoginPage extends Page {
     const inputUserEmail = document.querySelector('.login__user-email') as HTMLInputElement;
     const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
     inputUserEmail.addEventListener('input', (): void => {
+      this.hideSubmitErrorMessage();
       if (inputUserEmail.value.length > 0) {
         this.checkInputForWhiteSpaces(inputUserEmail);
         if (inputUserEmail.classList.contains('correct')) {
@@ -247,13 +253,24 @@ export default class LoginPage extends Page {
     });
   };
 
-  private static showErrorOnLogin = (): void => {
-    const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
+  private static hideSubmitErrorMessage = (): void => {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
-    errorBlockForEmail.classList.remove('hidden');
+    if (this.hasSubmitErrorMessage === true) {
+      errorBlockForPassword.classList.add('hidden');
+      this.hasSubmitErrorMessage = false;
+    }
+  };
+
+  private static showErrorOnLogin = (errorMessage: string): void => {
+    const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
     errorBlockForPassword.classList.remove('hidden');
-    errorBlockForEmail.innerText = 'Login Error';
-    errorBlockForPassword.innerText = 'Login Error';
+    errorBlockForPassword.innerHTML = errorMessage + errorAlert;
+    this.hasSubmitErrorMessage = true;
+  };
+
+  private static showSuccessOnLogin = (customerId: string): void => {
+    this.isLogIn = true;
+    console.log(`Successful login for customer with Id ${customerId}`);
   };
 
   private static submitAction = (): void => {
@@ -261,11 +278,11 @@ export default class LoginPage extends Page {
     inputLoginFormSubmit.addEventListener('click', (): void => {
       login(this.getEmail(), this.getPassword())
         .then(({ body }): void => {
-          console.log(body);
+          this.showSuccessOnLogin(body.customer.id);
         })
-        .catch((err: Error) => {
-          if (err.message === 'Customer account with the given credentials not found.') {
-            this.showErrorOnLogin();
+        .catch((error: Error) => {
+          if (error.message === errorMessages.loginError) {
+            this.showErrorOnLogin(errorMessages.loginError);
           }
         });
     });
