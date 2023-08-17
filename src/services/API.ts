@@ -13,11 +13,14 @@ import {
   CustomerSignInResult,
 } from '@commercetools/platform-sdk';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
+import TokenClient from './Token';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
 const authHost = AUTH_HOST.replace('{region}', API_REGION);
 const apiHost = API_HOST.replace('{region}', API_REGION);
+
+const newToken = new TokenClient();
 
 const authMiddlewareOptions: AuthMiddlewareOptions = {
   host: authHost,
@@ -29,7 +32,11 @@ const authMiddlewareOptions: AuthMiddlewareOptions = {
 
 const httpMiddlewareOptions: HttpMiddlewareOptions = { host: apiHost, fetch };
 
-const getPasswordFlowOptions = (username: string, password: string): PasswordAuthMiddlewareOptions => {
+const getPasswordFlowOptions = (
+  username: string,
+  password: string,
+  token: TokenClient
+): PasswordAuthMiddlewareOptions => {
   return {
     host: authHost,
     projectKey,
@@ -41,6 +48,7 @@ const getPasswordFlowOptions = (username: string, password: string): PasswordAut
         password,
       },
     },
+    tokenCache: token,
     scopes,
     fetch,
   };
@@ -54,12 +62,15 @@ const ctpClient = new ClientBuilder()
 
 const apiRoot = createApiBuilderFromCtpClient(ctpClient).withProjectKey({ projectKey });
 
-const passwordFlowClient = (username: string, password: string): Client => {
+const passwordFlowClient = (username: string, password: string, token: TokenClient): Client => {
   const newCtpClient = new ClientBuilder()
-    .withPasswordFlow(getPasswordFlowOptions(username, password))
+    .withPasswordFlow(getPasswordFlowOptions(username, password, token))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
+  if (newToken.get().token !== '') {
+    console.log(`This is the token: ${newToken.get().token}`);
+  }
   return newCtpClient;
 };
 
@@ -73,7 +84,9 @@ const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>
 };
 
 const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
-  const newApiRoot = createApiBuilderFromCtpClient(passwordFlowClient(userEmail, userPassword)).withProjectKey({
+  const newApiRoot = createApiBuilderFromCtpClient(
+    passwordFlowClient(userEmail, userPassword, newToken)
+  ).withProjectKey({
     projectKey,
   });
   return newApiRoot
