@@ -2,7 +2,7 @@ import html from './login.html';
 import './login.scss';
 import createTemplate from '../../utils';
 import { EmailRules, PasswordRules } from '../../types/enums';
-import emailPattern from '../../constants/pattern';
+import Pattern from '../../constants/pattern';
 
 const template = createTemplate(html);
 
@@ -156,7 +156,7 @@ export default class LoginPage extends HTMLElement {
 
   private static checkEmailForEmailSymbolDomainsAndFormat = (element: HTMLInputElement): void => {
     const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
-    if (emailPattern.test(element.value)) {
+    if (Pattern.email.login.test(element.value)) {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForEmail.classList.add('hidden');
