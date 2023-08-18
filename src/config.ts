@@ -17,3 +17,4 @@ export const API_SCOPES = [
   'manage_my_orders',
   'view_project_settings',
 ];
+export const AGE_LIMIT = 13;
