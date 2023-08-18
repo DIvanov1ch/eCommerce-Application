@@ -18,6 +18,7 @@ export default class LoginPage extends Page {
     LoginPage.showOrHidePassword();
     LoginPage.activateOrDeactivateSubmit();
     LoginPage.submitAction();
+    LoginPage.goToRegistrationPage();
   }
 
   private static hasCorrectLengthPassword: boolean;
@@ -285,6 +286,13 @@ export default class LoginPage extends Page {
             this.showErrorOnLogin(errorMessages.loginError);
           }
         });
+    });
+  };
+
+  private static goToRegistrationPage = (): void => {
+    const buttonForRegistration = document.querySelector('.login__button.button_registration') as HTMLInputElement;
+    buttonForRegistration.addEventListener('click', (): void => {
+      window.location.href = '#registration';
     });
   };
 }
