@@ -1,9 +1,9 @@
 import './registration.scss';
 import html from './registration.html';
 import Page from '../Page';
-import { CssClasses } from '../../enums';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
+import CssClasses from './css-classes';
 
 export default class RegistrationPage extends Page {
   private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
@@ -29,6 +29,11 @@ export default class RegistrationPage extends Page {
     const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT}`);
     if (submitButton !== null) {
       submitButton.addEventListener('click', this.checkValuesBeforeSubmit.bind(this));
+    }
+
+    const form: HTMLFormElement | null = this.querySelector(`.${CssClasses.FORM}`);
+    if (form !== null) {
+      form.addEventListener('submit', (event: Event) => event.preventDefault());
     }
   }
 
@@ -61,11 +66,11 @@ export default class RegistrationPage extends Page {
   private setErrorMessages(): void {
     const invalidFields: HTMLInputElement[] = this.getInvalidFields();
     invalidFields.forEach((field: HTMLInputElement): void => {
-      const fieldClass: string = field.classList[1];
-      const errorBox: Element | null = document.querySelector(`.${CssClasses.ERROR}.${fieldClass}`);
+      const selector: string = field.id;
+      const errorBox: Element | null = this.querySelector(`.${CssClasses.ERROR}.${selector}`);
       const errorMessage: string = !field.value
-        ? ErrorMessages.EMPTY_FIELD[`${fieldClass}`]
-        : ErrorMessages.INVALID_VALUE[`${fieldClass}`];
+        ? ErrorMessages.EMPTY_FIELD[`${field.name}`]
+        : ErrorMessages.INVALID_VALUE[`${field.name}`];
       if (errorBox !== null) {
         errorBox.textContent = errorMessage;
       }

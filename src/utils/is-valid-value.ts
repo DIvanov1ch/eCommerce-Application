@@ -1,8 +1,7 @@
+import { AGE_LIMIT } from '../config';
 import Pattern from '../constants/pattern';
-import { InputID } from '../enums';
+import InputID from '../enums';
 import findCurrentAge from './find-current-age';
-
-const ageLimit: number = 13;
 
 export default function isValidValue(id: string, value: string): boolean {
   switch (id) {
@@ -10,11 +9,11 @@ export default function isValidValue(id: string, value: string): boolean {
     case InputID.LAST_NAME:
       return Pattern.name.test(value);
     case InputID.EMAIL:
-      return Pattern.email.registration.test(value);
+      return Pattern.email.test(value);
     case InputID.PASSWORD:
       return Pattern.password.test(value);
     case InputID.B_DAY:
-      return findCurrentAge(value) >= ageLimit;
+      return findCurrentAge(value) >= AGE_LIMIT;
     case InputID.STREET:
       return Pattern.street.test(value);
     case InputID.CITY:

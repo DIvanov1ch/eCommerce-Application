@@ -172,7 +172,7 @@ export default class LoginPage extends Page {
 
   private static checkEmailForEmailSymbolDomainsAndFormat = (element: HTMLInputElement): void => {
     const errorBlockForEmail = document.querySelector('.login__user-email-error') as HTMLElement;
-    if (Pattern.email.login.test(element.value)) {
+    if (Pattern.email.test(element.value)) {
       element.classList.add('correct');
       element.classList.remove('incorrect');
       errorBlockForEmail.classList.add('hidden');
