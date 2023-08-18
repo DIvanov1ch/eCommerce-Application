@@ -55,7 +55,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = PasswordRules.length + errorAlert;
+      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.length;
       this.hasCorrectLengthPassword = false;
     } else {
       element.classList.remove('incorrect');
@@ -74,11 +74,11 @@ export default class LoginPage extends Page {
     } else {
       if (element.value === element.value.toLowerCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = PasswordRules.upperCaseLetter + errorAlert;
+        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.upperCaseLetter;
       }
       if (element.value === element.value.toUpperCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = PasswordRules.lowerCaseLetter + errorAlert;
+        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.lowerCaseLetter;
       }
       element.classList.remove('correct');
       element.classList.add('incorrect');
@@ -97,7 +97,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = PasswordRules.numbers + errorAlert;
+      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.numbers;
       this.hasNumbersPassword = false;
     }
   };
@@ -113,7 +113,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = PasswordRules.specialCharacters + errorAlert;
+      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.specialCharacters;
       this.hasSpecialSymbolsPassword = false;
     }
   };
@@ -134,10 +134,10 @@ export default class LoginPage extends Page {
       element.classList.add('incorrect');
       if (element.classList.contains('login__user-email')) {
         errorBlockForEmail.classList.remove('hidden');
-        errorBlockForEmail.innerHTML = EmailRules.noWhiteSpaceLeadingAndTrailing + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.noWhiteSpaceLeadingAndTrailing;
       } else {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = PasswordRules.noWhiteSpacesLeadingOrTrailing + errorAlert;
+        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.noWhiteSpacesLeadingOrTrailing;
       }
     }
   };
@@ -157,7 +157,7 @@ export default class LoginPage extends Page {
         this.hasLowerAndUpperCaseLettersPassword === true &&
         this.hasNumbersPassword
       ) {
-        this.checkPasswordForSpecialSymbols(inputUserPassword);
+        // this.checkPasswordForSpecialSymbols(inputUserPassword);
       }
       if (
         this.hasCorrectLengthPassword === true &&
@@ -180,21 +180,21 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForEmail.classList.remove('hidden');
-      errorBlockForEmail.innerHTML = EmailRules.domain + errorAlert;
+      errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.domain;
       if (!element.value.match('@')) {
-        errorBlockForEmail.innerHTML = EmailRules.emailSymbol + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.emailSymbol;
       }
       if (element.value.match(' ')) {
-        errorBlockForEmail.innerHTML = EmailRules.noWhitespaces + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.noWhitespaces;
       }
       if (element.value.match(/[А-ЯЁа-яё]/)) {
-        errorBlockForEmail.innerHTML = EmailRules.englishAlphaphet + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.englishAlphaphet;
       }
       if (element.value.match(/[A-Z]/)) {
-        errorBlockForEmail.innerHTML = EmailRules.lowerCase + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.lowerCase;
       }
       if (element.value.split('').filter((el) => el === '@').length > 1) {
-        errorBlockForEmail.innerHTML = EmailRules.emailContainsTwoEmailSymbols + errorAlert;
+        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.emailContainsTwoEmailSymbols;
       }
     }
   };
@@ -264,7 +264,7 @@ export default class LoginPage extends Page {
   private static showErrorOnLogin = (errorMessage: string): void => {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
     errorBlockForPassword.classList.remove('hidden');
-    errorBlockForPassword.innerHTML = errorMessage + errorAlert;
+    errorBlockForPassword.innerHTML = errorAlert.firstAlert + errorMessage;
     this.hasSubmitErrorMessage = true;
   };
 

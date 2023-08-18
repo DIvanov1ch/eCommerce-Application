@@ -1,16 +1,23 @@
-<form class="login__form">
-  <h2 class="login__heading">Login</h2>
-  <div class="login__email-block">
-    <input class="login__user-email" placeholder="User email" />
-    <div class="login__user-email-error hidden">error</div>
-  </div>
-  <div class="login__pasword-block">
-    <input type="password" placeholder="User password" class="login__user-password" />
-    <div class="login__user-password-error hidden">error</div>
-  </div>
-  <div class="login__password-check-box-block">
-    <label class="login__password-check-box-label">Show password</label>
-    <input type="checkbox" class="login__password-check-box" />
-  </div>
-  <input type="button" class="login__button inactive" value="Enter" />
-</form>
+<div class="login__container">
+  <form class="login__form">
+    <h1 class="login__form-title">Login or signup</h1>
+    <div class="login__email-block">
+      <label class="login__email-block-label">Email</label>
+      <input class="login__user-email" placeholder="Enter your email (e.g. customer@custom.com)"/>
+      <div class="login__user-email-error hidden">error</div>
+    </div>
+    <div class="login__pasword-block">
+      <label class="login__pasword-block-label">Password</label>
+      <input type="password" class="login__user-password" placeholder="Enter your password (e.g. 5654Arga)"/>
+      <div class="login__user-password-error hidden">error</div>
+    </div>
+    <div class="login__password-check-box-block">
+      <label class="login__password-check-box-label">Show password</label>
+      <input type="checkbox" class="login__password-check-box" id="login__check-box"/>
+      <label for="login__check-box"></label>
+    </div>
+    <div class="login__submit-container">
+      <input type="button" class="login__button inactive" value="Login"/>
+    </div>
+  </form>
+</div>
