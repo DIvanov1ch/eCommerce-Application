@@ -1,6 +1,6 @@
 const ErrorMessages: { [key: string]: { [key: string]: string } } = {
   EMPTY_FIELD: {
-    forname: 'Enter first name',
+    forename: 'Enter first name',
     surname: 'Enter last name',
     email: 'Put your email',
     password: 'Minimum 8 characters required',
@@ -11,7 +11,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     country: 'Must be United States',
   },
   INVALID_VALUE: {
-    forname: 'Must not contain special characters or numbers',
+    forename: 'Must not contain special characters or numbers',
     surname: 'Must not contain special characters or numbers',
     email: 'Wrong or Invalid email address. Please correct and try again.',
     password: 'Must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and be 8 characters long',

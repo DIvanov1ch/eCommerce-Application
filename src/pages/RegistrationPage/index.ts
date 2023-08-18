@@ -21,9 +21,7 @@ export default class RegistrationPage extends Page {
   private setCallback(): void {
     this.fields.forEach((field: HTMLInputElement): void => {
       field.addEventListener('input', this.hideError.bind(this));
-    });
-    this.fields.forEach((field: HTMLInputElement): void => {
-      field.addEventListener('invalid', RegistrationPage.hideDefaultError.bind(this));
+      field.addEventListener('invalid', (event: Event) => event.preventDefault());
     });
 
     const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT}`);
@@ -57,10 +55,6 @@ export default class RegistrationPage extends Page {
         this.setErrorMessages();
       }
     }
-  }
-
-  private static hideDefaultError(event: Event): void {
-    event.preventDefault();
   }
 
   private setErrorMessages(): void {
