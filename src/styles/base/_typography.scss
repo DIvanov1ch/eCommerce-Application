@@ -1,0 +1,56 @@
+:root {
+  --ff-serif: 'Lora', serif;
+  --ff-sans-serif: 'Roboto', sans-serif;
+}
+
+body {
+  font-family: var(--ff-sans-serif);
+  font-smooth: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--ff-serif);
+}
+
+a {
+  color: var(--link-color);
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--link-hover-color);
+  }
+
+  &:active {
+    color: var(--link-active-color);
+  }
+}
+
+.header a {
+  color: var(--header-link-color);
+
+  &:hover {
+    color: var(--header-link-hover-color);
+  }
+
+  &:active {
+    color: var(--header-link-active-color);
+  }
+}
+
+.footer a {
+  color: var(--footer-link-color);
+
+  &:hover {
+    color: var(--footer-link-hover-color);
+  }
+
+  &:active {
+    color: var(--footer-link-active-color);
+  }
+}

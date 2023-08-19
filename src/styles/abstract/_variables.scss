@@ -1,4 +1,22 @@
 :root {
-  --page-bg: rgb(28, 31, 67);
-  --text-color: rgb(192, 207, 226);
+  --page-bg: #f6f6f6;
+  --text-color: #111111;
+
+  --header-bg: #333333;
+  --header-text-color: #ffffff;
+
+  --footer-bg: #333333;
+  --footer-text-color: #ffffff;
+
+  --link-color: #111111;
+  --link-hover-color: #333333;
+  --link-active-color: #666666;
+
+  --header-link-color: #ffffff;
+  --header-link-hover-color: #dddddd;
+  --header-link-active-color: #aaaaaa;
+
+  --footer-link-color: #ffffff;
+  --footer-link-hover-color: #dddddd;
+  --footer-link-active-color: #aaaaaa;
 }

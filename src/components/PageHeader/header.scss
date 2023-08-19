@@ -1,5 +1,7 @@
-.header {
-  background: rgb(241, 220, 220);
+page-header {
+  background: var(--header-bg);
+  color: var(--header-text-color);
+
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -21,11 +23,16 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 1em;
+
   &:before {
     width: 2em;
     height: 2em;
     margin-right: 0.5em;
     content: '';
-    background: url('../../assets/icons/slickdeals.svg');
+    background: url('../../assets/icons/logo.svg');
+    background-size: cover;
   }
 }
