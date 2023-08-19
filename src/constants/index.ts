@@ -4,7 +4,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     surname: 'Enter last name',
     email: 'Put your email',
     password: 'Minimum 8 characters required',
-    date: 'Put your B-day',
+    date: 'Put your Birthday',
     street: 'Put your street',
     city: 'Put your city',
     code: 'Put your postal code',

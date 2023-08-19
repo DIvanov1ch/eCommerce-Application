@@ -28,6 +28,7 @@ const authMiddlewareOptions: AuthMiddlewareOptions = {
   projectKey,
   credentials: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET },
   scopes,
+  tokenCache: newToken,
   fetch,
 };
 
@@ -106,7 +107,9 @@ const getClientCredentialsFlowClient = (): Client => {
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
-
+  if (newToken.get().token) {
+    console.log('Registration token -->', newToken.get().token);
+  }
   return clientCredentialsFlowClient;
 };
 

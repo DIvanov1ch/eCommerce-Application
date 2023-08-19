@@ -66,11 +66,20 @@
   display: flex;
 }
 
-.error-box__icon,
+.error-box__icon {
+  width: 15px;
+  height: 15px;
+  margin: 2px;
+  align-self: center;
+}
+
 .error-box__content {
   color: red;
   margin-right: 10px;
+  margin-left: 5px;
   font-size: 14px;
+  align-self: center;
+  letter-spacing: 0.02rem;
 }
 
 .date {

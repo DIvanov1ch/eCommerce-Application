@@ -10,6 +10,7 @@ import InputID from '../../enums';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
+import warningIcon from '../../assets/icons/warning-icon.png';
 
 export default class RegistrationPage extends Page {
   private isSignUp: boolean = false;
@@ -76,12 +77,15 @@ export default class RegistrationPage extends Page {
     const invalidFields: HTMLInputElement[] = this.getInvalidFields();
     invalidFields.forEach((field: HTMLInputElement): void => {
       const selector: string = field.id;
-      const errorBox: Element | null = this.querySelector(`.${CssClasses.ERROR}.${selector}`);
+      const errorImg: HTMLImageElement | null = this.querySelector(`.${CssClasses.ERROR_ICON}.${selector}`);
+      const errorContent: Element | null = this.querySelector(`.${CssClasses.ERROR_TEXT}.${selector}`);
       const errorMessage: string = !field.value
         ? ErrorMessages.EMPTY_FIELD[`${field.name}`]
         : ErrorMessages.INVALID_VALUE[`${field.name}`];
-      if (errorBox !== null) {
-        errorBox.textContent = errorMessage;
+      if (errorContent !== null && errorImg !== null) {
+        errorContent.textContent = errorMessage;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        errorImg.src = warningIcon;
       }
     });
   }
