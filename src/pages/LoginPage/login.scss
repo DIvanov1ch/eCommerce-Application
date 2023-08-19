@@ -4,7 +4,7 @@
 
 .login__container {
   width: 350px;
-  margin: 15px auto;
+  margin: 0 auto;
   color: black;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
@@ -116,7 +116,7 @@ input:focus {
   background-color: rgb(49, 189, 107);
 }
 
-.login__button {  
+.login__button {
   pointer-events: all;
 }
 
@@ -146,7 +146,7 @@ input:focus {
   height: 1em;
   flex-shrink: 0;
   flex-grow: 0;
-  border: 1px solid #adb5bd;  
+  border: 1px solid #adb5bd;
   margin-right: 0.5em;
   background-repeat: no-repeat;
   background-position: center center;
@@ -154,7 +154,7 @@ input:focus {
   cursor: pointer;
 }
 
-.login__password-check-box:checked + label::before {  
+.login__password-check-box:checked + label::before {
   background-image: url('../../assets/icons/eye.png');
   background-size: contain;
 }
