@@ -25,3 +25,7 @@ export const API_SCOPES = [
   'manage_my_orders',
 ];
 export const AGE_LIMIT = 13;
+export const ZipCodes = {
+  RANGE_START: 501,
+  RANGE_END: 99950,
+};

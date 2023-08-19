@@ -1,4 +1,4 @@
-import { AGE_LIMIT } from '../config';
+import { AGE_LIMIT, ZipCodes } from '../config';
 import Pattern from '../constants/pattern';
 import InputID from '../enums';
 import findCurrentAge from './find-current-age';
@@ -19,7 +19,11 @@ export default function isValidValue(id: string, value: string): boolean {
     case InputID.CITY:
       return Pattern.city.test(value);
     case InputID.ZIP_CODE:
-      return Pattern.zip.test(value);
+      return (
+        Pattern.zip.test(value) &&
+        parseInt(value, 10) >= ZipCodes.RANGE_START &&
+        parseInt(value, 10) <= ZipCodes.RANGE_END
+      );
     case InputID.COUNTRY:
       return Pattern.country.test(value);
     default:
