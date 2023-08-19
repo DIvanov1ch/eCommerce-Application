@@ -6,8 +6,9 @@ import { pause } from '../../utils';
 
 const REDIRECT_DELAY = 5000;
 const LOGGING_IN_TEXT = 'Logging in...';
+const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
 const SUCCESS_HTML = `
-<p>Success, you will be redirected to <a href="#">main page</a> in ${REDIRECT_DELAY / 1000} sec...</p>`;
+<p>Success, you will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`;
 
 function redirectToMain(): void {
   window.location.assign('#');
@@ -15,8 +16,6 @@ function redirectToMain(): void {
 
 export default class TestLoginPage extends Page {
   private button!: HTMLButtonElement | null;
-
-  private timeoutId = 0;
 
   constructor() {
     super(html);
@@ -35,10 +34,6 @@ export default class TestLoginPage extends Page {
     });
   }
 
-  private disconnectedCallback(): void {
-    window.clearTimeout(this.timeoutId);
-  }
-
   private async logIn(): Promise<void> {
     if (!this.button) {
       return;
@@ -49,12 +44,11 @@ export default class TestLoginPage extends Page {
 
     await pause(1000);
     Store.user = { loggedIn: true };
-
     this.innerHTML = SUCCESS_HTML;
-    await pause(REDIRECT_DELAY);
 
+    await pause(REDIRECT_DELAY);
     if (this.isConnected) {
-      this.timeoutId = window.setTimeout(redirectToMain, REDIRECT_DELAY);
+      redirectToMain();
     }
   }
 }
