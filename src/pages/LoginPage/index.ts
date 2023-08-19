@@ -157,7 +157,7 @@ export default class LoginPage extends Page {
         this.hasLowerAndUpperCaseLettersPassword === true &&
         this.hasNumbersPassword
       ) {
-        this.checkPasswordForSpecialSymbols(inputUserPassword);
+        // this.checkPasswordForSpecialSymbols(inputUserPassword);
       }
       if (
         this.hasCorrectLengthPassword === true &&

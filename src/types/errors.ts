@@ -1,5 +1,13 @@
 export const errorMessages = {
   loginError: 'Customer account with the given credentials not found.',
+  emailError: 'There is already an existing customer with the provided email.',
+  dataError: 'Request body does not contain valid JSON.',
+};
+
+export const ServerErrors = {
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
 };
 
 export const errorAlert = `  <svg fill="red" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
