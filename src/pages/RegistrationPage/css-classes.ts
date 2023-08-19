@@ -5,6 +5,10 @@ enum CssClasses {
   ERROR = 'error-box__content',
   SUBMIT = 'submit',
   HIDDEN = 'hidden',
+  POP_UP = 'registration__pop-up',
+  CONTAINER = 'pop-up__container',
+  ICON = 'pop-up__icon',
+  MESSAGE = 'pop-up__message',
 }
 
 export default CssClasses;

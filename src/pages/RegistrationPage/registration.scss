@@ -57,7 +57,8 @@
     0 0 0 3px #facece;
 }
 
-.field-error {  
+.field-error {
+  border-color: #cc0c39;
   box-shadow: 0 0 0 1px #cc0c39 inset;
 }
 
@@ -119,4 +120,49 @@ input[type='date'] {
 
 .submit:active {
   opacity: 0.8;
+}
+
+.registration__pop-up{
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  border: 2px solid #007185;
+  border-radius: 10px;
+  margin: 0 auto;
+  background-color: whitesmoke;
+  padding: 15px;
+}
+
+.pop-up__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.pop-up__icon-box,
+.pop-up__message {
+  margin: 20px;
+  text-align: center;
+}
+
+.pop-up__icon {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+
+.pop-up__message {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.pop-up__icon:hover {
+  opacity: 0.8;
+}
+
+.pop-up__icon:active {
+  opacity: 0.9;
+  transform: scale(0.9);
 }

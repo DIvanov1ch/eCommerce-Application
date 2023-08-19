@@ -18,7 +18,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     date: 'You need to be at least 13 years old',
     street: 'Must contain at least one character',
     city: 'Must not contain special characters or numbers',
-    code: 'Postal code must be 5 numerical digits long',
+    code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
   },
 };

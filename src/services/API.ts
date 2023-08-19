@@ -12,6 +12,7 @@ import {
   ShoppingListPagedQueryResponse,
   CustomerSignInResult,
 } from '@commercetools/platform-sdk';
+import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
 import TokenClient from './Token';
 
@@ -60,7 +61,10 @@ const ctpClient = new ClientBuilder()
   .withLoggerMiddleware()
   .build();
 
-const apiRoot = createApiBuilderFromCtpClient(ctpClient).withProjectKey({ projectKey });
+const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
+  const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
+  return apiRoot;
+};
 
 const passwordFlowClient = (username: string, password: string, token: TokenClient): Client => {
   const newCtpClient = new ClientBuilder()
@@ -75,12 +79,12 @@ const passwordFlowClient = (username: string, password: string, token: TokenClie
 };
 
 const getProject = async (): Promise<ClientResponse<Project>> => {
-  const response = await apiRoot.get().execute();
+  const response = await getApiRoot(ctpClient).get().execute();
   return response;
 };
 
 const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>> => {
-  return apiRoot.shoppingLists().get().execute();
+  return getApiRoot(ctpClient).shoppingLists().get().execute();
 };
 
 const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -96,4 +100,48 @@ const login = async (userEmail: string, userPassword: string): Promise<ClientRes
     .execute();
 };
 
-export { getProject, shoppingLists, login };
+const getClientCredentialsFlowClient = (): Client => {
+  const clientCredentialsFlowClient = new ClientBuilder()
+    .withClientCredentialsFlow(authMiddlewareOptions)
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+
+  return clientCredentialsFlowClient;
+};
+
+const registration = async (
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string,
+  dateOfBirth: string,
+  streetName: string,
+  city: string,
+  postalCode: string,
+  country: string
+): Promise<ClientResponse<CustomerSignInResult>> => {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return apiRoot
+    .customers()
+    .post({
+      body: {
+        firstName,
+        lastName,
+        email,
+        password,
+        dateOfBirth,
+        addresses: [
+          {
+            streetName,
+            city,
+            postalCode,
+            country,
+          },
+        ],
+      },
+    })
+    .execute();
+};
+
+export { getProject, shoppingLists, login, registration };
