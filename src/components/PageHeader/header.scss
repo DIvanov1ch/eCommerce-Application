@@ -16,3 +16,16 @@
   padding: 0;
   gap: 1em;
 }
+
+.logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  &:before {
+    width: 2em;
+    height: 2em;
+    margin-right: 0.5em;
+    content: '';
+    background: url('../../assets/icons/slickdeals.svg');
+  }
+}
