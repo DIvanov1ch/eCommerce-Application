@@ -19,3 +19,4 @@ export const API_SCOPES = [
 ];
 
 export const APP_NAME = 'eComm';
+export const AGE_LIMIT = 13;
