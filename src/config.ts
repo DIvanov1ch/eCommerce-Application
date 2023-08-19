@@ -24,6 +24,8 @@ export const API_SCOPES = [
   'manage_my_payments',
   'manage_my_orders',
 ];
+
+export const APP_NAME = 'eComm';
 export const AGE_LIMIT = 13;
 export const ZipCodes = {
   RANGE_START: 501,

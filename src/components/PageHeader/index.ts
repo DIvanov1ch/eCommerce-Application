@@ -1,12 +1,9 @@
 import './header.scss';
 import html from './header.html';
-import createTemplate from '../../utils';
+import BaseComponent from '../BaseComponent';
 
-const template = createTemplate(html);
-
-export default class PageHeader extends HTMLElement {
-  private connectedCallback(): void {
-    const content = template.content.cloneNode(true);
-    this.append(content);
+export default class PageFooter extends BaseComponent {
+  constructor() {
+    super(html);
   }
 }

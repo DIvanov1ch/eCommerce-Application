@@ -9,7 +9,6 @@ export default {
     const pageFooter = document.createElement('page-footer');
     document.body.append(pageHeader, pageMain, pageFooter);
 
-    const router = new Router();
-    router.init();
+    Router.init();
   },
 };

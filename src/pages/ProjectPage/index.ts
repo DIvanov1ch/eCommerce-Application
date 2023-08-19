@@ -3,9 +3,11 @@ import html from './project.html';
 import { getProject } from '../../services/API';
 import Page from '../Page';
 
+const PAGE_TITLE = 'Project Info';
+
 export default class ProjectPage extends Page {
   constructor() {
-    super(html);
+    super(html, PAGE_TITLE);
   }
 
   protected connectedCallback(): void {

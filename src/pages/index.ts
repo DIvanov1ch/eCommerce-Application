@@ -3,9 +3,20 @@ import HomePage from './HomePage';
 import ProjectPage from './ProjectPage';
 import LoginPage from './LoginPage';
 import RegistrationPage from './RegistrationPage';
+import TestLoginPage from './TestLoginPage';
+import TestLogoutPage from './TestLogoutPage';
 
-customElements.define('home-page', HomePage);
-customElements.define('login-page', LoginPage);
-customElements.define('error-page', ErrorPage);
-customElements.define('project-page', ProjectPage);
-customElements.define('registration-page', RegistrationPage);
+const Pages = {
+  'home-page': HomePage,
+  'login-page': LoginPage,
+  'error-page': ErrorPage,
+  'project-page': ProjectPage,
+  'registration-page': RegistrationPage,
+
+  'test-login-page': TestLoginPage,
+  'test-logout-page': TestLogoutPage,
+};
+
+Object.entries(Pages).forEach(([elementName, elementClass]) => {
+  customElements.define(elementName, elementClass);
+});
