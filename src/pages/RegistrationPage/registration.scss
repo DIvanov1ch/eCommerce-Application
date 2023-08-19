@@ -1,14 +1,14 @@
 * {
   box-sizing: border-box;
 }
-  
+
 .registration__container {
   width: 350px;
   margin: 15px auto;
   color: black;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
-  
+
 .registration__form {
   margin-bottom: 25px;
   border: 1px #ddd solid;
@@ -17,20 +17,20 @@
   padding: 15px;
   width: 100%;
 }
-  
+
 .registration__form-title {
   margin: 0 0 15px 0;
 }
-  
+
 .input-module {
   margin-bottom: 15px;
 }
-  
+
 .input-module__label {
   font-weight: 600;
   padding-left: 2px;
 }
-  
+
 .input-module__input-field {
   background-color: #fff;
   height: 28px;
@@ -40,64 +40,67 @@
   line-height: normal;
   width: 100%;
 }
-  
+
 .input-module__input-field:focus {
   background-color: #f7feff;
   border-color: #007185;
-  box-shadow: 0 0 0 3px #c8f3fa, 0 1px 2px rgba(15,17,17,.15) inset;
+  box-shadow:
+    0 0 0 3px #c8f3fa,
+    0 1px 2px rgba(15, 17, 17, 0.15) inset;
 }
-  
+
 .input-module__input-field.field-error:focus {
   background-color: #f7feff;
   border-color: #cc0c39;
-  box-shadow: 0 0 0 1px #cc0c39 inset, 0 0 0 3px #facece;
+  box-shadow:
+    0 0 0 1px #cc0c39 inset,
+    0 0 0 3px #facece;
 }
-  
-.field-error {
-  border-color: #cc0c39;
+
+.field-error {  
   box-shadow: 0 0 0 1px #cc0c39 inset;
 }
-  
+
 .input-module__error-box {
   display: flex;
 }
-  
+
 .error-box__icon,
 .error-box__content {
   color: red;
   margin-right: 10px;
   font-size: 14px;
 }
-  
+
 .date {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
 }
-  
+
 .date .input-module__label {
   align-self: center;
 }
-  
+
 .date .input-module__error-box {
   width: 50%;
   margin-left: auto;
   margin-right: 0;
 }
-  
-input[type=date] {
+
+input[type='date'] {
   width: 50%;
   height: 28px;
 }
-  
+
 .hidden {
   display: none;
 }
-  
+
 .registration__submit-container {
   width: 100%;
 }
-  
+
 .submit {
   width: 100%;
   height: 30px;
@@ -108,13 +111,12 @@ input[type=date] {
   cursor: pointer;
   margin-bottom: 15px;
 }
-  
+
 .submit:hover {
   border: 1px solid rgb(49, 189, 107);
   background-color: rgb(49, 189, 107);
 }
-  
+
 .submit:active {
   opacity: 0.8;
 }
-  
