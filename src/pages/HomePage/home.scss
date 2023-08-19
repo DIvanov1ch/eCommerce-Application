@@ -6,3 +6,15 @@
     margin: 0;
   }
 }
+
+.section {
+  margin-bottom: 2em;
+}
+
+.section__title {
+  margin-bottom: 0.2em;
+
+  & + p {
+    margin-top: 0;
+  }
+}
