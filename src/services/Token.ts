@@ -13,7 +13,13 @@ class TokenClient implements TokenCache {
 
   public set(newObject: TokenStore): void {
     this.object = newObject;
+    localStorage.setItem('userToken', this.object.token);
   }
+
+  public delete = (): void => {
+    this.object = { token: '', expirationTime: 0, refreshToken: '' };
+    localStorage.removeItem('userToken');
+  };
 }
 
 export default TokenClient;

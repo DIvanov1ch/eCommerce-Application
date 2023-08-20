@@ -37,12 +37,25 @@ export default class LoginPage extends Page {
 
   private static isLogIn: boolean;
 
+  private static userId: string;
+
   public static getPassword = (): string => {
     return this.userPassword || '';
   };
 
   public static getEmail = (): string => {
     return this.userEmail || '';
+  };
+
+  public static getIsLogin = (): boolean => {
+    return this.isLogIn || false;
+  };
+
+  public static setLoginToDefault = (): void => {
+    this.isLogIn = false;
+    this.userId = '';
+    this.userPassword = '';
+    this.userEmail = '';
   };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
@@ -56,7 +69,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.length;
+      errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.length;
       this.hasCorrectLengthPassword = false;
     } else {
       element.classList.remove('incorrect');
@@ -75,11 +88,11 @@ export default class LoginPage extends Page {
     } else {
       if (element.value === element.value.toLowerCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.upperCaseLetter;
+        errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.upperCaseLetter;
       }
       if (element.value === element.value.toUpperCase()) {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.lowerCaseLetter;
+        errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.lowerCaseLetter;
       }
       element.classList.remove('correct');
       element.classList.add('incorrect');
@@ -98,7 +111,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.numbers;
+      errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.numbers;
       this.hasNumbersPassword = false;
     }
   };
@@ -114,7 +127,7 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForPassword.classList.remove('hidden');
-      errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.specialCharacters;
+      errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.specialCharacters;
       this.hasSpecialSymbolsPassword = false;
     }
   };
@@ -135,10 +148,10 @@ export default class LoginPage extends Page {
       element.classList.add('incorrect');
       if (element.classList.contains('login__user-email')) {
         errorBlockForEmail.classList.remove('hidden');
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.noWhiteSpaceLeadingAndTrailing;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.noWhiteSpaceLeadingAndTrailing;
       } else {
         errorBlockForPassword.classList.remove('hidden');
-        errorBlockForPassword.innerHTML = errorAlert.firstAlert + PasswordRules.noWhiteSpacesLeadingOrTrailing;
+        errorBlockForPassword.innerHTML = errorAlert.secondAlert + PasswordRules.noWhiteSpacesLeadingOrTrailing;
       }
     }
   };
@@ -181,21 +194,21 @@ export default class LoginPage extends Page {
       element.classList.remove('correct');
       element.classList.add('incorrect');
       errorBlockForEmail.classList.remove('hidden');
-      errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.domain;
+      errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.domain;
       if (!element.value.match('@')) {
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.emailSymbol;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.emailSymbol;
       }
       if (element.value.match(' ')) {
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.noWhitespaces;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.noWhitespaces;
       }
       if (element.value.match(/[А-ЯЁа-яё]/)) {
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.englishAlphaphet;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.englishAlphaphet;
       }
       if (element.value.match(/[A-Z]/)) {
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.lowerCase;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.lowerCase;
       }
       if (element.value.split('').filter((el) => el === '@').length > 1) {
-        errorBlockForEmail.innerHTML = errorAlert.firstAlert + EmailRules.emailContainsTwoEmailSymbols;
+        errorBlockForEmail.innerHTML = errorAlert.secondAlert + EmailRules.emailContainsTwoEmailSymbols;
       }
     }
   };
@@ -265,21 +278,18 @@ export default class LoginPage extends Page {
   private static showErrorOnLogin = (errorMessage: string): void => {
     const errorBlockForPassword = document.querySelector('.login__user-password-error') as HTMLElement;
     errorBlockForPassword.classList.remove('hidden');
-    errorBlockForPassword.innerHTML = errorAlert.firstAlert + errorMessage;
+    errorBlockForPassword.innerHTML = errorAlert.secondAlert + errorMessage;
     this.hasSubmitErrorMessage = true;
-  };
-
-  private static showSuccessOnLogin = (customerId: string): void => {
-    this.isLogIn = true;
-    console.log(`Successful login for customer with Id ${customerId}`);
   };
 
   private static submitAction = (): void => {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
       login(this.getEmail(), this.getPassword())
-        .then(({ body }): void => {
-          this.showSuccessOnLogin(body.customer.id);
+        .then(({ body }) => {
+          this.isLogIn = true;
+          window.location.href = '#test-login';
+          this.userId = body.customer.id;
         })
         .catch((error: Error) => {
           if (error.message === errorMessages.loginError) {

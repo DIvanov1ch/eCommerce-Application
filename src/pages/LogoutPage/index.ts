@@ -3,6 +3,8 @@ import Page from '../Page';
 import html from './template.html';
 import Store from '../../services/Store';
 import { pause } from '../../utils';
+import { logout } from '../../services/API';
+import LoginPage from '../LoginPage';
 
 const REDIRECT_DELAY = 5000;
 const LOGGING_OUT_TEXT = 'Logging out...';
@@ -12,6 +14,8 @@ const SUCCESS_HTML = `
 
 function redirectToMain(): void {
   window.location.assign('#');
+  logout();
+  LoginPage.setLoginToDefault();
 }
 
 export default class LogoutPage extends Page {
@@ -31,6 +35,8 @@ export default class LogoutPage extends Page {
     this.button = this.$<'button'>('button');
     this.button?.addEventListener('click', () => {
       this.logOut().catch(console.error);
+      logout();
+      LoginPage.setLoginToDefault();
     });
   }
 

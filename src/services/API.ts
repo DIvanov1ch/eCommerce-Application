@@ -49,7 +49,7 @@ const getPasswordFlowOptions = (
         password,
       },
     },
-    tokenCache: token,
+    tokenCache: token || localStorage.getItem('userToken'),
     scopes,
     fetch,
   };
@@ -89,7 +89,7 @@ const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>
 
 const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
   const newApiRoot = createApiBuilderFromCtpClient(
-    passwordFlowClient(userEmail, userPassword, newToken)
+    passwordFlowClient(userEmail, userPassword, newToken || localStorage.getItem('userToken'))
   ).withProjectKey({
     projectKey,
   });
@@ -144,4 +144,8 @@ const registration = async (
     .execute();
 };
 
-export { getProject, shoppingLists, login, registration };
+const logout = (): void => {
+  newToken.delete();
+};
+
+export { getProject, shoppingLists, login, registration, logout };
