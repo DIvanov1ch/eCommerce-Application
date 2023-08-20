@@ -2,3 +2,9 @@ body {
   background: var(--page-bg);
   color: var(--text-color);
 }
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}

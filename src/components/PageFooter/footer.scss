@@ -1,5 +1,9 @@
-.footer {
-  background: pink;
+page-footer {
+  display: flex;
+  justify-content: center;
+
+  background: var(--footer-bg);
+  color: var(--footer-text-color);
   padding: 0.5em 1em;
   text-align: center;
 }
