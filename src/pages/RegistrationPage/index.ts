@@ -1,5 +1,5 @@
 import './registration.scss';
-import { ErrorResponse } from '@commercetools/platform-sdk';
+import { BaseAddress, ErrorResponse } from '@commercetools/platform-sdk';
 import html from './registration.html';
 import Page from '../Page';
 import isValidValue from '../../utils/is-valid-value';
@@ -48,6 +48,11 @@ export default class RegistrationPage extends Page {
       successRegIcon.addEventListener('click', this.hidePopupAndRedirect.bind(this));
     }
 
+    const sameAddressCheckbox: HTMLInputElement | null = this.querySelector(`#${CssClasses.CHECKBOX}`);
+    if (sameAddressCheckbox !== null) {
+      sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
+    }
+
     this.addEventListener('click', this.hidePopupAndRedirect.bind(this));
   }
 
@@ -58,9 +63,12 @@ export default class RegistrationPage extends Page {
     return invalidFields;
   }
 
-  private hideError(event: Event): void {
-    const { target } = event;
-    if (target instanceof HTMLInputElement && target.classList.contains(CssClasses.INPUT_ERROR)) {
+  private hideError(event: Event): void;
+  private hideError(field: HTMLInputElement): void;
+  private hideError(eventOrInput: Event | HTMLInputElement): void {
+    const target: HTMLInputElement =
+      eventOrInput instanceof Event ? (eventOrInput.target as HTMLInputElement) : eventOrInput;
+    if (target && target.classList.contains(CssClasses.INPUT_ERROR)) {
       if (isValidValue(target.id, target.value)) {
         target.classList.remove(CssClasses.INPUT_ERROR);
         const errorBox: Element | null = target.nextElementSibling;
@@ -129,27 +137,50 @@ export default class RegistrationPage extends Page {
       messageBox.textContent = message;
       const popupSize = 300;
       const padding = 15;
-      popup.style.top = `${(this.offsetHeight - popupSize) / 2 + padding}px`;
+      popup.style.top = `${this.offsetHeight / 2 - popupSize + window.scrollY}px`;
       popup.style.left = `${(this.offsetWidth - popupSize + padding) / 2}px`;
       popup.classList.remove(CssClasses.HIDDEN);
     }
   }
 
+  // eslint-disable-next-line max-lines-per-function
   private submitValues(): void {
+    let defaultShippingNumber: number | undefined;
+    let defaultBillingNumber: number | undefined;
     const inputValues: Map<string, string> = new Map();
     this.fields.forEach((field) => inputValues.set(field.id, field.value));
     const defaultValue = '';
     const defaultCountry = 'US';
+    const shippingAddress: BaseAddress = {
+      streetName: inputValues.get(InputID.SHIPPING_STREET),
+      city: inputValues.get(InputID.SHIPPIN_CITY),
+      postalCode: inputValues.get(InputID.SHIPPING_CODE),
+      country: defaultCountry,
+    };
+    const billingAddress: BaseAddress = {
+      streetName: inputValues.get(InputID.BILLING_STREET),
+      city: inputValues.get(InputID.BILLING_CITY),
+      postalCode: inputValues.get(InputID.BILLING_CODE),
+      country: defaultCountry,
+    };
+    const addresses: BaseAddress[] = [shippingAddress, billingAddress];
+    const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
+    const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
+    if (defaultShippingCheckbox && defaultBillingCheckbox) {
+      defaultShippingNumber = defaultShippingCheckbox.checked ? addresses.indexOf(shippingAddress) : undefined;
+      defaultBillingNumber = defaultBillingCheckbox.checked ? addresses.indexOf(billingAddress) : undefined;
+    }
     registration(
       inputValues.get(InputID.FIRST_NAME) || defaultValue,
       inputValues.get(InputID.LAST_NAME) || defaultValue,
       inputValues.get(InputID.EMAIL) || defaultValue,
       inputValues.get(InputID.PASSWORD) || defaultValue,
       inputValues.get(InputID.B_DAY) || defaultValue,
-      inputValues.get(InputID.STREET) || defaultValue,
-      inputValues.get(InputID.CITY) || defaultValue,
-      inputValues.get(InputID.ZIP_CODE) || defaultValue,
-      defaultCountry
+      addresses,
+      defaultShippingNumber,
+      [addresses.indexOf(shippingAddress)],
+      defaultBillingNumber,
+      [addresses.indexOf(billingAddress)]
     )
       .then((response) => {
         this.isSignUp = true;
@@ -175,6 +206,22 @@ export default class RegistrationPage extends Page {
       this.setErrorMessages();
       this.showErrors();
     }
+  }
+
+  private setShippingAsBilling(event: Event): void {
+    const shippingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.SHIPPING}`);
+    const billingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.BILLING}`);
+    const target = event.target as HTMLInputElement;
+    shippingFileds.forEach((field: HTMLInputElement, index: number): void => {
+      if (target.checked) {
+        billingFileds[index].value = field.value;
+      } else {
+        billingFileds[index].value = '';
+      }
+    });
+    billingFileds.forEach((field: HTMLInputElement): void => {
+      this.hideError(field);
+    });
   }
 
   private hidePopupAndRedirect(event: Event): void {

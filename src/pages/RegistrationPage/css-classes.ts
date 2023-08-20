@@ -10,6 +10,9 @@ enum CssClasses {
   CONTAINER = 'pop-up__container',
   ICON = 'pop-up__icon',
   MESSAGE = 'pop-up__message',
+  CHECKBOX = 'shipping-billing',
+  SHIPPING = 'shipping',
+  BILLING = 'billing',
 }
 
 export default CssClasses;

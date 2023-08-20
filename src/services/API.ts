@@ -11,6 +11,7 @@ import {
   ClientResponse,
   ShoppingListPagedQueryResponse,
   CustomerSignInResult,
+  BaseAddress,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
@@ -119,10 +120,11 @@ const registration = async (
   email: string,
   password: string,
   dateOfBirth: string,
-  streetName: string,
-  city: string,
-  postalCode: string,
-  country: string
+  addresses: BaseAddress[],
+  defaultShippingAddress: number | undefined,
+  shippingAddresses: number[],
+  defaultBillingAddress: number | undefined,
+  billingAddresses: number[]
 ): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
@@ -134,14 +136,11 @@ const registration = async (
         email,
         password,
         dateOfBirth,
-        addresses: [
-          {
-            streetName,
-            city,
-            postalCode,
-            country,
-          },
-        ],
+        addresses,
+        defaultShippingAddress,
+        shippingAddresses,
+        defaultBillingAddress,
+        billingAddresses,
       },
     })
     .execute();

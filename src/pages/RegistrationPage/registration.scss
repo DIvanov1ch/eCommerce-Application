@@ -22,7 +22,8 @@
   margin: 0 0 15px 0;
 }
 
-.input-module {
+.input-module,
+.registration__addresses {
   margin-bottom: 15px;
 }
 
@@ -174,4 +175,15 @@ input[type='date'] {
 .pop-up__icon:active {
   opacity: 0.9;
   transform: scale(0.9);
+}
+
+.registration__addresses-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.registration__addresses-title {
+  text-align: center;
+  align-self: center;
+  font-weight: 600;
 }

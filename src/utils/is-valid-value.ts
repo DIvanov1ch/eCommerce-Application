@@ -14,17 +14,21 @@ export default function isValidValue(id: string, value: string): boolean {
       return Pattern.password.test(value);
     case InputID.B_DAY:
       return findCurrentAge(value) >= AGE_LIMIT;
-    case InputID.STREET:
+    case InputID.SHIPPING_STREET:
+    case InputID.BILLING_STREET:
       return Pattern.street.test(value);
-    case InputID.CITY:
+    case InputID.SHIPPIN_CITY:
+    case InputID.BILLING_CITY:
       return Pattern.city.test(value);
-    case InputID.ZIP_CODE:
+    case InputID.SHIPPING_CODE:
+    case InputID.BILLING_CODE:
       return (
         Pattern.zip.test(value) &&
         parseInt(value, 10) >= ZipCodes.RANGE_START &&
         parseInt(value, 10) <= ZipCodes.RANGE_END
       );
-    case InputID.COUNTRY:
+    case InputID.SHIPPING_COUNTRY:
+    case InputID.BILLING_COUNTRY:
       return Pattern.country.test(value);
     default:
       return false;
