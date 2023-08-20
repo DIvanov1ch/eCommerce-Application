@@ -49,7 +49,7 @@ const getPasswordFlowOptions = (
         password,
       },
     },
-    tokenCache: token || localStorage.getItem('userToken'),
+    tokenCache: token,
     scopes,
     fetch,
   };
@@ -72,9 +72,6 @@ const passwordFlowClient = (username: string, password: string, token: TokenClie
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
-  if (newToken.get().token !== '') {
-    console.log(`This is the token: ${newToken.get().token}`);
-  }
   return newCtpClient;
 };
 
@@ -89,7 +86,7 @@ const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>
 
 const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
   const newApiRoot = createApiBuilderFromCtpClient(
-    passwordFlowClient(userEmail, userPassword, newToken || localStorage.getItem('userToken'))
+    passwordFlowClient(userEmail, userPassword, newToken)
   ).withProjectKey({
     projectKey,
   });
