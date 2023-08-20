@@ -19,6 +19,7 @@ export default class LoginPage extends Page {
     LoginPage.activateOrDeactivateSubmit();
     LoginPage.submitAction();
     LoginPage.goToRegistrationPage();
+    LoginPage.checkIfLoginByTokenInLocalStorage();
   }
 
   private static hasCorrectLengthPassword: boolean;
@@ -56,6 +57,12 @@ export default class LoginPage extends Page {
     this.userId = '';
     this.userPassword = '';
     this.userEmail = '';
+  };
+
+  private static checkIfLoginByTokenInLocalStorage = (): void => {
+    if (localStorage.getItem('userToken') !== null) {
+      this.isLogIn = true;
+    }
   };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
