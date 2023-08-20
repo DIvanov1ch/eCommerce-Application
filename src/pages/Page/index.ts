@@ -1,3 +1,4 @@
+import './page.scss';
 import BaseComponent from '../../components/BaseComponent';
 import { APP_NAME } from '../../config';
 
@@ -11,6 +12,7 @@ export default class Page extends BaseComponent {
 
   protected connectedCallback(): void {
     super.connectedCallback();
+    this.classList.add('page');
     document.title = [APP_NAME, this.#pageTitle].filter((e) => e).join(': ');
   }
 }
