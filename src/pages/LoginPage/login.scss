@@ -88,12 +88,26 @@ input:focus {
   color: red;
   margin-right: 10px;
   font-size: 14px;
+  margin-right: 10px;
+  margin-top: 2px;
+  vertical-align: middle;
 }
 
 .login__user-password-error.hidden,
 .login__user-email-error.hidden {
   margin-top: 10px;
   opacity: 0;
+}
+
+.login__error-icon {
+  display: inline-block;
+  background-image: url('../../assets/icons/warning-icon.png');
+  background-size: contain;
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  margin-top: 2px;
+  vertical-align: text-bottom;
 }
 
 .login__login-button-container {

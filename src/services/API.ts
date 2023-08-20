@@ -72,9 +72,6 @@ const passwordFlowClient = (username: string, password: string, token: TokenClie
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
-  if (newToken.get().token !== '') {
-    console.log(`This is the token: ${newToken.get().token}`);
-  }
   return newCtpClient;
 };
 
@@ -144,4 +141,8 @@ const registration = async (
     .execute();
 };
 
-export { getProject, shoppingLists, login, registration };
+const logout = (): void => {
+  newToken.delete();
+};
+
+export { getProject, shoppingLists, login, registration, logout };
