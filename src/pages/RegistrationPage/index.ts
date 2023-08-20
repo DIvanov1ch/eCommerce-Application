@@ -33,7 +33,7 @@ export default class RegistrationPage extends Page {
       field.addEventListener('invalid', (event: Event) => event.preventDefault());
     });
 
-    const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT}`);
+    const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
     if (submitButton !== null) {
       submitButton.addEventListener('click', this.checkValuesBeforeSubmit.bind(this));
     }
@@ -51,6 +51,13 @@ export default class RegistrationPage extends Page {
     const sameAddressCheckbox: HTMLInputElement | null = this.querySelector(`#${CssClasses.CHECKBOX}`);
     if (sameAddressCheckbox !== null) {
       sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
+    }
+
+    const loginButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    if (loginButton !== null) {
+      loginButton.addEventListener('click', (): void => {
+        window.location.href = '#login';
+      });
     }
 
     this.addEventListener('click', this.hidePopupAndRedirect.bind(this));

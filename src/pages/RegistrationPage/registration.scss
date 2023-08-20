@@ -108,11 +108,12 @@ input[type='date'] {
   display: none;
 }
 
-.registration__submit-container {
+.registration__button-container {
   width: 100%;
 }
 
-.submit {
+.submit-button,
+.login-button {
   width: 100%;
   height: 30px;
   border: 1px solid rgb(49, 189, 107);
@@ -123,12 +124,14 @@ input[type='date'] {
   margin-bottom: 15px;
 }
 
-.submit:hover {
+.submit-button:hover,
+.login-button:hover {
   border: 1px solid rgb(49, 189, 107);
   background-color: rgb(49, 189, 107);
 }
 
-.submit:active {
+.submit-button:active,
+.login-button:active {
   opacity: 0.8;
 }
 
@@ -186,4 +189,20 @@ input[type='date'] {
   text-align: center;
   align-self: center;
   font-weight: 600;
+}
+
+.registration__divider {
+  height: 44px;
+  margin-bottom: -18px;
+  background: linear-gradient(to bottom,rgba(0,0,0,.14),rgba(0,0,0,.03) 3px,transparent);
+  zoom: 1;
+}
+
+.registration__divider::after {
+  display: block;
+  width: 100%;
+  height: 44px;
+  background-color: transparent;
+  background: linear-gradient(to right,#fff,rgba(255,255,255,0),#fff);
+  content: "";
 }
