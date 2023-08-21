@@ -18,13 +18,14 @@ export default class LoginBox extends BaseComponent {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.addEventListeners();
+    this.updateState();
   }
 
   private addEventListeners(): void {
-    window.addEventListener('userchange', () => this.handleLogInOut());
+    window.addEventListener('userchange', () => this.updateState());
   }
 
-  private handleLogInOut(): void {
+  private updateState(): void {
     const { loggedIn } = Store.user;
 
     this.$$('li').forEach((item) => {
