@@ -225,6 +225,7 @@ export default class RegistrationPage extends Page {
   }
 
   private checkValuesBeforeSubmit(): void {
+    this.disableButtons();
     const isValid: boolean = [...this.fields].every((field: HTMLInputElement): boolean =>
       isValidValue(field.id, field.value.trim())
     );
@@ -260,7 +261,8 @@ export default class RegistrationPage extends Page {
       popup !== null &&
       !target.classList.contains(CssClasses.CONTAINER) &&
       !target.classList.contains(CssClasses.POP_UP) &&
-      !target.classList.contains(CssClasses.MESSAGE)
+      !target.classList.contains(CssClasses.MESSAGE) &&
+      !popup.classList.contains(CssClasses.HIDDEN)
     ) {
       popup.classList.add(CssClasses.HIDDEN);
       if (this.isSignUp) {
@@ -268,6 +270,7 @@ export default class RegistrationPage extends Page {
         Store.user = { loggedIn: true };
         this.goToMainPage(HTML.SUCCESS).catch(console.error);
       }
+      this.enableButtons();
     }
   }
 
@@ -287,6 +290,24 @@ export default class RegistrationPage extends Page {
   private checkIfLoginByTokenInLocalStorage(): void {
     if (Store.user.loggedIn) {
       this.goToMainPage(HTML.ALREADY).then().catch(console.error);
+    }
+  }
+
+  private disableButtons(): void {
+    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
+    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    if (submitBtn && loginBtn) {
+      submitBtn.disabled = true;
+      loginBtn.disabled = true;
+    }
+  }
+
+  private enableButtons(): void {
+    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
+    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    if (submitBtn && loginBtn) {
+      submitBtn.disabled = false;
+      loginBtn.disabled = false;
     }
   }
 }
