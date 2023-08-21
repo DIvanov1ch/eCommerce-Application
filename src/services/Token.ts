@@ -1,14 +1,17 @@
 import { TokenStore, TokenCache } from '@commercetools/sdk-client-v2';
+import Store from './Store';
+
+const emptyTokenStore: TokenStore = {
+  token: '',
+  expirationTime: 0,
+  refreshToken: '',
+};
 
 class TokenClient implements TokenCache {
   private object: TokenStore;
 
   constructor() {
-    this.object = {
-      token: localStorage.getItem('userToken') || '',
-      expirationTime: Number(localStorage.getItem('userTokenExpirationTime')),
-      refreshToken: localStorage.getItem('userRefreshToken') || '',
-    };
+    this.object = Store.token || { ...emptyTokenStore };
   }
 
   public get(): TokenStore {
@@ -17,16 +20,12 @@ class TokenClient implements TokenCache {
 
   public set(newObject: TokenStore): void {
     this.object = newObject;
-    localStorage.setItem('userToken', this.object.token);
-    localStorage.setItem('userTokenExpirationTime', this.object.expirationTime.toString());
-    localStorage.setItem('userRefreshToken', this.object.refreshToken || '');
+    Store.token = newObject;
   }
 
   public delete = (): void => {
-    this.object = { token: '', expirationTime: 0, refreshToken: '' };
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userTokenExpirationTime');
-    localStorage.removeItem('userRefreshToken');
+    this.object = { ...emptyTokenStore };
+    Store.token = null;
   };
 }
 

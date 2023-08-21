@@ -8,6 +8,7 @@ const CssClasses = {
   LOGIN: 'login-box__login',
   REGISTER: 'login-box__register',
   LOGOUT: 'login-box__logout',
+  USER: 'login-box__user',
 };
 
 export default class LoginBox extends BaseComponent {
@@ -18,14 +19,16 @@ export default class LoginBox extends BaseComponent {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.addEventListeners();
+    this.updateState();
   }
 
   private addEventListeners(): void {
-    window.addEventListener('userchange', () => this.handleLogInOut());
+    window.addEventListener('userchange', () => this.updateState());
   }
 
-  private handleLogInOut(): void {
-    const { loggedIn } = Store.user;
+  private updateState(): void {
+    const { loggedIn, firstName, lastName } = Store.user;
+    const fullName = [firstName, lastName].filter((e) => e).join(' ');
 
     this.$$('li').forEach((item) => {
       const isHidden =
@@ -33,5 +36,10 @@ export default class LoginBox extends BaseComponent {
 
       item.toggleAttribute('hidden', isHidden);
     });
+
+    const userField = this.$(`.${CssClasses.USER}`);
+    if (userField) {
+      userField.innerText = fullName;
+    }
   }
 }
