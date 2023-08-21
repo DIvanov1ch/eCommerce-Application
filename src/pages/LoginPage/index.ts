@@ -13,6 +13,8 @@ export default class LoginPage extends Page {
   }
 
   protected connectedCallback(): void {
+    LoginPage.checkIfLoginByTokenInLocalStorage();
+
     super.connectedCallback();
     LoginPage.checkPasswordValidation();
     LoginPage.checkEmailValidation();
@@ -20,7 +22,6 @@ export default class LoginPage extends Page {
     LoginPage.activateOrDeactivateSubmit();
     LoginPage.submitAction();
     LoginPage.goToRegistrationPage();
-    LoginPage.checkIfLoginByTokenInLocalStorage();
   }
 
   private static hasCorrectLengthPassword: boolean;
@@ -61,9 +62,8 @@ export default class LoginPage extends Page {
   };
 
   private static checkIfLoginByTokenInLocalStorage = (): void => {
-    if (localStorage.getItem('userToken') !== null) {
-      this.isLogIn = true;
-      window.location.assign('#');
+    if (Store.user.loggedIn) {
+      this.goToMainPage();
     }
   };
 
@@ -296,10 +296,11 @@ export default class LoginPage extends Page {
     inputLoginFormSubmit.addEventListener('click', (): void => {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
+          const { firstName, lastName, id } = body.customer;
           this.isLogIn = true;
-          this.userId = body.customer.id;
-          Store.user = { loggedIn: true };
-          window.location.assign('#');
+          this.userId = id;
+          Store.user = { loggedIn: true, firstName, lastName };
+          this.goToMainPage();
         })
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
@@ -314,5 +315,9 @@ export default class LoginPage extends Page {
     buttonForRegistration.addEventListener('click', (): void => {
       window.location.href = '#registration';
     });
+  };
+
+  private static goToMainPage = (): void => {
+    window.location.href = '#';
   };
 }

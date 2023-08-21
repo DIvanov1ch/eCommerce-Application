@@ -8,6 +8,7 @@ const CssClasses = {
   LOGIN: 'login-box__login',
   REGISTER: 'login-box__register',
   LOGOUT: 'login-box__logout',
+  USER: 'login-box__user',
 };
 
 export default class LoginBox extends BaseComponent {
@@ -26,7 +27,8 @@ export default class LoginBox extends BaseComponent {
   }
 
   private updateState(): void {
-    const { loggedIn } = Store.user;
+    const { loggedIn, firstName, lastName } = Store.user;
+    const fullName = [firstName, lastName].filter((e) => e).join(' ');
 
     this.$$('li').forEach((item) => {
       const isHidden =
@@ -34,5 +36,10 @@ export default class LoginBox extends BaseComponent {
 
       item.toggleAttribute('hidden', isHidden);
     });
+
+    const userField = this.$(`.${CssClasses.USER}`);
+    if (userField) {
+      userField.innerText = fullName;
+    }
   }
 }
