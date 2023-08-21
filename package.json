@@ -15,7 +15,8 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",
-    "lint-format:fix": "eslint . --ext .ts --fix && prettier . --write"
+    "lint-format:fix": "eslint . --ext .ts --fix && prettier . --write",
+    "publish": "npm run build && gh-pages -d dist -m \"chore: update deploy\""
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-webpack-plugin": "^4.0.1",
+    "gh-pages": "^6.0.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.3",
     "husky": "^8.0.3",
