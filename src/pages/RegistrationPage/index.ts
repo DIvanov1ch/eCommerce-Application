@@ -5,17 +5,32 @@ import Page from '../Page';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import CssClasses from './css-classes';
-import { registration } from '../../services/API';
+import { login, registration } from '../../services/API';
 import InputID from '../../enums';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
 import warningIcon from '../../assets/icons/warning-icon.png';
+import { pause } from '../../utils';
+import Store from '../../services/Store';
 
+const REDIRECT_DELAY = 5000;
+const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
+const HTML = {
+  ALREADY: `
+  <p>Looks like you already have an account. You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
+  SUCCESS: `<p>You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
+};
 export default class RegistrationPage extends Page {
   private isSignUp: boolean = false;
 
   private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
+
+  private email = '';
+
+  private password = '';
+
+  private isShippingAsBilling: boolean = false;
 
   constructor() {
     super(html);
@@ -23,6 +38,10 @@ export default class RegistrationPage extends Page {
 
   protected connectedCallback(): void {
     super.connectedCallback();
+    if (localStorage.getItem('userToken') !== null) {
+      this.isSignUp = true;
+      this.redirectToMain(HTML.ALREADY).then().catch(console.error);
+    }
     this.fields = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
     this.setCallback();
   }
@@ -41,11 +60,6 @@ export default class RegistrationPage extends Page {
     const form: HTMLFormElement | null = this.querySelector(`.${CssClasses.FORM}`);
     if (form !== null) {
       form.addEventListener('submit', (event: Event) => event.preventDefault());
-    }
-
-    const successRegIcon: HTMLImageElement | null = this.querySelector(`.${CssClasses.ICON}`);
-    if (successRegIcon !== null) {
-      successRegIcon.addEventListener('click', this.hidePopupAndRedirect.bind(this));
     }
 
     const sameAddressCheckbox: HTMLInputElement | null = this.querySelector(`#${CssClasses.CHECKBOX}`);
@@ -143,9 +157,8 @@ export default class RegistrationPage extends Page {
       iconBox.src = this.isSignUp ? successIcon : errorIcon;
       messageBox.textContent = message;
       const popupSize = 300;
-      const padding = 15;
-      popup.style.top = `${this.offsetHeight / 2 - popupSize + window.scrollY}px`;
-      popup.style.left = `${(this.offsetWidth - popupSize + padding) / 2}px`;
+      popup.style.top = `${(document.documentElement.clientHeight - popupSize) / 2 + window.scrollY}px`;
+      popup.style.left = `${(document.documentElement.clientWidth - popupSize) / 2}px`;
       popup.classList.remove(CssClasses.HIDDEN);
     }
   }
@@ -156,6 +169,7 @@ export default class RegistrationPage extends Page {
     let defaultBillingNumber: number | undefined;
     const inputValues: Map<string, string> = new Map();
     this.fields.forEach((field) => inputValues.set(field.id, field.value));
+    this.password = inputValues.get(InputID.PASSWORD) || '';
     const defaultValue = '';
     const defaultCountry = 'US';
     const shippingAddress: BaseAddress = {
@@ -170,12 +184,21 @@ export default class RegistrationPage extends Page {
       postalCode: inputValues.get(InputID.BILLING_CODE),
       country: defaultCountry,
     };
-    const addresses: BaseAddress[] = [shippingAddress, billingAddress];
+    let addresses: BaseAddress[] = [shippingAddress, billingAddress];
     const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
     const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
+    const indexOfShipping: number = addresses.indexOf(shippingAddress);
+    let indexOfBilling: number = addresses.indexOf(billingAddress);
     if (defaultShippingCheckbox && defaultBillingCheckbox) {
-      defaultShippingNumber = defaultShippingCheckbox.checked ? addresses.indexOf(shippingAddress) : undefined;
-      defaultBillingNumber = defaultBillingCheckbox.checked ? addresses.indexOf(billingAddress) : undefined;
+      defaultShippingNumber = defaultShippingCheckbox.checked ? indexOfShipping : undefined;
+      defaultBillingNumber = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
+    }
+    if (this.isShippingAsBilling) {
+      addresses = [shippingAddress];
+      indexOfBilling = indexOfShipping;
+      if (defaultShippingCheckbox && defaultBillingCheckbox) {
+        defaultBillingNumber = defaultShippingNumber;
+      }
     }
     registration(
       inputValues.get(InputID.FIRST_NAME) || defaultValue,
@@ -185,13 +208,14 @@ export default class RegistrationPage extends Page {
       inputValues.get(InputID.B_DAY) || defaultValue,
       addresses,
       defaultShippingNumber,
-      [addresses.indexOf(shippingAddress)],
+      [indexOfShipping],
       defaultBillingNumber,
-      [addresses.indexOf(billingAddress)]
+      [indexOfBilling]
     )
       .then((response) => {
         this.isSignUp = true;
         const { customer } = response.body;
+        this.email = customer.email;
         if (customer.firstName && customer.lastName) {
           const message = `Thanks for signing up, ${customer.firstName} ${customer.lastName}. Your account has been created.`;
           this.showRegistrationResult(message);
@@ -216,6 +240,7 @@ export default class RegistrationPage extends Page {
   }
 
   private setShippingAsBilling(event: Event): void {
+    this.isShippingAsBilling = true;
     const shippingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.SHIPPING}`);
     const billingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.BILLING}`);
     const target = event.target as HTMLInputElement;
@@ -242,8 +267,23 @@ export default class RegistrationPage extends Page {
     ) {
       popup.classList.add(CssClasses.HIDDEN);
       if (this.isSignUp) {
-        console.log('Redirect...'); // TODO redirect to main page
+        this.logIn();
+        Store.user = { loggedIn: true };
+        this.redirectToMain(HTML.SUCCESS).catch(console.error);
       }
+    }
+  }
+
+  private logIn(): void {
+    login(this.email, this.password).then().catch(console.error);
+  }
+
+  private async redirectToMain(htmlText: string): Promise<void> {
+    this.innerHTML = htmlText;
+
+    await pause(REDIRECT_DELAY);
+    if (this.isConnected) {
+      window.location.assign('#');
     }
   }
 }
