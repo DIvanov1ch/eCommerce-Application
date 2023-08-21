@@ -1,0 +1,287 @@
+<div class="registration__container">
+  <form class="registration__form">
+    <h1 class="registration__form-title">Create account</h1>
+    <!-- First name -->
+    <div class="input-module">
+      <label for="first-name" class="input-module__label">First name</label>
+      <input
+        type="text"
+        maxlength="50"
+        id="first-name"
+        autocomplete="given-name"
+        class="input-module__input-field"
+        name="forename"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon first-name" />
+        <div class="error-box__content first-name"></div>
+      </div>
+    </div>
+
+    <!-- Last name -->
+    <div class="input-module">
+      <label for="last-name" class="input-module__label">Last name</label>
+      <input
+        type="text"
+        maxlength="50"
+        id="last-name"
+        autocomplete="family-name"
+        class="input-module__input-field"
+        name="surname"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon last-name" />
+        <div class="error-box__content last-name"></div>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="input-module">
+      <label for="email" class="input-module__label">Email</label>
+      <input
+        type="email"
+        maxlength="64"
+        id="email"
+        autocomplete="email"
+        class="input-module__input-field"
+        name="email"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon email" />
+        <div class="error-box__content email"></div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="input-module">
+      <label for="password" class="input-module__label">Password</label>
+      <input
+        type="password"
+        minlength="8"
+        id="password"
+        autocomplete="new-password"
+        placeholder="At least 8 characters"
+        class="input-module__input-field"
+        name="password"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon password" />
+        <div class="error-box__content password"></div>
+      </div>
+    </div>
+
+    <!-- Bday -->
+    <div class="input-module date">
+      <label for="date-of-birth" class="input-module__label">Date of birth</label>
+      <input
+        type="date"
+        min="1910-01-01"
+        max="2011-01-01"
+        id="date-of-birth"
+        autocomplete="bday"
+        class="input-module__input-field"
+        name="date"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon date-of-birth" />
+        <div class="error-box__content date-of-birth"></div>
+      </div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="registration__addresses-container">
+      <!--Shipping address-->
+      <fieldset class="registration__addresses">
+        <legend class="registration__addresses-title">Shipping address</legend>
+        <!-- Shipping Street -->
+        <div class="input-module">
+          <label for="shipping-street" class="input-module__label">Street</label>
+          <input
+            type="text"
+            minlength="1"
+            id="shipping-street"
+            autocomplete="address-level3"
+            class="input-module__input-field shipping"
+            name="street"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon shipping-street" />
+            <div class="error-box__content shipping-street"></div>
+          </div>
+        </div>
+
+        <!-- Shipping City -->
+        <div class="input-module">
+          <label for="shipping-city" class="input-module__label">City</label>
+          <input
+            type="text"
+            minlength="1"
+            id="shipping-city"
+            autocomplete="address-level2"
+            class="input-module__input-field shipping"
+            name="city"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon shipping-city" />
+            <div class="error-box__content shipping-city"></div>
+          </div>
+        </div>
+
+        <!-- Shipping Postal code -->
+        <div class="input-module">
+          <label for="shipping-postal-code" class="input-module__label">ZIP code</label>
+          <input
+            type="text"
+            minlength="5"
+            maxlength="5"
+            id="shipping-postal-code"
+            autocomplete="postal-code"
+            class="input-module__input-field shipping"
+            name="code"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon shipping-postal-code" />
+            <div class="error-box__content shipping-postal-code"></div>
+          </div>
+        </div>
+
+        <!-- Shipping Country -->
+        <div class="input-module">
+          <label for="shipping-country" class="input-module__label">Country</label>
+          <input
+            type="text"
+            value="United States"
+            id="shipping-country"
+            autocomplete="country-name"
+            class="input-module__input-field shipping"
+            name="country"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon shipping-country" />
+            <div class="error-box__content shipping-country"></div>
+          </div>
+        </div>
+
+        <div>
+          <input type="checkbox" id="default-shipping" name="default-shipping" />
+          <label for="default-shipping">Default shipping address</label>
+        </div>
+
+        <div class="registration__addresses_shipping">
+          <input type="checkbox" id="shipping-billing" />
+          <label for="shipping-billing">Set shipping address as billing address</label>
+        </div>
+      </fieldset>
+
+      <!--Billing address-->
+      <fieldset class="registration__addresses">
+        <legend class="registration__addresses-title">Billing address</legend>
+        <!-- Billing Street -->
+        <div class="input-module">
+          <label for="billing-street" class="input-module__label">Street</label>
+          <input
+            type="text"
+            minlength="1"
+            id="billing-street"
+            autocomplete="address-level3"
+            class="input-module__input-field billing"
+            name="street"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon billing-street" />
+            <div class="error-box__content billing-street"></div>
+          </div>
+        </div>
+
+        <!-- Billing City -->
+        <div class="input-module">
+          <label for="billing-city" class="input-module__label">City</label>
+          <input
+            type="text"
+            minlength="1"
+            id="billing-city"
+            autocomplete="address-level2"
+            class="input-module__input-field billing"
+            name="city"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon billing-city" />
+            <div class="error-box__content billing-city"></div>
+          </div>
+        </div>
+
+        <!-- Billing Postal code -->
+        <div class="input-module">
+          <label for="billing-postal-code" class="input-module__label">ZIP code</label>
+          <input
+            type="text"
+            minlength="5"
+            maxlength="5"
+            id="billing-postal-code"
+            autocomplete="postal-code"
+            class="input-module__input-field billing"
+            name="code"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon billing-postal-code" />
+            <div class="error-box__content billing-postal-code"></div>
+          </div>
+        </div>
+
+        <!-- Billing Country -->
+        <div class="input-module">
+          <label for="billing-country" class="input-module__label">Country</label>
+          <input
+            type="text"
+            value="United States"
+            id="billing-country"
+            autocomplete="country-name"
+            class="input-module__input-field billing"
+            name="country"
+            required
+          />
+          <div class="input-module__error-box hidden">
+            <img alt="Warning icon" class="error-box__icon billing-country" />
+            <div class="error-box__content billing-country"></div>
+          </div>
+        </div>
+
+        <div class="registration__addresses_billing">
+          <input type="checkbox" id="default-billing" name="default-billing" />
+          <label for="default-billing">Default billing address</label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="registration__button-container">
+      <input type="submit" value="Create account" class="submit-button" />
+    </div>
+
+    <div class="registration__divider"></div>
+
+    <div class="registration__button-container">
+      <input type="button" value="Already have an account? Sign in" class="login-button" />
+    </div>
+
+    <div class="registration__pop-up hidden">
+      <div class="pop-up__container">
+        <div class="pop-up__message"></div>
+        <div class="pop-up__icon-box">
+          <img alt="Succes icon" class="pop-up__icon" />
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

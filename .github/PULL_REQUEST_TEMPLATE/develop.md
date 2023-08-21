@@ -1,4 +1,5 @@
 #### 🤔 PR Type
+
 What kind of change does this PR introduce?
 _Select what you have done and remove others_
 
@@ -15,9 +16,9 @@ _Select what you have done and remove others_
 
 _Describe the source of requirement, like related issue link._
 
- - #17 
- - #19
- - #20
+- #17
+- #19
+- #20
 
 #### 💡 Background and solution
 

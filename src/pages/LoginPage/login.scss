@@ -1,0 +1,174 @@
+* {
+  box-sizing: border-box;
+}
+
+.login__container {
+  width: 350px;
+  margin: 0 auto;
+  color: black;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.login__form {
+  margin-bottom: 25px;
+  border: 1px #ddd solid;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  width: 100%;
+}
+
+.login__form-title {
+  margin: 0 0 15px 0;
+}
+
+.login__pasword-block,
+.login__email-block {
+  margin-bottom: 15px;
+}
+
+.login__pasword-block-label,
+.login__email-block-label {
+  font-weight: 600;
+  padding-left: 2px;
+}
+
+.login__button,
+.login__password-check-box {
+  cursor: pointer;
+}
+
+.login__user-email,
+.login__user-password {
+  background-color: #fff;
+  height: 28px;
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid #a6a6a6;
+  line-height: normal;
+  width: 100%;
+}
+
+.login__user-email:focus,
+.login__user-password:focus {
+  background-color: #f7feff;
+  border-color: #007185;
+  box-shadow:
+    0 0 0 3px #c8f3fa,
+    0 1px 2px rgba(15, 17, 17, 0.15) inset;
+}
+
+.login__user-password.correct,
+.login__user-email.correct {
+  box-shadow: none;
+}
+
+.login__user-password.incorrect:focus,
+.login__user-email.incorrect:focus {
+  box-shadow: 0 0 5px 1px red;
+}
+
+.login__user-password.incorrect,
+.login__user-email.incorrect {
+  box-shadow: 0 0 0 1px #cc0c39 inset;
+}
+
+input:focus {
+  outline: 0;
+}
+
+.login__password-check-box-block {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.login__user-password-error,
+.login__user-email-error {
+  color: red;
+  margin-right: 10px;
+  font-size: 14px;
+  margin-right: 10px;
+  margin-top: 2px;
+  vertical-align: middle;
+}
+
+.login__user-password-error.hidden,
+.login__user-email-error.hidden {
+  margin-top: 10px;
+  opacity: 0;
+}
+
+.login__error-icon {
+  display: inline-block;
+  background-image: url('../../assets/icons/warning-icon.png');
+  background-size: contain;
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  margin-top: 2px;
+  vertical-align: text-bottom;
+}
+
+.login__login-button-container {
+  width: 100%;
+}
+
+.login__button {
+  width: 100%;
+  height: 30px;
+  border: 1px solid rgb(49, 189, 107);
+  background-color: rgb(57, 214, 122);
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.login__button:hover {
+  border: 1px solid rgb(49, 189, 107);
+  background-color: rgb(49, 189, 107);
+}
+
+.login__button {
+  pointer-events: all;
+}
+
+.login__button.inactive {
+  pointer-events: none;
+  background-color: rgba(78, 78, 78, 0.144);
+  border: 1px solid rgba(78, 78, 78, 0.144);
+}
+
+.login__password-check-box {
+  position: absolute;
+  z-index: -1;
+  opacity: 0;
+}
+
+.login__password-check-box + label {
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+  padding-left: 2px;
+}
+
+.login__password-check-box + label::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  flex-grow: 0;
+  border: 1px solid #adb5bd;
+  margin-right: 0.5em;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50% 50%;
+  cursor: pointer;
+}
+
+.login__password-check-box:checked + label::before {
+  background-image: url('../../assets/icons/eye.png');
+  background-size: contain;
+}
