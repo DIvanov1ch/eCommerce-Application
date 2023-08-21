@@ -30,6 +30,8 @@ export default class RegistrationPage extends Page {
 
   private password = '';
 
+  private isShippingAsBilling: boolean = false;
+
   constructor() {
     super(html);
   }
@@ -182,12 +184,21 @@ export default class RegistrationPage extends Page {
       postalCode: inputValues.get(InputID.BILLING_CODE),
       country: defaultCountry,
     };
-    const addresses: BaseAddress[] = [shippingAddress, billingAddress];
+    let addresses: BaseAddress[] = [shippingAddress, billingAddress];
     const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
     const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
+    const indexOfShipping: number = addresses.indexOf(shippingAddress);
+    let indexOfBilling: number = addresses.indexOf(billingAddress);
     if (defaultShippingCheckbox && defaultBillingCheckbox) {
-      defaultShippingNumber = defaultShippingCheckbox.checked ? addresses.indexOf(shippingAddress) : undefined;
-      defaultBillingNumber = defaultBillingCheckbox.checked ? addresses.indexOf(billingAddress) : undefined;
+      defaultShippingNumber = defaultShippingCheckbox.checked ? indexOfShipping : undefined;
+      defaultBillingNumber = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
+    }
+    if (this.isShippingAsBilling) {
+      addresses = [shippingAddress];
+      indexOfBilling = indexOfShipping;
+      if (defaultShippingCheckbox && defaultBillingCheckbox) {
+        defaultBillingNumber = defaultShippingNumber;
+      }
     }
     registration(
       inputValues.get(InputID.FIRST_NAME) || defaultValue,
@@ -197,9 +208,9 @@ export default class RegistrationPage extends Page {
       inputValues.get(InputID.B_DAY) || defaultValue,
       addresses,
       defaultShippingNumber,
-      [addresses.indexOf(shippingAddress)],
+      [indexOfShipping],
       defaultBillingNumber,
-      [addresses.indexOf(billingAddress)]
+      [indexOfBilling]
     )
       .then((response) => {
         this.isSignUp = true;
@@ -229,6 +240,7 @@ export default class RegistrationPage extends Page {
   }
 
   private setShippingAsBilling(event: Event): void {
+    this.isShippingAsBilling = true;
     const shippingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.SHIPPING}`);
     const billingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.BILLING}`);
     const target = event.target as HTMLInputElement;
