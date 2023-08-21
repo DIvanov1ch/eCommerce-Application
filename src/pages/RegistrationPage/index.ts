@@ -225,11 +225,11 @@ export default class RegistrationPage extends Page {
   }
 
   private checkValuesBeforeSubmit(): void {
-    this.disableButtons();
     const isValid: boolean = [...this.fields].every((field: HTMLInputElement): boolean =>
       isValidValue(field.id, field.value.trim())
     );
     if (isValid) {
+      this.disableButtons();
       this.submitValues();
     } else {
       this.setErrorMessages();
