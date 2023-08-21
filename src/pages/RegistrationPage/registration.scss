@@ -135,6 +135,14 @@ input[type='date'] {
   opacity: 0.8;
 }
 
+.submit-button:disabled,
+.login-button:disabled {
+  cursor: not-allowed;
+  border: 1px solid rgb(49, 189, 107);
+  background-color: rgb(57, 214, 122);
+  opacity: 1;
+}
+
 .registration__pop-up {
   width: 300px;
   height: 300px;

@@ -14,7 +14,7 @@ import warningIcon from '../../assets/icons/warning-icon.png';
 import { pause } from '../../utils';
 import Store from '../../services/Store';
 
-const REDIRECT_DELAY = 5000;
+const REDIRECT_DELAY = 3000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
 const HTML = {
   ALREADY: `
@@ -38,10 +38,7 @@ export default class RegistrationPage extends Page {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    if (localStorage.getItem('userToken') !== null) {
-      this.isSignUp = true;
-      this.redirectToMain(HTML.ALREADY).then().catch(console.error);
-    }
+    this.checkIfLoginByTokenInLocalStorage();
     this.fields = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
     this.setCallback();
   }
@@ -228,6 +225,7 @@ export default class RegistrationPage extends Page {
   }
 
   private checkValuesBeforeSubmit(): void {
+    this.disableButtons();
     const isValid: boolean = [...this.fields].every((field: HTMLInputElement): boolean =>
       isValidValue(field.id, field.value.trim())
     );
@@ -263,14 +261,16 @@ export default class RegistrationPage extends Page {
       popup !== null &&
       !target.classList.contains(CssClasses.CONTAINER) &&
       !target.classList.contains(CssClasses.POP_UP) &&
-      !target.classList.contains(CssClasses.MESSAGE)
+      !target.classList.contains(CssClasses.MESSAGE) &&
+      !popup.classList.contains(CssClasses.HIDDEN)
     ) {
       popup.classList.add(CssClasses.HIDDEN);
       if (this.isSignUp) {
         this.logIn();
         Store.user = { loggedIn: true };
-        this.redirectToMain(HTML.SUCCESS).catch(console.error);
+        this.goToMainPage(HTML.SUCCESS).catch(console.error);
       }
+      this.enableButtons();
     }
   }
 
@@ -278,12 +278,36 @@ export default class RegistrationPage extends Page {
     login(this.email, this.password).then().catch(console.error);
   }
 
-  private async redirectToMain(htmlText: string): Promise<void> {
+  private async goToMainPage(htmlText: string): Promise<void> {
     this.innerHTML = htmlText;
 
     await pause(REDIRECT_DELAY);
     if (this.isConnected) {
       window.location.assign('#');
+    }
+  }
+
+  private checkIfLoginByTokenInLocalStorage(): void {
+    if (Store.user.loggedIn) {
+      this.goToMainPage(HTML.ALREADY).then().catch(console.error);
+    }
+  }
+
+  private disableButtons(): void {
+    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
+    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    if (submitBtn && loginBtn) {
+      submitBtn.disabled = true;
+      loginBtn.disabled = true;
+    }
+  }
+
+  private enableButtons(): void {
+    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
+    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    if (submitBtn && loginBtn) {
+      submitBtn.disabled = false;
+      loginBtn.disabled = false;
     }
   }
 }
