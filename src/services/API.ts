@@ -105,9 +105,6 @@ const getClientCredentialsFlowClient = (): Client => {
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
-  if (newToken.get().token) {
-    console.log('Registration token -->', newToken.get().token);
-  }
   return clientCredentialsFlowClient;
 };
 

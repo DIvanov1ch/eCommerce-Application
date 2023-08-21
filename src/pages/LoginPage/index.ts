@@ -5,6 +5,7 @@ import { EmailRules, PasswordRules } from '../../types/enums';
 import Pattern from '../../constants/pattern';
 import { login } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
+import Store from '../../services/Store';
 
 export default class LoginPage extends Page {
   constructor() {
@@ -62,6 +63,7 @@ export default class LoginPage extends Page {
   private static checkIfLoginByTokenInLocalStorage = (): void => {
     if (localStorage.getItem('userToken') !== null) {
       this.isLogIn = true;
+      window.location.assign('#');
     }
   };
 
@@ -295,12 +297,13 @@ export default class LoginPage extends Page {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           this.isLogIn = true;
-          window.location.href = '#test-login';
           this.userId = body.customer.id;
+          Store.user = { loggedIn: true };
+          window.location.assign('#');
         })
         .catch((error: Error) => {
-          if (error.message === errorMessages.loginError) {
-            this.showErrorOnLogin(errorMessages.loginError);
+          if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
+            this.showErrorOnLogin(error.message);
           }
         });
     });

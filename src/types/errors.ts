@@ -1,5 +1,6 @@
 export const errorMessages = {
-  loginError: 'Customer account with the given credentials not found.',
+  loginEmailError: 'Customer account with the given credentials not found.',
+  loginPasswordError: 'Account with the given credentials not found.',
   emailError: 'There is already an existing customer with the provided email.',
   dataError: 'Request body does not contain valid JSON.',
 };
