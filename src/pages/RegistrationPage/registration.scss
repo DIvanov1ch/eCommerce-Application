@@ -214,3 +214,23 @@ input[type='date'] {
   background: linear-gradient(to right,#fff,rgba(255,255,255,0),#fff);
   content: "";
 }
+
+.addresses__country-select {
+  width: 286px;
+  padding: 3px 7px;
+  height: 28px;
+  z-index: 10;
+  border: 1px solid #a6a6a6;
+  border-radius: 3px;
+  position: absolute;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.addresses__country-select:hover {
+  background-color: #ddd;
+}
+
+.addresses__country-select:active {
+  background-color: #eceaea;
+}

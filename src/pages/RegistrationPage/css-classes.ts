@@ -14,6 +14,7 @@ enum CssClasses {
   CHECKBOX = 'shipping-billing',
   SHIPPING = 'shipping',
   BILLING = 'billing',
+  SELECT = 'addresses__country-select',
 }
 
 export default CssClasses;

@@ -71,7 +71,39 @@ export default class RegistrationPage extends Page {
       });
     }
 
+    const countryFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll('[name="country"]');
+    countryFileds.forEach((field) => {
+      field.addEventListener('focus', this.showCountrySelect.bind(this));
+      field.addEventListener('input', this.showCountrySelect.bind(this));
+    });
+
+    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+    countrySelects.forEach((select) => select.addEventListener('click', this.hideCountrySelect.bind(this)));
+
     this.addEventListener('click', this.hidePopupAndRedirect.bind(this));
+  }
+
+  private showCountrySelect(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (!target.value || target.value.trim() !== 'United States') {
+      const selector = target.id;
+      const countrySelect: HTMLDivElement | null = this.querySelector(`.${CssClasses.SELECT}.${selector}`);
+      if (countrySelect) {
+        countrySelect.classList.remove(CssClasses.HIDDEN);
+        countrySelect.style.top = `${target.getBoundingClientRect().bottom + window.scrollY}px`;
+      }
+    }
+  }
+
+  private hideCountrySelect(event: Event): void {
+    const target = event.target as HTMLDivElement;
+    const selector = Object.values(InputID).find((id) => target.classList.contains(id));
+    const field: HTMLInputElement | null = this.querySelector(`#${selector}`);
+    if (field) {
+      field.value = target.textContent as string;
+      field.dispatchEvent(new Event('input'));
+    }
+    target.classList.add(CssClasses.HIDDEN);
   }
 
   private getInvalidFields(): HTMLInputElement[] {
@@ -255,6 +287,15 @@ export default class RegistrationPage extends Page {
   }
 
   private hidePopupAndRedirect(event: Event): void {
+    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+    countrySelects.forEach((select) => {
+      if (
+        !select.classList.contains(CssClasses.HIDDEN) &&
+        !(event.target instanceof HTMLInputElement && event.target.name === 'country')
+      ) {
+        select.classList.add(CssClasses.HIDDEN);
+      }
+    });
     const target = event.target as HTMLDivElement;
     const popup: HTMLDivElement | null = this.querySelector(`.${CssClasses.POP_UP}`);
     if (
