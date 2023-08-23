@@ -185,8 +185,7 @@ export default class LoginPage extends Page {
       if (
         this.hasCorrectLengthPassword === true &&
         this.hasLowerAndUpperCaseLettersPassword === true &&
-        this.hasNumbersPassword &&
-        this.hasSpecialSymbolsPassword
+        this.hasNumbersPassword
       ) {
         this.checkInputForWhiteSpaces(inputUserPassword);
       }
