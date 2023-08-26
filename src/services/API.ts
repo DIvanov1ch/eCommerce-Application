@@ -9,7 +9,7 @@ import {
   createApiBuilderFromCtpClient,
   ClientResponse,
   CustomerSignInResult,
-  BaseAddress,
+  CustomerDraft,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
@@ -85,36 +85,9 @@ const login = async (email: string, password: string): Promise<ClientResponse<Cu
   return apiRoot.me().login().post({ body: { email, password } }).execute();
 };
 
-const registration = async (
-  firstName: string,
-  lastName: string,
-  email: string,
-  password: string,
-  dateOfBirth: string,
-  addresses: BaseAddress[],
-  defaultShippingAddress: number | undefined,
-  shippingAddresses: number[],
-  defaultBillingAddress: number | undefined,
-  billingAddresses: number[]
-): Promise<ClientResponse<CustomerSignInResult>> => {
+const registration = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  return apiRoot
-    .customers()
-    .post({
-      body: {
-        firstName,
-        lastName,
-        email,
-        password,
-        dateOfBirth,
-        addresses,
-        defaultShippingAddress,
-        shippingAddresses,
-        defaultBillingAddress,
-        billingAddresses,
-      },
-    })
-    .execute();
+  return apiRoot.customers().post({ body }).execute();
 };
 
 const logout = (): void => {
