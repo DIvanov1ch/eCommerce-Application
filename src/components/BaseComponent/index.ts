@@ -1,5 +1,5 @@
 import { HtmlElementFromTagName } from '../../types/elements';
-import { createTemplate } from '../../utils';
+import { createTemplate } from '../../utils/create-element';
 
 export default class BaseComponent extends HTMLElement {
   #html?: string;

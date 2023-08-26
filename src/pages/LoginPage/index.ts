@@ -1,7 +1,7 @@
 import html from './login.html';
 import './login.scss';
 import Page from '../Page';
-import { EmailRules, PasswordRules } from '../../types/enums';
+import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
 import { login } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';

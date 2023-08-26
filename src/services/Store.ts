@@ -1,5 +1,5 @@
 import { STORAGE_NAME } from '../config';
-import { dispatch } from '../utils';
+import { dispatch } from '../utils/create-element';
 import { MerchStore } from '../types/MerchStore';
 
 const Store: MerchStore = {
