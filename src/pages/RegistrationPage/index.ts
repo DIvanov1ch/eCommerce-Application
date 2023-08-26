@@ -316,7 +316,12 @@ export default class RegistrationPage extends Page {
   }
 
   private logIn(): void {
-    login(this.email, this.password).then().catch(console.error);
+    login(this.email, this.password)
+      .then(({ body }) => {
+        const { firstName, lastName } = body.customer;
+        Store.user = { loggedIn: true, firstName, lastName };
+      })
+      .catch(console.error);
   }
 
   private async goToMainPage(htmlText: string): Promise<void> {
