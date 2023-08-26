@@ -6,10 +6,8 @@ import {
   Client,
 } from '@commercetools/sdk-client-v2';
 import {
-  Project,
   createApiBuilderFromCtpClient,
   ClientResponse,
-  ShoppingListPagedQueryResponse,
   CustomerSignInResult,
   BaseAddress,
 } from '@commercetools/platform-sdk';
@@ -24,13 +22,15 @@ const apiHost = API_HOST.replace('{region}', API_REGION);
 
 const newToken = new TokenClient();
 
-const authMiddlewareOptions: AuthMiddlewareOptions = {
-  host: authHost,
-  projectKey,
-  credentials: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET },
-  scopes,
-  tokenCache: newToken,
-  fetch,
+const getAuthMiddlewareOptions = (token: TokenClient): AuthMiddlewareOptions => {
+  return {
+    host: authHost,
+    projectKey,
+    credentials: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET },
+    scopes,
+    tokenCache: token,
+    fetch,
+  };
 };
 
 const httpMiddlewareOptions: HttpMiddlewareOptions = { host: apiHost, fetch };
@@ -57,55 +57,32 @@ const getPasswordFlowOptions = (
   };
 };
 
-const ctpClient = new ClientBuilder()
-  .withClientCredentialsFlow(authMiddlewareOptions)
-  .withHttpMiddleware(httpMiddlewareOptions)
-  .withLoggerMiddleware()
-  .build();
-
 const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
   const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
   return apiRoot;
 };
 
-const passwordFlowClient = (username: string, password: string, token: TokenClient): Client => {
-  const newCtpClient = new ClientBuilder()
-    .withPasswordFlow(getPasswordFlowOptions(username, password, token))
-    .withHttpMiddleware(httpMiddlewareOptions)
-    .withLoggerMiddleware()
-    .build();
-  return newCtpClient;
-};
-
-const getProject = async (): Promise<ClientResponse<Project>> => {
-  const response = await getApiRoot(ctpClient).get().execute();
-  return response;
-};
-
-const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>> => {
-  return getApiRoot(ctpClient).shoppingLists().get().execute();
-};
-
-const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
-  const newApiRoot = createApiBuilderFromCtpClient(
-    passwordFlowClient(userEmail, userPassword, newToken)
-  ).withProjectKey({
-    projectKey,
-  });
-  return newApiRoot
-    .me()
-    .login()
-    .post({ body: { email: userEmail, password: userPassword } })
-    .execute();
-};
-
 const getClientCredentialsFlowClient = (): Client => {
   const clientCredentialsFlowClient = new ClientBuilder()
-    .withClientCredentialsFlow(authMiddlewareOptions)
+    .withClientCredentialsFlow(getAuthMiddlewareOptions(newToken))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
   return clientCredentialsFlowClient;
+};
+
+const getPasswordFlowClient = (username: string, password: string): Client => {
+  const passwordFlowClient = new ClientBuilder()
+    .withPasswordFlow(getPasswordFlowOptions(username, password, newToken))
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+  return passwordFlowClient;
+};
+
+const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
+  const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
+  return apiRoot.me().login().post({ body: { email, password } }).execute();
 };
 
 const registration = async (
@@ -144,4 +121,4 @@ const logout = (): void => {
   newToken.delete();
 };
 
-export { getProject, shoppingLists, login, registration, logout };
+export { login, registration, logout };

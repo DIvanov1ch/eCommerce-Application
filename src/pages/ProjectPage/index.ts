@@ -1,6 +1,6 @@
 import './project.scss';
 import html from './project.html';
-import { getProject } from '../../services/API';
+// import { getProject } from '../../services/API';
 import Page from '../Page';
 
 const PAGE_TITLE = 'Project Info';
@@ -18,13 +18,13 @@ export default class ProjectPage extends Page {
   private showProjectInfo(): void {
     const pre = this.querySelector('pre');
     if (!pre) {
-      return;
+      // return;
     }
 
-    getProject()
-      .then((projectInfo) => {
-        pre.innerHTML = JSON.stringify(projectInfo, null, 2);
-      })
-      .catch(console.error);
+    // getProject()
+    //   .then((projectInfo) => {
+    //     pre.innerHTML = JSON.stringify(projectInfo, null, 2);
+    //   })
+    //   .catch(console.error);
   }
 }
