@@ -6,7 +6,7 @@ enum InputID {
   B_DAY = 'date-of-birth',
   SHIPPING_STREET = 'shipping-street',
   BILLING_STREET = 'billing-street',
-  SHIPPIN_CITY = 'shipping-city',
+  SHIPPING_CITY = 'shipping-city',
   BILLING_CITY = 'billing-city',
   SHIPPING_CODE = 'shipping-postal-code',
   BILLING_CODE = 'billing-postal-code',

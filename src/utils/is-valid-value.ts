@@ -1,6 +1,6 @@
 import { AGE_LIMIT, ZipCodes } from '../config';
 import Pattern from '../constants/pattern';
-import InputID from '../enums';
+import InputID from '../enums/input-id';
 import findCurrentAge from './find-current-age';
 
 export default function isValidValue(id: string, value: string): boolean {
@@ -17,7 +17,7 @@ export default function isValidValue(id: string, value: string): boolean {
     case InputID.SHIPPING_STREET:
     case InputID.BILLING_STREET:
       return Pattern.street.test(value);
-    case InputID.SHIPPIN_CITY:
+    case InputID.SHIPPING_CITY:
     case InputID.BILLING_CITY:
       return Pattern.city.test(value);
     case InputID.SHIPPING_CODE:

@@ -2,7 +2,7 @@ import './styles.scss';
 import Page from '../Page';
 import html from './template.html';
 import Store from '../../services/Store';
-import { pause } from '../../utils';
+import { pause } from '../../utils/create-element';
 import { logout } from '../../services/API';
 import LoginPage from '../LoginPage';
 

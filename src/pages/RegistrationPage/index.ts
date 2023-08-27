@@ -6,13 +6,15 @@ import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import CssClasses from './css-classes';
 import { login, registration } from '../../services/API';
-import InputID from '../../enums';
+import InputID from '../../enums/input-id';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
 import warningIcon from '../../assets/icons/warning-icon.png';
-import { pause } from '../../utils';
+import { pause } from '../../utils/create-element';
 import Store from '../../services/Store';
+import Customer from '../../services/Customer';
+import AddressType from '../../enums/address-type';
 
 const REDIRECT_DELAY = 3000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -21,14 +23,15 @@ const HTML = {
   <p>Looks like you already have an account. You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
   SUCCESS: `<p>You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
 };
+
 export default class RegistrationPage extends Page {
   private isSignUp: boolean = false;
 
   private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
 
-  private email = '';
+  private customer = new Customer();
 
-  private password = '';
+  private country = 'US';
 
   private isShippingAsBilling: boolean = false;
 
@@ -192,59 +195,50 @@ export default class RegistrationPage extends Page {
     }
   }
 
-  // eslint-disable-next-line max-lines-per-function
-  private submitValues(): void {
-    let defaultShippingNumber: number | undefined;
-    let defaultBillingNumber: number | undefined;
+  private setAddress(values: Map<string, string>, addressType: AddressType): BaseAddress {
+    const address: BaseAddress = {
+      streetName: values.get(InputID[`${addressType}_STREET`]),
+      city: values.get(InputID[`${addressType}_CITY`]),
+      postalCode: values.get(InputID[`${addressType}_CODE`]),
+      country: this.country,
+    };
+    return address;
+  }
+
+  private setCustomerInformation(): void {
     const inputValues: Map<string, string> = new Map();
     this.fields.forEach((field) => inputValues.set(field.id, field.value));
-    this.password = inputValues.get(InputID.PASSWORD) || '';
-    const defaultValue = '';
-    const defaultCountry = 'US';
-    const shippingAddress: BaseAddress = {
-      streetName: inputValues.get(InputID.SHIPPING_STREET),
-      city: inputValues.get(InputID.SHIPPIN_CITY),
-      postalCode: inputValues.get(InputID.SHIPPING_CODE),
-      country: defaultCountry,
-    };
-    const billingAddress: BaseAddress = {
-      streetName: inputValues.get(InputID.BILLING_STREET),
-      city: inputValues.get(InputID.BILLING_CITY),
-      postalCode: inputValues.get(InputID.BILLING_CODE),
-      country: defaultCountry,
-    };
-    let addresses: BaseAddress[] = [shippingAddress, billingAddress];
+    this.customer.firstName = inputValues.get(InputID.FIRST_NAME);
+    this.customer.lastName = inputValues.get(InputID.LAST_NAME);
+    this.customer.email = inputValues.get(InputID.EMAIL) || '';
+    this.customer.password = inputValues.get(InputID.PASSWORD) || '';
+    const shippingAddress: BaseAddress = this.setAddress(inputValues, AddressType.SHIPPING);
+    const billingAddress: BaseAddress = this.setAddress(inputValues, AddressType.BILLING);
+    this.customer.addresses = [shippingAddress, billingAddress];
     const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
     const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
-    const indexOfShipping: number = addresses.indexOf(shippingAddress);
-    let indexOfBilling: number = addresses.indexOf(billingAddress);
+    const indexOfShipping: number = this.customer.addresses.indexOf(shippingAddress);
+    let indexOfBilling: number = this.customer.addresses.indexOf(billingAddress);
     if (defaultShippingCheckbox && defaultBillingCheckbox) {
-      defaultShippingNumber = defaultShippingCheckbox.checked ? indexOfShipping : undefined;
-      defaultBillingNumber = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
+      this.customer.defaultShippingAddress = defaultShippingCheckbox.checked ? indexOfShipping : undefined;
+      this.customer.defaultBillingAddress = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
     }
     if (this.isShippingAsBilling) {
-      addresses = [shippingAddress];
+      this.customer.addresses = [shippingAddress];
       indexOfBilling = indexOfShipping;
       if (defaultShippingCheckbox && defaultBillingCheckbox) {
-        defaultBillingNumber = defaultShippingNumber;
+        this.customer.defaultBillingAddress = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
       }
     }
-    registration(
-      inputValues.get(InputID.FIRST_NAME) || defaultValue,
-      inputValues.get(InputID.LAST_NAME) || defaultValue,
-      inputValues.get(InputID.EMAIL) || defaultValue,
-      inputValues.get(InputID.PASSWORD) || defaultValue,
-      inputValues.get(InputID.B_DAY) || defaultValue,
-      addresses,
-      defaultShippingNumber,
-      [indexOfShipping],
-      defaultBillingNumber,
-      [indexOfBilling]
-    )
+    this.customer.shippingAddresses = [indexOfShipping];
+    this.customer.billingAddresses = [indexOfBilling];
+  }
+
+  private registrate(): void {
+    registration(this.customer)
       .then((response) => {
         this.isSignUp = true;
         const { customer } = response.body;
-        this.email = customer.email;
         if (customer.firstName && customer.lastName) {
           const message = `Thanks for signing up, ${customer.firstName} ${customer.lastName}. Your account has been created.`;
           this.showRegistrationResult(message);
@@ -262,7 +256,8 @@ export default class RegistrationPage extends Page {
     );
     if (isValid) {
       this.disableButtons();
-      this.submitValues();
+      this.setCustomerInformation();
+      this.registrate();
     } else {
       this.setErrorMessages();
       this.showErrors();
@@ -316,7 +311,12 @@ export default class RegistrationPage extends Page {
   }
 
   private logIn(): void {
-    login(this.email, this.password).then().catch(console.error);
+    login(this.customer.email, this.customer.password)
+      .then(({ body }) => {
+        const { firstName, lastName } = body.customer;
+        Store.user = { loggedIn: true, firstName, lastName };
+      })
+      .catch(console.error);
   }
 
   private async goToMainPage(htmlText: string): Promise<void> {
