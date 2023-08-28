@@ -10,6 +10,7 @@ import {
   ClientResponse,
   CustomerSignInResult,
   CustomerDraft,
+  ProductPagedQueryResponse,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
@@ -94,4 +95,9 @@ const logout = (): void => {
   newToken.delete();
 };
 
-export { login, registration, logout };
+const getInfoOfAllProducts = async (): Promise<ClientResponse<ProductPagedQueryResponse>> => {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return apiRoot.products().get().execute();
+};
+
+export { login, registration, logout, getInfoOfAllProducts };
