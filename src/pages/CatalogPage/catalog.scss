@@ -1,4 +1,4 @@
-.product__block {   
+.product__block {
   margin: 0 auto;
   color: black;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -9,7 +9,8 @@
 .product__card {
   padding: 15px;
   display: grid;
-  grid-template-columns: 150px 50px 100px;
+  grid-template-columns: 150px 90px 100px;
+  grid-template-rows: 1fr 40px;
   gap: 20px;
   border: 1px #ddd solid;
   background-color: #fff;
@@ -27,4 +28,25 @@
 
 .product__description {
   padding-left: 5px;
+}
+
+.product__price {
+  font-size: 18px;
+  justify-self: center;
+}
+
+.product__discount {
+  font-size: 28px;
+  color: red;
+  justify-self: center;
+}
+
+.product__discounted-price {
+  font-size: 24px;
+  color: red;
+  justify-self: center;
+}
+
+.product__price.cancel {
+  text-decoration: line-through;
 }
