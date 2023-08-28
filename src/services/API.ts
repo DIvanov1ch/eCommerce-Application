@@ -97,7 +97,10 @@ const logout = (): void => {
 
 const getInfoOfAllProducts = async (): Promise<ClientResponse<ProductPagedQueryResponse>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  return apiRoot.products().get().execute();
+  return apiRoot
+    .products()
+    .get({ queryArgs: { limit: 500 } })
+    .execute();
 };
 
 export { login, registration, logout, getInfoOfAllProducts };
