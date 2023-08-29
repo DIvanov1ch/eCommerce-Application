@@ -1,0 +1,113 @@
+<div class="user-profile">
+  <h1 class="user-profile__title">Personal Information</h1>
+  <div class="user-profile__container name">
+    <!-- First name -->
+    <div class="input-module">
+      <label for="first-name" class="input-module__label">First name</label>
+      <input
+        type="text"
+        maxlength="50"
+        id="first-name"
+        autocomplete="given-name"
+        class="input-module__input-field"
+        name="forename"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon first-name" />
+        <div class="error-box__content first-name"></div>
+      </div>
+    </div>
+
+    <!-- Last name -->
+    <div class="input-module">
+      <label for="last-name" class="input-module__label">Last name</label>
+      <input
+        type="text"
+        maxlength="50"
+        id="last-name"
+        autocomplete="family-name"
+        class="input-module__input-field"
+        name="surname"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon last-name" />
+        <div class="error-box__content last-name"></div>
+      </div>
+    </div>
+
+    <!-- Bday -->
+    <div class="input-module">
+      <label for="date-of-birth" class="input-module__label">Date of birth</label>
+      <input
+        type="date"
+        min="1910-01-01"
+        max="2011-01-01"
+        id="date-of-birth"
+        autocomplete="bday"
+        class="input-module__input-field"
+        name="date"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon date-of-birth" />
+        <div class="error-box__content date-of-birth"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="user-profile__container email-n-password">
+    <!-- Email -->
+    <div class="input-module">
+      <label for="email" class="input-module__label">Email</label>
+      <input
+        type="email"
+        maxlength="64"
+        id="email"
+        autocomplete="email"
+        class="input-module__input-field"
+        name="email"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon email" />
+        <div class="error-box__content email"></div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="input-module">
+      <label for="password" class="input-module__label">Password</label>
+      <input
+        type="password"
+        minlength="8"
+        id="password"
+        autocomplete="new-password"
+        class="input-module__input-field"
+        name="password"
+        required
+      />
+      <div class="input-module__error-box hidden">
+        <img alt="Warning icon" class="error-box__icon password" />
+        <div class="error-box__content password"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="addresses__title">Addresses</h2>
+  <div class="user-profile__container">
+    <table class="user-profile__table">
+      <thead>
+        <tr>
+          <th scope="col">Street</th>
+          <th scope="col">City</th>
+          <th scope="col">ZIP Code</th>
+          <th scope="col">Country</th>
+          <th scope="col">Address type</th>
+        </tr>
+      </thead>
+      <tbody class="user-profile__table-body"></tbody>
+    </table>
+  </div>
+</div>

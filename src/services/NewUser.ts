@@ -1,6 +1,6 @@
 import { BaseAddress, CustomerDraft } from '@commercetools/platform-sdk';
 
-export default class Customer implements CustomerDraft {
+export default class NewUser implements CustomerDraft {
   public firstName: string | undefined;
 
   public lastName: string | undefined;

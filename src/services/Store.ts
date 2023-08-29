@@ -1,11 +1,13 @@
 import { STORAGE_NAME } from '../config';
 import { dispatch } from '../utils/create-element';
 import { MerchStore } from '../types/MerchStore';
+import LoggedInUser from './LoggedInUser';
 
 const Store: MerchStore = {
   user: {
     loggedIn: false,
   },
+  customer: new LoggedInUser(),
   token: {
     token: '',
     expirationTime: 0,
