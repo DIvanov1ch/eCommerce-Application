@@ -3,7 +3,7 @@ enum InputID {
   LAST_NAME = 'last-name',
   EMAIL = 'email',
   PASSWORD = 'password',
-  B_DAY = 'date-of-birth',
+  DATE_OF_BIRTH = 'date-of-birth',
   SHIPPING_STREET = 'shipping-street',
   BILLING_STREET = 'billing-street',
   SHIPPING_CITY = 'shipping-city',
