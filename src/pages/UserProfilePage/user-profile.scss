@@ -1,0 +1,98 @@
+.user-profile__container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.name .input-module {
+  flex: 30%;
+  min-width: 200px;
+}
+
+.address .input-module {
+  flex: 20%;
+  min-width: 100px;
+}
+
+.email-n-password .input-module {
+  flex: 100%;
+}
+
+.user-profile__container {
+  .input-module__input-field {
+    background-color: var(--page-bg);
+    border-radius: 0;
+    border: none;
+  }
+
+  .input-module__label {
+    font-weight: 400;
+    color: #a6a6a6;
+  }
+}
+
+.user-profile__table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  width: 15%;
+  padding: 10px;
+}
+
+thead th:last-child {
+  width: 30%;
+}
+
+th,
+td {
+  padding: 0 5px;
+  border: 1px solid #a6a6a6;
+}
+
+td:last-child {
+  padding: 2px;
+}
+
+th {
+  background-color: rgb(218, 218, 218);
+}
+
+.shipping,
+.billing,
+.default-shipping,
+.default-billing {
+  border-radius: 15px;
+  padding: 5px;
+  width: fit-content;
+  margin: 5px;
+}
+
+.shipping,
+.billing {
+  border: 1px solid #003850;
+  color: #003850;
+  background-color: #9ae4fa;
+}
+
+.default-shipping,
+.default-billing {
+  border: 1px solid #a57203;
+  color: #996901;
+  background-color: #f5df97;
+}
+
+.address-type {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 500px) {
+  .address-type {
+    div {
+      font-size: 12px;
+    }
+  }
+}

@@ -8,6 +8,7 @@ class Router {
     project: 'project-page',
     logout: 'logout-page',
     'test-login': 'test-login-page',
+    profile: 'user-profile',
   };
 
   #main!: PageMain | null;
