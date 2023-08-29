@@ -9,7 +9,7 @@ import InputID from '../../enums/input-id';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
-const HTML_NOT_YET = `<p>Looks like you are not logged into your account or have not created one yet. You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`;
+const HTML_NOT_YET = `<p>Looks like you are not logged into your account or have not created one yet. You will be redirected to <a href="#login">login page</a> in ${TIMER_HTML} sec...</p>`;
 
 export default class UserProfile extends Page {
   constructor() {
@@ -103,7 +103,7 @@ export default class UserProfile extends Page {
 
     await pause(REDIRECT_DELAY);
     if (this.isConnected) {
-      window.location.assign('#');
+      window.location.assign('#login');
     }
   }
 }
