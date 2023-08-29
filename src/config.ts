@@ -2,8 +2,8 @@ export const PROJECT_KEY = 'trialversion2023';
 export const API_REGION = 'europe-west1';
 export const API_HOST = 'https://api.{region}.gcp.commercetools.com';
 export const AUTH_HOST = 'https://auth.{region}.gcp.commercetools.com';
-export const CLIENT_ID = 'CbbQQxJw1-oy1mfs71lcvGNI';
-export const CLIENT_SECRET = '6oiwCblg343Rv-QkjIfYf27alIbHoREX';
+export const CLIENT_ID = 'mOQxQZYWwUW5fbaW8VfC_U5P';
+export const CLIENT_SECRET = 'V7yOfw6dok6rvcq1FKb9SURIcY7u8XSM';
 export const API_SCOPES = [
   'view_published_products',
   'view_messages',
@@ -23,6 +23,7 @@ export const API_SCOPES = [
   'view_tax_categories',
   'manage_my_payments',
   'manage_my_orders',
+  'view_products',
 ];
 
 export const APP_NAME = 'eComm';

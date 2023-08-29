@@ -5,6 +5,7 @@ import LoginPage from './LoginPage';
 import RegistrationPage from './RegistrationPage';
 import TestLoginPage from './TestLoginPage';
 import LogoutPage from './LogoutPage';
+import CatalogPage from './CatalogPage';
 
 const Pages = {
   'home-page': HomePage,
@@ -13,7 +14,7 @@ const Pages = {
   'project-page': ProjectPage,
   'registration-page': RegistrationPage,
   'logout-page': LogoutPage,
-
+  'catalog-page': CatalogPage,
   'test-login-page': TestLoginPage,
 };
 
