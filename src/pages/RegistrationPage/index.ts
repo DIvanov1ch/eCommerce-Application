@@ -212,6 +212,7 @@ export default class RegistrationPage extends Page {
     this.customer.lastName = inputValues.get(InputID.LAST_NAME);
     this.customer.email = inputValues.get(InputID.EMAIL) || '';
     this.customer.password = inputValues.get(InputID.PASSWORD) || '';
+    this.customer.dateOfBirth = inputValues.get(InputID.DATE_OF_BIRTH);
     const shippingAddress: BaseAddress = this.setAddress(inputValues, AddressType.SHIPPING);
     const billingAddress: BaseAddress = this.setAddress(inputValues, AddressType.BILLING);
     this.customer.addresses = [shippingAddress, billingAddress];
