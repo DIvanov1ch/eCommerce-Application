@@ -6,6 +6,7 @@ class Router {
     login: 'login-page',
     registration: 'registration-page',
     project: 'project-page',
+    catalog: 'catalog-page',
     logout: 'logout-page',
     'test-login': 'test-login-page',
     profile: 'user-profile',
