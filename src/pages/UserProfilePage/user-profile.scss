@@ -60,33 +60,33 @@ th {
   background-color: rgb(218, 218, 218);
 }
 
-.shipping,
-.billing,
-.default-shipping,
-.default-billing {
-  border-radius: 15px;
-  padding: 5px;
-  width: fit-content;
-  margin: 5px;
-}
-
-.shipping,
-.billing {
-  border: 1px solid #003850;
-  color: #003850;
-  background-color: #9ae4fa;
-}
-
-.default-shipping,
-.default-billing {
-  border: 1px solid #a57203;
-  color: #996901;
-  background-color: #f5df97;
-}
-
 .address-type {
   display: flex;
   flex-wrap: wrap;
+
+  .shipping,
+  .billing,
+  .default-shipping,
+  .default-billing {
+    border-radius: 15px;
+    padding: 5px;
+    width: fit-content;
+    margin: 5px;
+  }
+
+  .shipping,
+  .billing {
+    border: 1px solid #003850;
+    color: #003850;
+    background-color: #9ae4fa;
+  }
+
+  .default-shipping,
+  .default-billing {
+    border: 1px solid #a57203;
+    color: #996901;
+    background-color: #f5df97;
+  }
 }
 
 @media (max-width: 500px) {
