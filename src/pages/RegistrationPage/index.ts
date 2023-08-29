@@ -13,7 +13,7 @@ import { ServerErrors, errorMessages } from '../../types/errors';
 import warningIcon from '../../assets/icons/warning-icon.png';
 import { pause } from '../../utils/create-element';
 import Store from '../../services/Store';
-import Customer from '../../services/Customer';
+import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
 
 const REDIRECT_DELAY = 3000;
@@ -29,7 +29,7 @@ export default class RegistrationPage extends Page {
 
   private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
 
-  private customer = new Customer();
+  private customer = new NewUser();
 
   private country = 'US';
 
@@ -315,6 +315,7 @@ export default class RegistrationPage extends Page {
       .then(({ body }) => {
         const { firstName, lastName } = body.customer;
         Store.user = { loggedIn: true, firstName, lastName };
+        Store.customer = body.customer;
       })
       .catch(console.error);
   }

@@ -296,6 +296,7 @@ export default class LoginPage extends Page {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           const { firstName, lastName, id } = body.customer;
+          Store.customer = body.customer;
           this.isLogIn = true;
           this.userId = id;
           Store.user = { loggedIn: true, firstName, lastName };
