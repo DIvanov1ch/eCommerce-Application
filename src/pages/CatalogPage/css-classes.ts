@@ -10,6 +10,12 @@ enum CssClasses {
   CANCELPRICE = 'product__price--cancel',
   NOPICTURE = 'product__image--no-picture',
   FILTERS = 'filter__container',
+  RESETFILTERSBUTTON = 'filter__button-reset',
+  FILTERPRICE = 'filter__price',
+  FILTERBRAND = 'filter__brand',
+  FILTERCOLOR = 'filter__color',
+  FILTERSIZE = 'filter__size',
+  FILTERMATERIAL = 'filter__material',
 }
 
 export default CssClasses;
