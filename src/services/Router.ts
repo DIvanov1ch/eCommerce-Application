@@ -2,12 +2,7 @@ import PageMain from '../components/PageMain';
 
 class Router {
   #routes: Record<string, string> = {
-    '': 'home-page',
-    login: 'login-page',
-    registration: 'registration-page',
-    project: 'project-page',
     catalog: 'catalog-page',
-    logout: 'logout-page',
     profile: 'user-profile',
   };
 
@@ -47,6 +42,10 @@ class Router {
   private errorPage(): void {
     this.clear();
     this.render('error-page');
+  }
+
+  public registerRoute(route: string, page: string): void {
+    this.#routes[route] = page;
   }
 }
 

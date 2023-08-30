@@ -5,6 +5,9 @@ import Store from '../../services/Store';
 import { pause } from '../../utils/create-element';
 import { logout } from '../../services/API';
 import LoginPage from '../LoginPage';
+import Router from '../../services/Router';
+
+Router.registerRoute('logout', 'logout-page');
 
 const REDIRECT_DELAY = 5000;
 const LOGGING_OUT_TEXT = 'Logging out...';
