@@ -1,0 +1,22 @@
+.product {
+  &__images {
+    max-width: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+    height: 15em;
+    gap: 5px;
+    margin-bottom: 1em;
+  }
+
+  &__description {
+    min-height: 10em;
+  }
+
+  &__params {
+    font-size: 0.7em;
+    min-height: 10em;
+    max-height: 30em;
+    overflow: auto;
+  }
+}
