@@ -20,26 +20,32 @@ class Router {
 
   private go(hash: string): void {
     const route = hash.slice(1);
+    const [root, ...params] = route.split('/');
+    const [foundRoute = null, page = ''] = Object.entries(this.#routes).find(([key]) => root === key) || [];
 
-    if (!(route in this.#routes)) {
+    if (foundRoute === null) {
       this.errorPage();
       return;
     }
 
-    const page = this.#routes[route];
-    this.render(page);
+    this.render(page, params.join('/'));
   }
 
-  private render(page: string): void {
+  private render(page: string, params = ''): void {
     this.clear();
-    this.#main?.append(document.createElement(page));
+
+    const pageElement = document.createElement(page);
+    if (params) {
+      pageElement.setAttribute('params', params);
+    }
+    this.#main?.append(pageElement);
   }
 
   private clear(): void {
     this.#main?.clear();
   }
 
-  private errorPage(): void {
+  public errorPage(): void {
     this.clear();
     this.render('error-page');
   }
