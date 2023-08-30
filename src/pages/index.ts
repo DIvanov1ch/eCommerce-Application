@@ -1,6 +1,5 @@
 import ErrorPage from './ErrorPage';
 import HomePage from './HomePage';
-import ProjectPage from './ProjectPage';
 import LoginPage from './LoginPage';
 import RegistrationPage from './RegistrationPage';
 import LogoutPage from './LogoutPage';
@@ -11,7 +10,6 @@ const Pages = {
   'home-page': HomePage,
   'login-page': LoginPage,
   'error-page': ErrorPage,
-  'project-page': ProjectPage,
   'registration-page': RegistrationPage,
   'logout-page': LogoutPage,
   'user-profile': UserProfile,
