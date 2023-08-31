@@ -20,6 +20,7 @@ const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
 const authHost = AUTH_HOST.replace('{region}', API_REGION);
 const apiHost = API_HOST.replace('{region}', API_REGION);
+const searchFilter = 'text.en';
 
 const newToken = new TokenClient();
 
@@ -97,7 +98,8 @@ const logout = (): void => {
 
 const getInfoOfFilteredProducts = async (
   filterQuery: string[] = [],
-  sortingQuery: string[] = []
+  sortingQuery: string[] = [],
+  searchQuery: string = ''
 ): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
@@ -108,6 +110,7 @@ const getInfoOfFilteredProducts = async (
         limit: 500,
         filter: filterQuery,
         sort: sortingQuery,
+        [searchFilter]: searchQuery,
       },
     })
     .execute();

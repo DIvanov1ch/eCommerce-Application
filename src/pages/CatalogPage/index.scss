@@ -1,7 +1,9 @@
+.search__container,
 .catalog__container {
   display: flex;
   max-width: 1200px;
-  gap: 2px;
+  gap: 2px; 
+  padding-bottom: 3px;  
 }
 
 .product__container {
@@ -80,6 +82,7 @@
   max-width: 100px;  
 }
 
+.search__text-area,
 .filter__price,
 .filter__brand,
 .filter__color,
@@ -122,4 +125,21 @@
     border: 1px solid rgb(49, 189, 107);
     background-color: rgb(49, 189, 107);
   }
+}
+
+.search__button-search,
+.search__button-reset {
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  align-self: center;
+}
+
+.search__button-reset {  
+  width: 20px;
+  height: 20px;
+}
+
+input[type='search']::-webkit-search-cancel-button {
+  display: none;
 }

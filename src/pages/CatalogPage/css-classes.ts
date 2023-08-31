@@ -20,6 +20,9 @@ enum CssClasses {
   SORTNAME = 'sort__name',
   SORTPRICE = 'sort__price',
   RESETSORTINGBUTTON = 'sort__button-reset',
+  RESETSEARCHBUTTON = 'search__button-reset',
+  SEARCHBUTTON = 'search__button-search',
+  SEARCH = 'search__container',
 }
 
 export default CssClasses;
