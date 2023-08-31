@@ -1,102 +1,69 @@
 <div class="user-profile">
   <h1 class="user-profile__title">Personal Information</h1>
-  <div class="user-profile__container name">
-    <!-- First name -->
-    <div class="input-module">
-      <label for="first-name" class="input-module__label">First name</label>
-      <input
-        type="text"
-        maxlength="50"
-        id="first-name"
-        autocomplete="given-name"
-        class="input-module__input-field"
-        name="forename"
-        required
-      />
-      <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon first-name" />
-        <div class="error-box__content first-name"></div>
-      </div>
+  <div class="user-profile__container container_name">
+    <div class="info">
+      <div class="info__title">First name</div>
+      <div class="info__cell first-name"></div>
     </div>
 
-    <!-- Last name -->
-    <div class="input-module">
-      <label for="last-name" class="input-module__label">Last name</label>
-      <input
-        type="text"
-        maxlength="50"
-        id="last-name"
-        autocomplete="family-name"
-        class="input-module__input-field"
-        name="surname"
-        required
-      />
-      <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon last-name" />
-        <div class="error-box__content last-name"></div>
-      </div>
+    <div class="info">
+      <div class="info__title">Last name</div>
+      <div class="info__cell last-name"></div>
     </div>
 
-    <!-- Bday -->
-    <div class="input-module">
-      <label for="date-of-birth" class="input-module__label">Date of birth</label>
-      <input
-        type="date"
-        min="1910-01-01"
-        max="2011-01-01"
-        id="date-of-birth"
-        autocomplete="bday"
-        class="input-module__input-field"
-        name="date"
-        required
-      />
-      <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon date-of-birth" />
-        <div class="error-box__content date-of-birth"></div>
+    <div class="info">
+      <div class="info__title">Date of birth</div>
+      <div class="info__cell date-of-birth"></div>
+    </div>
+
+    <div class="info">
+      <div class="info__title">Email</div>
+      <div class="info__cell email"></div>
+    </div>
+
+    <div class="user-profile__icon-wrapper user-profile__icon-wrapper_write">
+      <div class="user-profile__icon-box">
+        <img src="../../assets/icons/write.svg" alt="Pencil Icon" class="user-profile__icon user-profile__icon_write" />
       </div>
     </div>
   </div>
 
-  <div class="user-profile__container email-n-password">
-    <!-- Email -->
-    <div class="input-module">
-      <label for="email" class="input-module__label">Email</label>
-      <input
-        type="email"
-        maxlength="64"
-        id="email"
-        autocomplete="email"
-        class="input-module__input-field"
-        name="email"
-        required
-      />
-      <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon email" />
-        <div class="error-box__content email"></div>
-      </div>
+  <div class="user-profile__container container_password">
+    <div class="info">
+      <div class="info__title">Password</div>
+      <div class="info__cell password"></div>
     </div>
 
-    <!-- Password -->
-    <div class="input-module">
-      <label for="password" class="input-module__label">Password</label>
-      <input
-        type="password"
-        minlength="8"
-        id="password"
-        autocomplete="new-password"
-        class="input-module__input-field"
-        name="password"
-        required
-      />
-      <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon password" />
-        <div class="error-box__content password"></div>
+    <div class="user-profile__icon-wrapper user-profile__icon-wrapper_write">
+      <div class="user-profile__icon-box">
+        <img src="../../assets/icons/write.svg" alt="Pencil Icon" class="user-profile__icon user-profile__icon_write" />
       </div>
     </div>
   </div>
 
-  <h2 class="addresses__title">Addresses</h2>
-  <div class="user-profile__container">
+  <div class="user-profile__container container_address">
+    <div class="user-profile__address-title">
+      <h2 class="addresses__title">Addresses</h2>
+      <div class="addresses__info hidden">Edit mode</div>
+      <div class="user-profile__icon-wrapper user-profile__icon-wrapper_write">
+        <div class="user-profile__icon-box">
+          <img
+            src="../../assets/icons/write.svg"
+            alt="Pencil Icon"
+            class="user-profile__icon user-profile__icon_write"
+          />
+        </div>
+      </div>
+      <div class="user-profile__icon-wrapper user-profile__icon-wrapper_cancel hidden">
+        <div class="user-profile__icon-box">
+          <img
+            src="../../assets/icons/cancel.svg"
+            alt="Cancel Icon"
+            class="user-profile__icon user-profile__icon_cancel"
+          />
+        </div>
+      </div>
+    </div>
     <table class="user-profile__table">
       <thead>
         <tr>
@@ -109,5 +76,32 @@
       </thead>
       <tbody class="user-profile__table-body"></tbody>
     </table>
+    <button class="user-profile__button-box">
+      <div class="user-profile__icon-box">
+        <img src="../../assets/icons/plus.svg" alt="Plus Icon" class="user-profile__icon user-profile__icon_plus" />
+      </div>
+      <div class="user-profile__add-button">Add address</div>
+    </button>
+  </div>
+  <div class="user-profile__overlay hidden">
+    <div class="user-profile__modal-wrapper">
+      <div class="user-profile__modal-header">
+        <div class="user-profile__icon-wrapper user-profile__icon-wrapper_cancel">
+          <div class="user-profile__icon-box">
+            <img
+              src="../../assets/icons/cancel.svg"
+              alt="Cancel Icon"
+              class="user-profile__icon user-profile__icon_cancel"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="user-profile__modal-main"></div>
+      <div class="user-profile__modal-footer">
+        <div class="button-container">
+          <input type="submit" value="Save" class="submit-button" disabled />
+        </div>
+      </div>
+    </div>
   </div>
 </div>
