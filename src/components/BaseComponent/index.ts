@@ -35,11 +35,16 @@ export default class BaseComponent extends HTMLElement {
 
   protected toggleLoading(loading = true): void {
     this.classList.toggle(LOADING_CLASS, loading);
-    if (!loading) {
-      this.$$(`.${SKELETON_CLASS}`).forEach((el) => {
+    if (loading) {
+      return;
+    }
+
+    const innerSkeletons = this.$$(`.${LOADING_CLASS} .${SKELETON_CLASS}`);
+    this.$$(`.${SKELETON_CLASS}`)
+      .filter((el) => !innerSkeletons.includes(el))
+      .forEach((el) => {
         el.classList.remove(SKELETON_CLASS);
       });
-    }
   }
 
   public clear(): void {
