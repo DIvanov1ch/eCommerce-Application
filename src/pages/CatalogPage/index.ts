@@ -4,6 +4,7 @@ import CssClasses from './css-classes';
 import { createElement } from '../../utils/create-element';
 import html from './catalog.html';
 import filterBarsHtml from './filter-bars.html';
+import sortBarsHtml from './sort-bars.html';
 import Page from '../Page';
 import { getInfoOfFilteredProducts } from '../../services/API';
 import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes } from '../../constants/filters';
@@ -11,24 +12,27 @@ import { FiltersType } from '../../types/Catalog';
 
 const DELAY = 1000;
 
-const defaultFilterValues = {
+const defaultFilterSortingValues = {
   price: 'any',
   color: 'any',
   brand: 'any',
   material: 'any',
   size: 'any',
+  byPrice: 'no',
+  byName: 'no',
 };
 
 export default class CatalogPage extends Page {
-  private static filterValues: FiltersType;
+  private static filterSortingValues: FiltersType;
 
   constructor() {
     super(html);
-    CatalogPage.filterValues = defaultFilterValues;
+    CatalogPage.filterSortingValues = structuredClone(defaultFilterSortingValues);
     getInfoOfFilteredProducts()
       .then(({ body }) => {
         this.createProductContainerWithWaitingSymbol(body.results);
         this.createFilterBars();
+        this.createSortingBars();
       })
       .catch((err) => {
         console.log(err);
@@ -120,6 +124,7 @@ export default class CatalogPage extends Page {
   private createFilteredProductCards = (productsArray: ProductProjection[]): void => {
     const productContainer = this.querySelector(`.${CssClasses.PRODUCTS}`) as HTMLElement;
     productsArray.forEach((product): void => {
+      console.log(product);
       const productCard = createElement('div', {
         className: CssClasses.CARD,
       });
@@ -145,7 +150,7 @@ export default class CatalogPage extends Page {
     buttonReset.addEventListener('click', (): void => {
       filterContainer.reset();
       this.clearProductsContainer();
-      CatalogPage.filterValues = defaultFilterValues;
+      CatalogPage.filterSortingValues = defaultFilterSortingValues;
       getInfoOfFilteredProducts()
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
@@ -156,23 +161,23 @@ export default class CatalogPage extends Page {
     });
   };
 
-  private static createQueryFilter = (): string[] => {
-    const queryParams = [];
-    if (CatalogPage.filterValues.color !== 'any') {
-      queryParams.push(`variants.attributes.color:"${CatalogPage.filterValues.color}"`);
+  private static createFilterQuery = (): string[] => {
+    const queryParams: string[] = [];
+    if (CatalogPage.filterSortingValues.color !== 'any') {
+      queryParams.push(`variants.attributes.color:"${CatalogPage.filterSortingValues.color}"`);
     }
-    if (CatalogPage.filterValues.brand !== 'any') {
-      queryParams.push(`variants.attributes.brand:"${CatalogPage.filterValues.brand}"`);
+    if (CatalogPage.filterSortingValues.brand !== 'any') {
+      queryParams.push(`variants.attributes.brand:"${CatalogPage.filterSortingValues.brand}"`);
     }
-    if (CatalogPage.filterValues.size !== 'any') {
-      queryParams.push(`variants.attributes.size:"${CatalogPage.filterValues.size}"`);
+    if (CatalogPage.filterSortingValues.size !== 'any') {
+      queryParams.push(`variants.attributes.size:"${CatalogPage.filterSortingValues.size}"`);
     }
-    if (CatalogPage.filterValues.material !== 'any') {
-      queryParams.push(`variants.attributes.material:"${CatalogPage.filterValues.material}"`);
+    if (CatalogPage.filterSortingValues.material !== 'any') {
+      queryParams.push(`variants.attributes.material:"${CatalogPage.filterSortingValues.material}"`);
     }
-    if (CatalogPage.filterValues.price !== 'any') {
-      const firstValue = (Number(CatalogPage.filterValues.price?.split('-')[0]) * 100).toString();
-      const secondValue = (Number(CatalogPage.filterValues.price?.split('-')[1].slice(0, -1)) * 100).toString();
+    if (CatalogPage.filterSortingValues.price !== 'any') {
+      const firstValue = (Number(CatalogPage.filterSortingValues.price?.split('-')[0]) * 100).toString();
+      const secondValue = (Number(CatalogPage.filterSortingValues.price?.split('-')[1].slice(0, -1)) * 100).toString();
       queryParams.push(`variants.price.centAmount:range (${firstValue} to ${secondValue})`);
     }
     return queryParams;
@@ -189,25 +194,25 @@ export default class CatalogPage extends Page {
     parentElement.addEventListener('change', (): void => {
       switch (cssClass) {
         case CssClasses.FILTERPRICE:
-          CatalogPage.filterValues.price = parentElement.value;
+          CatalogPage.filterSortingValues.price = parentElement.value;
           break;
         case CssClasses.FILTERCOLOR:
-          CatalogPage.filterValues.color = parentElement.value;
+          CatalogPage.filterSortingValues.color = parentElement.value;
           break;
         case CssClasses.FILTERSIZE:
-          CatalogPage.filterValues.size = parentElement.value;
+          CatalogPage.filterSortingValues.size = parentElement.value;
           break;
         case CssClasses.FILTERBRAND:
-          CatalogPage.filterValues.brand = parentElement.value;
+          CatalogPage.filterSortingValues.brand = parentElement.value;
           break;
         case CssClasses.FILTERMATERIAL:
-          CatalogPage.filterValues.material = parentElement.value;
+          CatalogPage.filterSortingValues.material = parentElement.value;
           break;
         default:
           break;
       }
       this.clearProductsContainer();
-      getInfoOfFilteredProducts(CatalogPage.createQueryFilter())
+      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -244,5 +249,70 @@ export default class CatalogPage extends Page {
     this.createFilterBarsOptions(filterBrands, CssClasses.FILTERBRAND);
     this.createFilterBarsOptions(filterMaterials, CssClasses.FILTERMATERIAL);
     this.resetFiltersIfButtonClicked();
+  };
+
+  private resetSortingIfButtonClicked = (): void => {
+    const buttonReset = this.querySelector(`.${CssClasses.RESETSORTINGBUTTON}`) as HTMLElement;
+    const sortingContainer = this.querySelector(`.${CssClasses.SORT}`) as HTMLFormElement;
+    buttonReset.addEventListener('click', (): void => {
+      sortingContainer.reset();
+      this.clearProductsContainer();
+      getInfoOfFilteredProducts()
+        .then(({ body }) => {
+          this.createProductContainerWithWaitingSymbol(body.results);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  };
+
+  private createSortingBars = (): void => {
+    const sortingContainer = this.querySelector(`.${CssClasses.SORT}`) as HTMLFormElement;
+    sortingContainer.innerHTML = sortBarsHtml;
+    const nameSorting = this.querySelector(`.${CssClasses.SORTNAME}`) as HTMLSelectElement;
+    const priceSorting = this.querySelector(`.${CssClasses.SORTPRICE}`) as HTMLSelectElement;
+    this.resetSortingIfButtonClicked();
+    nameSorting.addEventListener('change', () => {
+      CatalogPage.filterSortingValues.byName = nameSorting.value;
+      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
+        .then(({ body }) => {
+          this.createProductContainerWithWaitingSymbol(body.results);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      priceSorting.value = defaultFilterSortingValues.byPrice;
+    });
+    priceSorting.addEventListener('change', () => {
+      CatalogPage.filterSortingValues.byPrice = priceSorting.value;
+      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
+        .then(({ body }) => {
+          this.createProductContainerWithWaitingSymbol(body.results);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      nameSorting.value = defaultFilterSortingValues.byName;
+    });
+  };
+
+  private static createSortingQuery = (): string[] => {
+    const queryParams: string[] = [];
+    if (CatalogPage.filterSortingValues.byName !== 'no') {
+      if (CatalogPage.filterSortingValues.byName === 'ascending') {
+        queryParams.push(`name.en asc`);
+      } else {
+        queryParams.push(`name.en desc`);
+      }
+    }
+    if (CatalogPage.filterSortingValues.byPrice !== 'no') {
+      if (CatalogPage.filterSortingValues.byPrice === 'ascending') {
+        queryParams.push(`price asc`);
+      } else {
+        queryParams.push(`price desc`);
+      }
+    }
+    return queryParams;
   };
 }

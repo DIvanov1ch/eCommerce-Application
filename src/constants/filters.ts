@@ -32,8 +32,25 @@ export const filterMaterials = [
   'TPU',
   'Tri-blend',
 ];
-export const filterPrices = ['0-10$', '10-20$', '20-30$', '30-40$', '40-50$'];
-export const filterSizes = ['One Size', '50″×60″', '2', '3.74″×3.74″', '11oz', '12oz', '13″', '2XS', 'XS', 'S', 'S/M'];
+export const filterPrices = ['0-10$', '10-20$', '20-30$', '30-40$', '40-50$', '50-100$'];
+export const filterSizes = [
+  'One Size',
+  '50″×60″',
+  '2',
+  '3.74″×3.74″',
+  '11oz',
+  '12oz',
+  '13″',
+  '2XS',
+  'XS',
+  'S',
+  'S/M',
+  'M',
+  'L',
+  'XL',
+  '2XL',
+  '3XL',
+];
 export const filterBrands = [
   'AirPods',
   'Bella + Canvas',

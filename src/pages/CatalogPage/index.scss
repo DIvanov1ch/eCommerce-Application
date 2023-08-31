@@ -64,18 +64,39 @@
   text-decoration: line-through;
 }
 
-.filter__container {
+.filter__container,
+.sort__container {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-width: 100px;
+  max-width: 100px;  
 }
+
+.filter__container,
+.sort__container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100px;  
+}
+
+.filter__price,
+.filter__brand,
+.filter__color,
+.filter__size,
+.sort__name,
+.sort__price {
+  border-radius: 3px;
+  border: 1px solid #a6a6a6;
+  line-height: normal;
+}
+
 
 .product__loader {
   position: relative;
-  top: 60%;
+  top: 50%;
   border: 16px solid #f3f3f3;
-  border-top: 16px solid #3498db;
+  border-top: 16px solid #0072bc;
   border-radius: 50%;  
   width: 60px;
   height: 60px;
@@ -87,7 +108,8 @@
   100% { transform: rotate(360deg); }
 }
 
-.filter__button-reset {
+.filter__button-reset,
+.sort__button-reset {
   width: 100%;
   height: 30px;
   border: 1px solid rgb(49, 189, 107);

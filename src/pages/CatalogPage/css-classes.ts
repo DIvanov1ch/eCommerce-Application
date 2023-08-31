@@ -16,6 +16,10 @@ enum CssClasses {
   FILTERCOLOR = 'filter__color',
   FILTERSIZE = 'filter__size',
   FILTERMATERIAL = 'filter__material',
+  SORT = 'sort__container',
+  SORTNAME = 'sort__name',
+  SORTPRICE = 'sort__price',
+  RESETSORTINGBUTTON = 'sort__button-reset',
 }
 
 export default CssClasses;

@@ -96,7 +96,8 @@ const logout = (): void => {
 };
 
 const getInfoOfFilteredProducts = async (
-  filterQuery: string[] = []
+  filterQuery: string[] = [],
+  sortingQuery: string[] = []
 ): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
@@ -106,6 +107,7 @@ const getInfoOfFilteredProducts = async (
       queryArgs: {
         limit: 500,
         filter: filterQuery,
+        sort: sortingQuery,
       },
     })
     .execute();
