@@ -15,6 +15,9 @@ import { pause } from '../../utils/create-element';
 import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
+import Router from '../../services/Router';
+
+Router.registerRoute('registration', 'registration-page');
 
 const REDIRECT_DELAY = 3000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;

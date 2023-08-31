@@ -5,25 +5,25 @@ export const AUTH_HOST = 'https://auth.{region}.gcp.commercetools.com';
 export const CLIENT_ID = 'mOQxQZYWwUW5fbaW8VfC_U5P';
 export const CLIENT_SECRET = 'V7yOfw6dok6rvcq1FKb9SURIcY7u8XSM';
 export const API_SCOPES = [
+  'create_anonymous_token',
   'view_published_products',
   'view_messages',
   'view_shopping_lists',
-  'manage_my_quotes',
-  'manage_my_quote_requests',
   'view_cart_discounts',
-  'manage_my_business_units',
-  'manage_my_profile',
   'view_orders',
-  'manage_my_shopping_lists',
   'view_payments',
   'view_categories',
-  'create_anonymous_token',
   'view_shipping_methods',
-  'manage_customers',
   'view_tax_categories',
+  'view_products',
+  'manage_my_quotes',
+  'manage_my_quote_requests',
+  'manage_my_business_units',
+  'manage_my_profile',
+  'manage_my_shopping_lists',
+  'manage_customers',
   'manage_my_payments',
   'manage_my_orders',
-  'view_products',
 ];
 
 export const APP_NAME = 'eComm';
@@ -34,3 +34,6 @@ export const ZipCodes = {
 };
 
 export const STORAGE_NAME = 'sd-merch';
+export const LANG = 'en';
+export const LOADING_CLASS = 'loading';
+export const SKELETON_CLASS = 'skeleton';

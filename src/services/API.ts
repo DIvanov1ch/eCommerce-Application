@@ -11,6 +11,9 @@ import {
   CustomerSignInResult,
   CustomerDraft,
   ProductPagedQueryResponse,
+  ProductProjection,
+  CategoryPagedQueryResponse,
+  ProductTypePagedQueryResponse,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
@@ -103,4 +106,22 @@ const getInfoOfAllProducts = async (): Promise<ClientResponse<ProductPagedQueryR
     .execute();
 };
 
-export { login, registration, logout, getInfoOfAllProducts };
+async function getProductProjectionByKey(key: string): Promise<ProductProjection> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+
+  return (await apiRoot.productProjections().withKey({ key }).get().execute()).body;
+}
+
+async function getCategories(): Promise<CategoryPagedQueryResponse> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+
+  return (await apiRoot.categories().get().execute()).body;
+}
+
+async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+
+  return (await apiRoot.productTypes().get().execute()).body;
+}
+
+export { login, registration, logout, getInfoOfAllProducts, getProductProjectionByKey, getCategories, getProductTypes };

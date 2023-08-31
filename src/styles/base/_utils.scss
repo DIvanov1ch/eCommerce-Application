@@ -1,0 +1,25 @@
+.loading .skeleton {
+  --light-color: #eee;
+  --dark-color: #ccc;
+
+  border-radius: 0.5rem;
+  color: transparent;
+
+  background: var(--light-color)
+    linear-gradient(90deg, var(--light-color) 0%, var(--dark-color) 50%, var(--light-color) 100%) no-repeat;
+  background-size: 200% 200%;
+
+  animation: 3s infinite loading;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}

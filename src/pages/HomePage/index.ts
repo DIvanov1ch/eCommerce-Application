@@ -1,6 +1,9 @@
 import './home.scss';
 import html from './home.html';
 import Page from '../Page';
+import Router from '../../services/Router';
+
+Router.registerRoute('', 'home-page');
 
 const PAGE_TITLE = 'Home';
 
