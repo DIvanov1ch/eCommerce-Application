@@ -4,7 +4,7 @@ import html from './user-profile.html';
 import rowTemplate from './html-templates/row-template.html';
 import infoTemplate from './html-templates/personal-template.html';
 import passwordTemplate from './html-templates/password-template.html';
-import editAddressesTemplate from './html-templates/edit-addresses-template.html';
+import editAddressTemplate from './html-templates/edit-addresses-template.html';
 import addAddressTemplate from './html-templates/add-address-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
@@ -44,10 +44,10 @@ export default class UserProfile extends Page {
   constructor() {
     super(html);
     this.templates = new Map([
-      [CssClasses.NAME, infoTemplate],
-      [CssClasses.PASSWORD, passwordTemplate],
-      [CssClasses.ADDRESS, editAddressesTemplate],
-      [CssClasses.ADD_BUTTON, addAddressTemplate],
+      [CssClasses.NAME_BOX, infoTemplate],
+      [CssClasses.PASSWORD_BOX, passwordTemplate],
+      [CssClasses.ADDRESS_BOX, editAddressTemplate],
+      [CssClasses.ADD_BUTTON_BOX, addAddressTemplate],
     ]);
   }
 
@@ -66,55 +66,65 @@ export default class UserProfile extends Page {
 
   private setMainInfo(): void {
     const { firstName, lastName, dateOfBirth, email, password } = Store.customer;
+    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL, PASSWORD } = CssClasses;
     const length = password?.length as number;
-    const firstNameField = this.querySelector(`.${InputID.FIRST_NAME}`) as HTMLDivElement;
-    const lastNameField = this.querySelector(`.${InputID.LAST_NAME}`) as HTMLDivElement;
-    const dateOfBirthField = this.querySelector(`.${InputID.DATE_OF_BIRTH}`) as HTMLDivElement;
-    const emailField = this.querySelector(`.${InputID.EMAIL}`) as HTMLDivElement;
-    const passwordField = this.querySelector(`.${InputID.PASSWORD}`) as HTMLDivElement;
-    firstNameField.textContent = firstName as string;
-    lastNameField.textContent = lastName as string;
-    dateOfBirthField.textContent = dateOfBirth as string;
-    emailField.textContent = email;
-    passwordField.textContent = PASSWORD_DOT.repeat(length);
+
+    this.setElementTextContent(`.${FIRST_NAME}`, firstName);
+    this.setElementTextContent(`.${LAST_NAME}`, lastName);
+    this.setElementTextContent(`.${DATE_OF_BIRTH}`, dateOfBirth);
+    this.setElementTextContent(`.${EMAIL}`, email);
+    this.setElementTextContent(`.${PASSWORD}`, PASSWORD_DOT.repeat(length));
+  }
+
+  private setInputValue(selector: string, value = ''): void {
+    const input = this.$<'input'>(selector);
+    if (input) {
+      input.value = value;
+    }
+  }
+
+  private setElementTextContent(selector: string, textContent = '', container: HTMLElement = this): void {
+    const element = container.querySelector(selector);
+    if (element) {
+      element.textContent = textContent;
+    }
   }
 
   private setAddressInfo(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
       Store.customer;
-    const rows: NodeListOf<HTMLTableRowElement> = this.querySelectorAll(`.${CssClasses.ROW}`);
-    const fieldOrder: string[] = ['street', 'city', 'postal-code', 'country'];
+    const rows = this.$$<'tr'>(`.${CssClasses.ROW}`);
     rows.forEach((tableRow: HTMLTableRowElement, rowIndex: number): void => {
       const address = addresses[rowIndex];
       const { id, streetName, city, postalCode, country } = address;
-      const currentValues = [streetName, city, postalCode, country];
+      const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
       const addressTypeContainer = tableRow.querySelector(`.${CssClasses.TYPE_OF_ADDRESS}`) as HTMLDivElement;
-      const fields: NodeListOf<HTMLDivElement> = tableRow.querySelectorAll(`.${CssClasses.CELL}`);
       tableRow.setAttribute('id', id as string);
-      fieldOrder.forEach((field: string, index: number): void => {
-        const currentField: HTMLDivElement = fields[index];
-        currentField.id = `${field}-${rowIndex}`;
-        currentField.textContent = currentValues[index] as string;
-      });
-      if (defaultShippingAddressId === id) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.DEFAULT_SHIPPING);
+      this.setElementTextContent(`.${STREET}`, streetName, tableRow);
+      this.setElementTextContent(`.${CITY}`, city, tableRow);
+      this.setElementTextContent(`.${POSTAL_CODE}`, postalCode, tableRow);
+      this.setElementTextContent(`.${COUNTRY}`, country, tableRow);
+      const addressTypes: string[] = [];
+      if (id === defaultShippingAddressId) {
+        addressTypes.push(CssClasses.DEFAULT_SHIPPING);
       }
-      if (defaultBillingAddressId === id) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.DEFAULT_BILLING);
+      if (id === defaultBillingAddressId) {
+        addressTypes.push(CssClasses.DEFAULT_BILLING);
       }
       if (shippingAddressIds?.includes(id as string)) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.SHIPPING);
+        addressTypes.push(CssClasses.SHIPPING);
       }
       if (billingAddressIds?.includes(id as string)) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.BILLING);
+        addressTypes.push(CssClasses.BILLING);
       }
+      UserProfile.setAddressTypes(addressTypeContainer, addressTypes);
     });
   }
 
-  private static setTypeOfAddress(container: HTMLDivElement, addressType: string): void {
-    [...container.children]
-      .find((child: Element): boolean => child.classList.contains(addressType))
-      ?.classList.remove(CssClasses.HIDDEN);
+  private static setAddressTypes(container: HTMLDivElement, addressTypes: string[]): void {
+    addressTypes.forEach((type) => {
+      [...container.children].find((child) => child.classList.contains(type))?.classList.remove(CssClasses.HIDDEN);
+    });
   }
 
   private checkIfUserLoggedIn(): void {
@@ -144,22 +154,22 @@ export default class UserProfile extends Page {
     const fieldContainer = target.closest(`.${CssClasses.CONTAINER}`) as HTMLDivElement;
     const currentClass = [...fieldContainer.classList].find((cl) => this.templates.has(cl)) as string;
     this.template = this.templates.get(currentClass) as string;
-    if (currentClass === (CssClasses.ADDRESS as string)) {
+    if (currentClass === (CssClasses.ADDRESS_BOX as string)) {
       this.isEditAddressModeOn = true;
     }
-    if (currentClass === (CssClasses.NAME as string)) {
+    if (currentClass === (CssClasses.NAME_BOX as string)) {
       this.isProfileEditing = true;
     }
-    if (target.classList.contains(CssClasses.ADD_BUTTON)) {
+    if (target.classList.contains(CssClasses.ADD_BUTTON_BOX)) {
       this.isEditAddressModeOn = false;
       this.isAddressAdding = true;
-      this.template = this.templates.get(CssClasses.ADD_BUTTON) as string;
+      this.template = this.templates.get(CssClasses.ADD_BUTTON_BOX) as string;
     }
     if (target instanceof HTMLTableRowElement) {
       this.addressID = target.id;
       this.isAddressAdding = false;
       this.isAddressesEditing = true;
-      this.template = this.templates.get(CssClasses.ADDRESS) as string;
+      this.template = this.templates.get(CssClasses.ADDRESS_BOX) as string;
     }
 
     fieldContainer.classList.add(CssClasses.EDIT_MODE);
@@ -181,7 +191,7 @@ export default class UserProfile extends Page {
     const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
     const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
     const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`) as HTMLButtonElement;
+    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`) as HTMLButtonElement;
     writeIcons.forEach((icon: Element): void => icon.classList.remove(CssClasses.HIDDEN));
     cancelIcon?.classList.add(CssClasses.HIDDEN);
     flag?.classList.add(CssClasses.HIDDEN);
@@ -197,7 +207,7 @@ export default class UserProfile extends Page {
     const overlay: HTMLDivElement | null = this.querySelector(`.${CssClasses.OVERLAY}`);
     overlay?.addEventListener('click', this.hideModal.bind(this));
 
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`);
+    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`);
     addButton?.addEventListener('click', this.enableEditMode.bind(this));
 
     const submitBtn = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`);
@@ -234,7 +244,7 @@ export default class UserProfile extends Page {
     const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
     const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
     const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`) as HTMLButtonElement;
+    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`) as HTMLButtonElement;
     modal?.classList.add(CssClasses.HIDDEN);
     writeIcons.forEach((icon: Element): void => icon.classList.add(CssClasses.HIDDEN));
     cancelIcon?.classList.remove(CssClasses.HIDDEN);
@@ -279,30 +289,26 @@ export default class UserProfile extends Page {
     if (this.isAddressesEditing) {
       const { addresses } = Store.customer;
       let ordinalNumber = -1;
-      const address = addresses.find((a, index) => {
+      const addressToChange = addresses.find((address, index) => {
         ordinalNumber = index + 1;
-        return a.id === this.addressID;
+        return address.id === this.addressID;
       }) as Address;
-      const { streetName, city, postalCode } = address;
-      const streetField = this.querySelector(`#street`) as HTMLInputElement;
-      const cityField = this.querySelector(`#city`) as HTMLInputElement;
-      const postalCodeField = this.querySelector(`#postal-code`) as HTMLInputElement;
-      const legend = this.querySelector('.address-title') as HTMLLegendElement;
-      legend.textContent = `${legend.textContent} ${ordinalNumber}`;
-      streetField.value = streetName as string;
-      cityField.value = city as string;
-      postalCodeField.value = postalCode as string;
+      const { streetName, city, postalCode } = addressToChange;
+      const { STREET, CITY, POSTAL_CODE } = InputID;
+      const legentContent = 'Address';
+
+      this.setInputValue(`#${STREET}`, streetName);
+      this.setInputValue(`#${CITY}`, city);
+      this.setInputValue(`#${POSTAL_CODE}`, postalCode);
+      this.setElementTextContent(`.${CssClasses.ADDRESS_TITLE}`, `${legentContent} ${ordinalNumber}`);
     }
     if (this.isProfileEditing) {
       const { firstName, lastName, dateOfBirth, email } = Store.customer;
-      const firstNameField = this.querySelector(`#${InputID.FIRST_NAME}`) as HTMLInputElement;
-      const lastNameField = this.querySelector(`#${InputID.LAST_NAME}`) as HTMLInputElement;
-      const dateOfBirthField = this.querySelector(`#${InputID.DATE_OF_BIRTH}`) as HTMLInputElement;
-      const emailField = this.querySelector(`#${InputID.EMAIL}`) as HTMLInputElement;
-      firstNameField.value = firstName as string;
-      lastNameField.value = lastName as string;
-      dateOfBirthField.value = dateOfBirth as string;
-      emailField.value = email;
+      const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
+      this.setInputValue(`#${FIRST_NAME}`, firstName);
+      this.setInputValue(`#${LAST_NAME}`, lastName);
+      this.setInputValue(`#${DATE_OF_BIRTH}`, dateOfBirth);
+      this.setInputValue(`#${EMAIL}`, email);
     }
   }
 }
