@@ -1,11 +1,10 @@
 import { Address } from '@commercetools/platform-sdk';
 import Page from '../Page';
 import html from './user-profile.html';
-import rowTemplate from './html-templates/row-template.html';
-import infoTemplate from './html-templates/personal-template.html';
-import passwordTemplate from './html-templates/password-template.html';
-import editAddressTemplate from './html-templates/edit-addresses-template.html';
-import addAddressTemplate from './html-templates/add-address-template.html';
+import addressLine from './html-templates/address-line-template.html';
+import personalTemplate from './html-templates/personal-popup-template.html';
+import passwordTemplate from './html-templates/password-popup-template.html';
+import addressTemplate from './html-templates/address-popup-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
 import { pause } from '../../utils/create-element';
@@ -19,7 +18,6 @@ const PASSWORD_DOT = '•';
 const ADDRESS_TITLE = {
   EDIT: `<h2 class="template__title">Manage your addresses</h2>`,
   ADD: `<h2 class="template__title">Add new address</h2>`,
-  INFO: `<h2 class="template__title">If you want to edit an address, press "OK" and click on the address to edit it</h2>`,
 };
 const SubmitBtnValue = {
   OK: 'OK',
@@ -31,9 +29,9 @@ export default class UserProfile extends Page {
 
   private isProfileEditing = false;
 
-  private isEditAddressModeOn = false;
+  private isAddressDeleting = false;
 
-  private isAddressesEditing = false;
+  private isAddressEditing = false;
 
   private isAddressAdding = false;
 
@@ -44,10 +42,10 @@ export default class UserProfile extends Page {
   constructor() {
     super(html);
     this.templates = new Map([
-      [CssClasses.NAME_BOX, infoTemplate],
+      [CssClasses.NAME_BOX, personalTemplate],
       [CssClasses.PASSWORD_BOX, passwordTemplate],
-      [CssClasses.ADDRESS_BOX, editAddressTemplate],
-      [CssClasses.ADD_BUTTON_BOX, addAddressTemplate],
+      [CssClasses.ADDRESS_BOX, addressTemplate],
+      [CssClasses.NEW_ADDRESS_BOX, addressTemplate],
     ]);
   }
 
@@ -57,10 +55,10 @@ export default class UserProfile extends Page {
     this.setCallback();
   }
 
-  private createAddressTable(): void {
-    const table: HTMLTableElement | null = this.querySelector(`.${CssClasses.BODY}`);
+  private createAddressLines(): void {
+    const container = this.querySelector(`.${CssClasses.LINE_WRAPPER}`);
     Store.customer.addresses.forEach((): void => {
-      table?.insertAdjacentHTML('beforeend', rowTemplate);
+      container?.insertAdjacentHTML('beforeend', addressLine);
     });
   }
 
@@ -93,17 +91,18 @@ export default class UserProfile extends Page {
   private setAddressInfo(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
       Store.customer;
-    const rows = this.$$<'tr'>(`.${CssClasses.ROW}`);
-    rows.forEach((tableRow: HTMLTableRowElement, rowIndex: number): void => {
+    const lines = this.$$(`.${CssClasses.ADDRESS_LINE}`);
+    lines.forEach((line, rowIndex) => {
       const address = addresses[rowIndex];
       const { id, streetName, city, postalCode, country } = address;
       const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
-      const addressTypeContainer = tableRow.querySelector(`.${CssClasses.TYPE_OF_ADDRESS}`) as HTMLDivElement;
-      tableRow.setAttribute('id', id as string);
-      this.setElementTextContent(`.${STREET}`, streetName, tableRow);
-      this.setElementTextContent(`.${CITY}`, city, tableRow);
-      this.setElementTextContent(`.${POSTAL_CODE}`, postalCode, tableRow);
-      this.setElementTextContent(`.${COUNTRY}`, country, tableRow);
+      const addressTypeContainer = <HTMLDivElement>line.querySelector(`.${CssClasses.TYPE_OF_ADDRESS}`);
+      const addressContainer = <HTMLDivElement>line.querySelector(`.${CssClasses.ADDRESS_BOX}`);
+      addressContainer.setAttribute('id', id as string);
+      this.setElementTextContent(`.${STREET}`, streetName, line);
+      this.setElementTextContent(`.${CITY}`, city, line);
+      this.setElementTextContent(`.${POSTAL_CODE}`, postalCode, line);
+      this.setElementTextContent(`.${COUNTRY}`, country, line);
       const addressTypes: string[] = [];
       if (id === defaultShippingAddressId) {
         addressTypes.push(CssClasses.DEFAULT_SHIPPING);
@@ -132,7 +131,7 @@ export default class UserProfile extends Page {
       this.goToMainPage(HTML_NOT_YET).then().catch(console.error);
       return;
     }
-    this.createAddressTable();
+    this.createAddressLines();
     this.setMainInfo();
     this.setAddressInfo();
   }
@@ -148,28 +147,18 @@ export default class UserProfile extends Page {
 
   private enableEditMode(event: Event): void {
     const target = event.currentTarget as HTMLElement;
-    if (target instanceof HTMLTableRowElement && !this.isEditAddressModeOn) {
-      return;
-    }
     const fieldContainer = target.closest(`.${CssClasses.CONTAINER}`) as HTMLDivElement;
     const currentClass = [...fieldContainer.classList].find((cl) => this.templates.has(cl)) as string;
     this.template = this.templates.get(currentClass) as string;
-    if (currentClass === (CssClasses.ADDRESS_BOX as string)) {
-      this.isEditAddressModeOn = true;
-    }
     if (currentClass === (CssClasses.NAME_BOX as string)) {
       this.isProfileEditing = true;
     }
-    if (target.classList.contains(CssClasses.ADD_BUTTON_BOX)) {
-      this.isEditAddressModeOn = false;
-      this.isAddressAdding = true;
-      this.template = this.templates.get(CssClasses.ADD_BUTTON_BOX) as string;
+    if (currentClass === (CssClasses.ADDRESS_BOX as string)) {
+      this.addressID = fieldContainer.id;
+      this.isAddressEditing = true;
     }
-    if (target instanceof HTMLTableRowElement) {
-      this.addressID = target.id;
-      this.isAddressAdding = false;
-      this.isAddressesEditing = true;
-      this.template = this.templates.get(CssClasses.ADDRESS_BOX) as string;
+    if (currentClass === (CssClasses.NEW_ADDRESS_BOX as string)) {
+      this.isAddressAdding = true;
     }
 
     fieldContainer.classList.add(CssClasses.EDIT_MODE);
@@ -178,26 +167,9 @@ export default class UserProfile extends Page {
   }
 
   private disableEditMode(): void {
-    if (!this.isEditAddressModeOn) {
-      const fieldContainers: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.CONTAINER}`);
-      fieldContainers.forEach((field: HTMLDivElement): void => field.classList.remove(CssClasses.EDIT_MODE));
-    }
     this.isAddressAdding = false;
-    this.isAddressesEditing = false;
+    this.isAddressEditing = false;
     this.isProfileEditing = false;
-  }
-
-  private disableEditAddressMode(): void {
-    const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`) as HTMLButtonElement;
-    writeIcons.forEach((icon: Element): void => icon.classList.remove(CssClasses.HIDDEN));
-    cancelIcon?.classList.add(CssClasses.HIDDEN);
-    flag?.classList.add(CssClasses.HIDDEN);
-    addButton.disabled = false;
-    this.isEditAddressModeOn = false;
-    this.disableEditMode();
   }
 
   private setCallback(): void {
@@ -210,14 +182,8 @@ export default class UserProfile extends Page {
     const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`);
     addButton?.addEventListener('click', this.enableEditMode.bind(this));
 
-    const submitBtn = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`);
-    submitBtn?.addEventListener('click', this.hideOkModal.bind(this));
-
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    cancelIcon?.addEventListener('click', this.disableEditAddressMode.bind(this));
-
-    const rows: NodeListOf<HTMLTableRowElement> = this.querySelectorAll(`.${CssClasses.ROW}`);
-    rows.forEach((row: HTMLTableRowElement): void => row.addEventListener('click', this.enableEditMode.bind(this)));
+    // const submitBtn = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`);
+    // submitBtn?.addEventListener('click', this.hideOkModal.bind(this));
   }
 
   private showModal(): void {
@@ -239,35 +205,14 @@ export default class UserProfile extends Page {
     this.disableEditMode();
   }
 
-  private hideOkModal(): void {
-    const modal = this.querySelector(`.${CssClasses.OVERLAY}`);
-    const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON_BOX}`) as HTMLButtonElement;
-    modal?.classList.add(CssClasses.HIDDEN);
-    writeIcons.forEach((icon: Element): void => icon.classList.add(CssClasses.HIDDEN));
-    cancelIcon?.classList.remove(CssClasses.HIDDEN);
-    flag?.classList.remove(CssClasses.HIDDEN);
-    addButton.disabled = true;
-    this.isEditAddressModeOn = true;
-  }
-
   private setModalContent(): void {
     this.clearModalContent();
     const contentBox = this.querySelector(`.${CssClasses.MODAL}`);
     const button = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`) as HTMLInputElement;
-    if (this.isEditAddressModeOn && !this.isAddressesEditing) {
-      contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.INFO);
-      button.value = SubmitBtnValue.OK;
-      button.disabled = false;
-      this.isEditAddressModeOn = false;
-      return;
-    }
     if (this.isAddressAdding) {
       contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.ADD);
     }
-    if (this.isAddressesEditing) {
+    if (this.isAddressEditing) {
       contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.EDIT);
     }
     contentBox?.insertAdjacentHTML('beforeend', this.template);
@@ -286,21 +231,15 @@ export default class UserProfile extends Page {
   }
 
   private fillTemplate(): void {
-    if (this.isAddressesEditing) {
+    if (this.isAddressEditing) {
       const { addresses } = Store.customer;
-      let ordinalNumber = -1;
-      const addressToChange = addresses.find((address, index) => {
-        ordinalNumber = index + 1;
-        return address.id === this.addressID;
-      }) as Address;
+      const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
       const { streetName, city, postalCode } = addressToChange;
       const { STREET, CITY, POSTAL_CODE } = InputID;
-      const legentContent = 'Address';
 
       this.setInputValue(`#${STREET}`, streetName);
       this.setInputValue(`#${CITY}`, city);
       this.setInputValue(`#${POSTAL_CODE}`, postalCode);
-      this.setElementTextContent(`.${CssClasses.ADDRESS_TITLE}`, `${legentContent} ${ordinalNumber}`);
     }
     if (this.isProfileEditing) {
       const { firstName, lastName, dateOfBirth, email } = Store.customer;
