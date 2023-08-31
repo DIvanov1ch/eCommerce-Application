@@ -13,6 +13,7 @@ const CssClasses = {
   LIST: 'bread-crumbs__list',
   ITEM: 'bread-crumbs__item',
   LINK: 'bread-crumbs__link',
+  ACTIVE: 'bread-crumbs__link--active',
 };
 
 const ERRORS = {
@@ -110,9 +111,10 @@ export default class BreadCrumbs extends BaseComponent {
   }
 
   private renderCrumbs(crumbs: Cat[]): void {
-    const { NAV, LIST, ITEM, LINK } = CssClasses;
+    const { NAV, LIST, ITEM, LINK, ACTIVE } = CssClasses;
     const allCrumbs = [this.#categories.root, ...crumbs];
     const slugs: string[] = [];
+    const { hash } = window.location;
 
     const a = (href: string, text: string): HTMLAnchorElement => createElement('a', { href, className: LINK }, text);
     const li = (child: Element): HTMLLIElement => createElement('li', { className: ITEM }, child);
@@ -120,7 +122,11 @@ export default class BreadCrumbs extends BaseComponent {
     const items = allCrumbs
       .map(({ slug, name }) => {
         slugs.push(slug);
-        return a(`#${slugs.join('/')}`, name);
+        const href = `#${slugs.join('/')}`;
+        const link = a(href, name);
+        link.classList.toggle(ACTIVE, href === hash);
+
+        return link;
       })
       .map(li);
 
