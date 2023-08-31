@@ -37,3 +37,5 @@ export const STORAGE_NAME = 'sd-merch';
 export const LANG = 'en';
 export const LOADING_CLASS = 'loading';
 export const SKELETON_CLASS = 'skeleton';
+
+export const CATEGORIES_LIMIT = 100;
