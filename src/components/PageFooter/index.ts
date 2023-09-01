@@ -9,6 +9,6 @@ export default class PageFooter extends BaseComponent {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    this.classList.add('header');
+    this.classList.add('footer');
   }
 }
