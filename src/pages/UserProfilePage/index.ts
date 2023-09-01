@@ -1,16 +1,24 @@
-import { Address } from '@commercetools/platform-sdk';
+import { Address, Customer, MyCustomerUpdate, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
+import Toastify from 'toastify-js';
+import 'toastify-js/src/toastify.css';
 import Page from '../Page';
 import html from './user-profile.html';
-import rowTemplate from './html-templates/row-template.html';
-import infoTemplate from './html-templates/personal-template.html';
-import passwordTemplate from './html-templates/password-template.html';
-import editAddressesTemplate from './html-templates/edit-addresses-template.html';
-import addAddressTemplate from './html-templates/add-address-template.html';
+import addressLine from './html-templates/address-line-template.html';
+import personalTemplate from './html-templates/personal-popup-template.html';
+import passwordTemplate from './html-templates/password-popup-template.html';
+import addressTemplate from './html-templates/address-popup-template.html';
+import deleteTemplate from './html-templates/delete-popup-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
 import { pause } from '../../utils/create-element';
 import CssClasses from './css-classes';
 import InputID from '../../enums/input-id';
+import isValidValue from '../../utils/is-valid-value';
+import ErrorMessages from '../../constants';
+import warningIcon from '../../assets/icons/warning-icon.png';
+import { update } from '../../services/API';
+import LoggedInUser from '../../services/LoggedInUser';
+import { ToastProps } from '../../types/toast';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -19,11 +27,15 @@ const PASSWORD_DOT = '•';
 const ADDRESS_TITLE = {
   EDIT: `<h2 class="template__title">Manage your addresses</h2>`,
   ADD: `<h2 class="template__title">Add new address</h2>`,
-  INFO: `<h2 class="template__title">If you want to edit an address, press "OK" and click on the address to edit it</h2>`,
 };
 const SubmitBtnValue = {
-  OK: 'OK',
+  DELETE: 'Delete',
   SAVE: 'Save',
+  ADD: 'Add address',
+};
+const toastMessage = {
+  SUCCESS: 'Personal information updated',
+  ERROR: 'Something went wrong',
 };
 
 export default class UserProfile extends Page {
@@ -31,9 +43,9 @@ export default class UserProfile extends Page {
 
   private isProfileEditing = false;
 
-  private isEditAddressModeOn = false;
+  private isAddressDeleting = false;
 
-  private isAddressesEditing = false;
+  private isAddressEditing = false;
 
   private isAddressAdding = false;
 
@@ -41,13 +53,16 @@ export default class UserProfile extends Page {
 
   private templates: Map<string, string>;
 
+  private customer: Customer = new LoggedInUser();
+
   constructor() {
     super(html);
+    this.customer = Store.customer;
     this.templates = new Map([
-      [CssClasses.NAME, infoTemplate],
-      [CssClasses.PASSWORD, passwordTemplate],
-      [CssClasses.ADDRESS, editAddressesTemplate],
-      [CssClasses.ADD_BUTTON, addAddressTemplate],
+      [CssClasses.NAME_BOX, personalTemplate],
+      [CssClasses.PASSWORD_BOX, passwordTemplate],
+      [CssClasses.ADDRESS_BOX, addressTemplate],
+      [CssClasses.NEW_ADDRESS_BOX, addressTemplate],
     ]);
   }
 
@@ -57,64 +72,90 @@ export default class UserProfile extends Page {
     this.setCallback();
   }
 
-  private createAddressTable(): void {
-    const table: HTMLTableElement | null = this.querySelector(`.${CssClasses.BODY}`);
-    Store.customer.addresses.forEach((): void => {
-      table?.insertAdjacentHTML('beforeend', rowTemplate);
+  private createAddressLines(): void {
+    const container = this.querySelector(`.${CssClasses.LINE_WRAPPER}`);
+    this.customer.addresses.forEach((): void => {
+      container?.insertAdjacentHTML('beforeend', addressLine);
     });
   }
 
+  private setInputValue(selector: string, value = ''): void {
+    const input = this.$<'input'>(selector);
+    if (input) {
+      input.value = value;
+    }
+  }
+
+  private getInputValue(selector: string): string {
+    const input = this.$<'input'>(selector);
+    if (input !== null) {
+      return input.value;
+    }
+    return '';
+  }
+
+  private setElementTextContent(selector: string, textContent = '', container: HTMLElement = this): void {
+    const element = container.querySelector(selector);
+    if (element) {
+      element.textContent = textContent;
+    }
+  }
+
+  private makeCheckboxChecked(selector: string): void {
+    const checkbox = this.$<'input'>(selector);
+    if (checkbox) {
+      checkbox.checked = true;
+    }
+  }
+
   private setMainInfo(): void {
-    const { firstName, lastName, dateOfBirth, email, password } = Store.customer;
+    const { firstName, lastName, dateOfBirth, email, password } = this.customer;
+    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL, PASSWORD } = CssClasses;
     const length = password?.length as number;
-    const firstNameField = this.querySelector(`.${InputID.FIRST_NAME}`) as HTMLDivElement;
-    const lastNameField = this.querySelector(`.${InputID.LAST_NAME}`) as HTMLDivElement;
-    const dateOfBirthField = this.querySelector(`.${InputID.DATE_OF_BIRTH}`) as HTMLDivElement;
-    const emailField = this.querySelector(`.${InputID.EMAIL}`) as HTMLDivElement;
-    const passwordField = this.querySelector(`.${InputID.PASSWORD}`) as HTMLDivElement;
-    firstNameField.textContent = firstName as string;
-    lastNameField.textContent = lastName as string;
-    dateOfBirthField.textContent = dateOfBirth as string;
-    emailField.textContent = email;
-    passwordField.textContent = PASSWORD_DOT.repeat(length);
+
+    this.setElementTextContent(`.${FIRST_NAME}`, firstName);
+    this.setElementTextContent(`.${LAST_NAME}`, lastName);
+    this.setElementTextContent(`.${DATE_OF_BIRTH}`, dateOfBirth);
+    this.setElementTextContent(`.${EMAIL}`, email);
+    this.setElementTextContent(`.${PASSWORD}`, PASSWORD_DOT.repeat(length));
   }
 
   private setAddressInfo(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
-      Store.customer;
-    const rows: NodeListOf<HTMLTableRowElement> = this.querySelectorAll(`.${CssClasses.ROW}`);
-    const fieldOrder: string[] = ['street', 'city', 'postal-code', 'country'];
-    rows.forEach((tableRow: HTMLTableRowElement, rowIndex: number): void => {
+      this.customer;
+    const lines = this.$$(`.${CssClasses.ADDRESS_LINE}`);
+    lines.forEach((line, rowIndex) => {
       const address = addresses[rowIndex];
       const { id, streetName, city, postalCode, country } = address;
-      const currentValues = [streetName, city, postalCode, country];
-      const addressTypeContainer = tableRow.querySelector(`.${CssClasses.TYPE_OF_ADDRESS}`) as HTMLDivElement;
-      const fields: NodeListOf<HTMLDivElement> = tableRow.querySelectorAll(`.${CssClasses.CELL}`);
-      tableRow.setAttribute('id', id as string);
-      fieldOrder.forEach((field: string, index: number): void => {
-        const currentField: HTMLDivElement = fields[index];
-        currentField.id = `${field}-${rowIndex}`;
-        currentField.textContent = currentValues[index] as string;
-      });
-      if (defaultShippingAddressId === id) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.DEFAULT_SHIPPING);
+      const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
+      const addressTypeContainer = <HTMLDivElement>line.querySelector(`.${CssClasses.TYPE_OF_ADDRESS}`);
+      const addressContainer = <HTMLDivElement>line.querySelector(`.${CssClasses.ADDRESS_BOX}`);
+      const addressTypes: string[] = [];
+      if (id === defaultShippingAddressId) {
+        addressTypes.push(CssClasses.DEFAULT_SHIPPING);
       }
-      if (defaultBillingAddressId === id) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.DEFAULT_BILLING);
+      if (id === defaultBillingAddressId) {
+        addressTypes.push(CssClasses.DEFAULT_BILLING);
       }
       if (shippingAddressIds?.includes(id as string)) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.SHIPPING);
+        addressTypes.push(CssClasses.SHIPPING);
       }
       if (billingAddressIds?.includes(id as string)) {
-        UserProfile.setTypeOfAddress(addressTypeContainer, CssClasses.BILLING);
+        addressTypes.push(CssClasses.BILLING);
       }
+      addressContainer.setAttribute('id', id as string);
+      this.setElementTextContent(`.${STREET}`, streetName, line);
+      this.setElementTextContent(`.${CITY}`, city, line);
+      this.setElementTextContent(`.${POSTAL_CODE}`, postalCode, line);
+      this.setElementTextContent(`.${COUNTRY}`, country, line);
+      UserProfile.setAddressTypes(addressTypeContainer, addressTypes);
     });
   }
 
-  private static setTypeOfAddress(container: HTMLDivElement, addressType: string): void {
-    [...container.children]
-      .find((child: Element): boolean => child.classList.contains(addressType))
-      ?.classList.remove(CssClasses.HIDDEN);
+  private static setAddressTypes(container: HTMLDivElement, addressTypes: string[]): void {
+    addressTypes.forEach((type) => {
+      [...container.children].find((child) => child.classList.contains(type))?.classList.remove(CssClasses.HIDDEN);
+    });
   }
 
   private checkIfUserLoggedIn(): void {
@@ -122,7 +163,7 @@ export default class UserProfile extends Page {
       this.goToMainPage(HTML_NOT_YET).then().catch(console.error);
       return;
     }
-    this.createAddressTable();
+    this.createAddressLines();
     this.setMainInfo();
     this.setAddressInfo();
   }
@@ -138,28 +179,18 @@ export default class UserProfile extends Page {
 
   private enableEditMode(event: Event): void {
     const target = event.currentTarget as HTMLElement;
-    if (target instanceof HTMLTableRowElement && !this.isEditAddressModeOn) {
-      return;
-    }
     const fieldContainer = target.closest(`.${CssClasses.CONTAINER}`) as HTMLDivElement;
     const currentClass = [...fieldContainer.classList].find((cl) => this.templates.has(cl)) as string;
     this.template = this.templates.get(currentClass) as string;
-    if (currentClass === (CssClasses.ADDRESS as string)) {
-      this.isEditAddressModeOn = true;
-    }
-    if (currentClass === (CssClasses.NAME as string)) {
+    if (currentClass === (CssClasses.NAME_BOX as string)) {
       this.isProfileEditing = true;
     }
-    if (target.classList.contains(CssClasses.ADD_BUTTON)) {
-      this.isEditAddressModeOn = false;
-      this.isAddressAdding = true;
-      this.template = this.templates.get(CssClasses.ADD_BUTTON) as string;
+    if (currentClass === (CssClasses.ADDRESS_BOX as string)) {
+      this.addressID = fieldContainer.id;
+      this.isAddressEditing = true;
     }
-    if (target instanceof HTMLTableRowElement) {
-      this.addressID = target.id;
-      this.isAddressAdding = false;
-      this.isAddressesEditing = true;
-      this.template = this.templates.get(CssClasses.ADDRESS) as string;
+    if (currentClass === (CssClasses.NEW_ADDRESS_BOX as string)) {
+      this.isAddressAdding = true;
     }
 
     fieldContainer.classList.add(CssClasses.EDIT_MODE);
@@ -168,46 +199,28 @@ export default class UserProfile extends Page {
   }
 
   private disableEditMode(): void {
-    if (!this.isEditAddressModeOn) {
-      const fieldContainers: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.CONTAINER}`);
-      fieldContainers.forEach((field: HTMLDivElement): void => field.classList.remove(CssClasses.EDIT_MODE));
-    }
     this.isAddressAdding = false;
-    this.isAddressesEditing = false;
+    this.isAddressEditing = false;
     this.isProfileEditing = false;
-  }
-
-  private disableEditAddressMode(): void {
-    const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`) as HTMLButtonElement;
-    writeIcons.forEach((icon: Element): void => icon.classList.remove(CssClasses.HIDDEN));
-    cancelIcon?.classList.add(CssClasses.HIDDEN);
-    flag?.classList.add(CssClasses.HIDDEN);
-    addButton.disabled = false;
-    this.isEditAddressModeOn = false;
-    this.disableEditMode();
+    this.isAddressDeleting = false;
+    this.addressID = '';
   }
 
   private setCallback(): void {
-    const writeBoxes: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
-    [...writeBoxes].forEach((box) => box.addEventListener('click', this.enableEditMode.bind(this)));
+    const writeBoxes = this.$$(`.${CssClasses.WRAPPER_WRITE}`);
+    writeBoxes.forEach((box) => box.addEventListener('click', this.enableEditMode.bind(this)));
 
-    const overlay: HTMLDivElement | null = this.querySelector(`.${CssClasses.OVERLAY}`);
+    const deleteBoxes = this.$$(`.${CssClasses.WRAPPER_DELETE}`);
+    deleteBoxes.forEach((box) => box.addEventListener('click', this.enableDeleteMode.bind(this)));
+
+    const overlay = this.$(`.${CssClasses.OVERLAY}`);
     overlay?.addEventListener('click', this.hideModal.bind(this));
 
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`);
+    const addButton = this.$(`.${CssClasses.ADD_BUTTON_BOX}`);
     addButton?.addEventListener('click', this.enableEditMode.bind(this));
 
     const submitBtn = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`);
-    submitBtn?.addEventListener('click', this.hideOkModal.bind(this));
-
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    cancelIcon?.addEventListener('click', this.disableEditAddressMode.bind(this));
-
-    const rows: NodeListOf<HTMLTableRowElement> = this.querySelectorAll(`.${CssClasses.ROW}`);
-    rows.forEach((row: HTMLTableRowElement): void => row.addEventListener('click', this.enableEditMode.bind(this)));
+    submitBtn?.addEventListener('click', this.submit.bind(this));
   }
 
   private showModal(): void {
@@ -220,7 +233,8 @@ export default class UserProfile extends Page {
     if (
       !target.classList.contains(CssClasses.OVERLAY) &&
       !target.classList.contains(CssClasses.ICON_BOX) &&
-      !target.classList.contains(CssClasses.ICON)
+      !target.classList.contains(CssClasses.ICON) &&
+      !target.classList.contains(CssClasses.SUBMIT_BUTTON)
     ) {
       return;
     }
@@ -229,40 +243,23 @@ export default class UserProfile extends Page {
     this.disableEditMode();
   }
 
-  private hideOkModal(): void {
-    const modal = this.querySelector(`.${CssClasses.OVERLAY}`);
-    const writeIcons: NodeListOf<Element> = this.querySelectorAll(`.${CssClasses.WRAPPER_WRITE}`);
-    const cancelIcon = this.querySelector(`.${CssClasses.WRAPPER_CANCEL}`);
-    const flag = this.querySelector(`.${CssClasses.EDIT_MODE_FLAG}`);
-    const addButton = this.querySelector(`.${CssClasses.ADD_BUTTON}`) as HTMLButtonElement;
-    modal?.classList.add(CssClasses.HIDDEN);
-    writeIcons.forEach((icon: Element): void => icon.classList.add(CssClasses.HIDDEN));
-    cancelIcon?.classList.remove(CssClasses.HIDDEN);
-    flag?.classList.remove(CssClasses.HIDDEN);
-    addButton.disabled = true;
-    this.isEditAddressModeOn = true;
-  }
-
   private setModalContent(): void {
     this.clearModalContent();
-    const contentBox = this.querySelector(`.${CssClasses.MODAL}`);
-    const button = this.querySelector(`.${CssClasses.SUBMIT_BUTTON}`) as HTMLInputElement;
-    if (this.isEditAddressModeOn && !this.isAddressesEditing) {
-      contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.INFO);
-      button.value = SubmitBtnValue.OK;
-      button.disabled = false;
-      this.isEditAddressModeOn = false;
-      return;
-    }
+    const contentBox = this.$(`.${CssClasses.MODAL}`);
+    this.disableInput(`.${CssClasses.SUBMIT_BUTTON}`);
+    this.setInputValue(`.${CssClasses.SUBMIT_BUTTON}`, SubmitBtnValue.SAVE);
     if (this.isAddressAdding) {
       contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.ADD);
+      this.setInputValue(`.${CssClasses.SUBMIT_BUTTON}`, SubmitBtnValue.ADD);
     }
-    if (this.isAddressesEditing) {
+    if (this.isAddressEditing) {
       contentBox?.insertAdjacentHTML('afterbegin', ADDRESS_TITLE.EDIT);
     }
+    if (this.isAddressDeleting) {
+      this.enableInput(`.${CssClasses.SUBMIT_BUTTON}`);
+      this.setInputValue(`.${CssClasses.SUBMIT_BUTTON}`, SubmitBtnValue.DELETE);
+    }
     contentBox?.insertAdjacentHTML('beforeend', this.template);
-    button.value = SubmitBtnValue.SAVE;
-    button.disabled = true;
     this.fillTemplate();
   }
 
@@ -276,33 +273,239 @@ export default class UserProfile extends Page {
   }
 
   private fillTemplate(): void {
-    if (this.isAddressesEditing) {
-      const { addresses } = Store.customer;
-      let ordinalNumber = -1;
-      const address = addresses.find((a, index) => {
-        ordinalNumber = index + 1;
-        return a.id === this.addressID;
-      }) as Address;
-      const { streetName, city, postalCode } = address;
-      const streetField = this.querySelector(`#street`) as HTMLInputElement;
-      const cityField = this.querySelector(`#city`) as HTMLInputElement;
-      const postalCodeField = this.querySelector(`#postal-code`) as HTMLInputElement;
-      const legend = this.querySelector('.address-title') as HTMLLegendElement;
-      legend.textContent = `${legend.textContent} ${ordinalNumber}`;
-      streetField.value = streetName as string;
-      cityField.value = city as string;
-      postalCodeField.value = postalCode as string;
+    if (this.isAddressEditing) {
+      this.fillAddressTemplate();
+      this.setInputCalback();
     }
     if (this.isProfileEditing) {
-      const { firstName, lastName, dateOfBirth, email } = Store.customer;
-      const firstNameField = this.querySelector(`#${InputID.FIRST_NAME}`) as HTMLInputElement;
-      const lastNameField = this.querySelector(`#${InputID.LAST_NAME}`) as HTMLInputElement;
-      const dateOfBirthField = this.querySelector(`#${InputID.DATE_OF_BIRTH}`) as HTMLInputElement;
-      const emailField = this.querySelector(`#${InputID.EMAIL}`) as HTMLInputElement;
-      firstNameField.value = firstName as string;
-      lastNameField.value = lastName as string;
-      dateOfBirthField.value = dateOfBirth as string;
-      emailField.value = email;
+      this.fillPersonalTemplate();
+      this.setInputCalback();
     }
+    if (this.isAddressDeleting) {
+      this.fillDeleteTemplate();
+    }
+  }
+
+  private fillAddressTemplate(): void {
+    const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
+      this.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+    const { streetName, city, postalCode } = addressToChange;
+    const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+
+    this.setInputValue(`#${STREET}`, streetName);
+    this.setInputValue(`#${CITY}`, city);
+    this.setInputValue(`#${POSTAL_CODE}`, postalCode);
+    if (this.addressID === defaultShippingAddressId) {
+      this.makeCheckboxChecked(`#${DEFAULT_SHIPPING}`);
+    }
+    if (this.addressID === defaultBillingAddressId) {
+      this.makeCheckboxChecked(`#${DEFAULT_BILLING}`);
+    }
+    if (shippingAddressIds?.includes(this.addressID)) {
+      this.makeCheckboxChecked(`#${SHIPPING_COUNTRY}`);
+    }
+    if (billingAddressIds?.includes(this.addressID)) {
+      this.makeCheckboxChecked(`#${BILLING_COUNTRY}`);
+    }
+  }
+
+  private fillPersonalTemplate(): void {
+    const { firstName, lastName, dateOfBirth, email } = this.customer;
+    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
+    this.setInputValue(`#${FIRST_NAME}`, firstName);
+    this.setInputValue(`#${LAST_NAME}`, lastName);
+    this.setInputValue(`#${DATE_OF_BIRTH}`, dateOfBirth);
+    this.setInputValue(`#${EMAIL}`, email);
+  }
+
+  private fillDeleteTemplate(): void {
+    const { addresses } = this.customer;
+    const addressToDelete = addresses.find((address) => address.id === this.addressID) as Address;
+    const { streetName, city, postalCode, country } = addressToDelete;
+    const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
+    const container = <HTMLDivElement>this.$(`.${CssClasses.DELETE_BOX}`);
+    this.setElementTextContent(`.${STREET}`, streetName, container);
+    this.setElementTextContent(`.${CITY}`, city, container);
+    this.setElementTextContent(`.${POSTAL_CODE}`, postalCode, container);
+    this.setElementTextContent(`.${COUNTRY}`, country, container);
+  }
+
+  private enableDeleteMode(event: Event): void {
+    this.isAddressDeleting = true;
+    const target = event.currentTarget as HTMLElement;
+    const fieldContainer = target.closest(`.${CssClasses.CONTAINER}`) as HTMLDivElement;
+    this.addressID = fieldContainer.id;
+    this.template = deleteTemplate;
+    this.setModalContent();
+    this.showModal();
+  }
+
+  private setInputCalback(): void {
+    const fields = <HTMLInputElement[]>this.$$(`.${CssClasses.FIELD}`);
+    fields.forEach((field) => field.addEventListener('input', this.checkResult.bind(this)));
+  }
+
+  private disableInput(selector: string): void {
+    const submitInput = this.$<'input'>(selector);
+    if (submitInput) {
+      submitInput.disabled = true;
+    }
+  }
+
+  private enableInput(selector: string): void {
+    const submitInput = this.$<'input'>(selector);
+    if (submitInput) {
+      submitInput.disabled = false;
+    }
+  }
+
+  private checkResult(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (isValidValue(target.id, target.value)) {
+      this.hideErrorMessage(target.id);
+    } else {
+      this.setErrorMessage(target.id);
+      this.showErrorMessage(target.id);
+    }
+  }
+
+  private hideErrorMessage(inputID: string): void {
+    const input = this.$(`#${inputID}`) as HTMLInputElement;
+    const errorBox: Element | null = input.nextElementSibling;
+    input.classList.remove(CssClasses.INPUT_ERROR);
+    if (errorBox !== null) {
+      errorBox.classList.add(CssClasses.HIDDEN);
+    }
+    this.enableInput(`.${CssClasses.SUBMIT_BUTTON}`);
+  }
+
+  private showErrorMessage(inputID: string): void {
+    const input = this.$(`#${inputID}`) as HTMLInputElement;
+    const errorBox: Element | null = input.nextElementSibling;
+    input.classList.add(CssClasses.INPUT_ERROR);
+    if (errorBox !== null) {
+      errorBox.classList.remove(CssClasses.HIDDEN);
+    }
+    this.disableInput(`.${CssClasses.SUBMIT_BUTTON}`);
+  }
+
+  private setErrorMessage(inputID: string): void {
+    const input = this.$(`#${inputID}`) as HTMLInputElement;
+    const errorBox = input.nextElementSibling as HTMLDivElement;
+    const errorImg: HTMLImageElement | null = errorBox.querySelector(`.${CssClasses.ERROR_ICON}`);
+    const errorContent = errorBox.querySelector(`.${CssClasses.ERROR_TEXT}`);
+    const errorMessage = !input.value
+      ? ErrorMessages.EMPTY_FIELD[`${input.name}`]
+      : ErrorMessages.INVALID_VALUE[`${input.name}`];
+    if (errorContent !== null && errorImg !== null) {
+      errorContent.textContent = errorMessage;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      errorImg.src = warningIcon;
+    }
+  }
+
+  private submit(): void {
+    if (this.isProfileEditing) {
+      this.submitProfileInfo();
+    }
+    if (this.isAddressAdding) {
+      console.log('add address');
+    }
+    if (this.isAddressEditing) {
+      console.log('edit address');
+    }
+    if (this.isAddressDeleting) {
+      console.log('delete address');
+    }
+  }
+
+  private submitProfileInfo(): void {
+    const { firstName, lastName, dateOfBirth, email } = this.customer;
+    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
+    const newFirstName = this.getInputValue(`#${FIRST_NAME}`);
+    const newLastName = this.getInputValue(`#${LAST_NAME}`);
+    const newDateOfBirth = this.getInputValue(`#${DATE_OF_BIRTH}`);
+    const newEmail = this.getInputValue(`#${EMAIL}`);
+    const { version } = this.customer;
+    const actions: MyCustomerUpdateAction[] = [];
+    if (newFirstName !== firstName) {
+      actions.push({
+        action: 'setFirstName',
+        firstName: newFirstName,
+      });
+    }
+    if (newLastName !== lastName) {
+      actions.push({
+        action: 'setLastName',
+        lastName: newLastName,
+      });
+    }
+    if (newDateOfBirth !== dateOfBirth) {
+      actions.push({
+        action: 'setDateOfBirth',
+        dateOfBirth: newDateOfBirth,
+      });
+    }
+    if (newEmail !== email) {
+      actions.push({
+        action: 'changeEmail',
+        email: newEmail,
+      });
+    }
+    this.updateUserProfile({ version, actions });
+  }
+
+  private updateUserProfile(user: MyCustomerUpdate): void {
+    update(user)
+      .then(({ body }) => {
+        const { firstName, lastName } = body;
+        Store.user = { loggedIn: true, firstName, lastName };
+        Store.customer = body;
+        this.customer = body;
+        UserProfile.showSuccessfulMessage(toastMessage.SUCCESS);
+        this.setMainInfo();
+      })
+      .catch(() => UserProfile.showErrorMessage(toastMessage.ERROR));
+  }
+
+  private static showSuccessfulMessage(message: string): void {
+    const props: ToastProps = {
+      text: message,
+      duration: 5000,
+      newWindow: true,
+      close: true,
+      gravity: 'top',
+      position: 'center',
+      stopOnFocus: true,
+      style: {
+        background: 'linear-gradient(to right, #00b09b, #96c93d)',
+      },
+      offset: {
+        y: '40px',
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    Toastify(props).showToast();
+  }
+
+  private static showErrorMessage(message: string): void {
+    const props: ToastProps = {
+      text: message,
+      duration: 5000,
+      newWindow: true,
+      close: true,
+      gravity: 'top',
+      position: 'center',
+      stopOnFocus: true,
+      style: {
+        background: 'linear-gradient(to right, #00b09b, #96c93d)',
+      },
+      offset: {
+        y: '40px',
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    Toastify(props).showToast();
   }
 }
