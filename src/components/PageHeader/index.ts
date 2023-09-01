@@ -21,11 +21,19 @@ export default class PageHeader extends BaseComponent {
     super.connectedCallback();
     this.classList.add('header');
 
-    this.$(`.${CssClasses.TOGGLE}`)?.addEventListener('click', () => toggleNavigation());
+    const menuToggle = this.$(`.${CssClasses.TOGGLE}`);
+    if (!menuToggle) {
+      return;
+    }
+    menuToggle.addEventListener('click', () => toggleNavigation());
+
     this.$(`.${CssClasses.CONTAINER}`)?.addEventListener('click', (event) => {
       const { target } = event;
       if (target instanceof HTMLAnchorElement) {
-        toggleNavigation();
+        const isToggleVisible = String(menuToggle.computedStyleMap().get('visibility')) === 'visible';
+        if (isToggleVisible) {
+          toggleNavigation();
+        }
       }
     });
   }
