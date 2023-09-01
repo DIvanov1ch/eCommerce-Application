@@ -4,6 +4,7 @@ import {
   type HttpMiddlewareOptions,
   PasswordAuthMiddlewareOptions,
   Client,
+  RefreshAuthMiddlewareOptions,
 } from '@commercetools/sdk-client-v2';
 import {
   createApiBuilderFromCtpClient,
@@ -14,10 +15,13 @@ import {
   ProductProjection,
   CategoryPagedQueryResponse,
   ProductTypePagedQueryResponse,
+  Customer,
+  MyCustomerUpdate,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
 import TokenClient from './Token';
+import Store from './Store';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -61,6 +65,21 @@ const getPasswordFlowOptions = (
   };
 };
 
+const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
+  console.log(Store.token?.refreshToken);
+  return {
+    host: authHost,
+    projectKey,
+    credentials: {
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+    },
+    refreshToken: Store.token?.refreshToken || '',
+    tokenCache: token,
+    fetch,
+  };
+};
+
 const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
   const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
   return apiRoot;
@@ -82,6 +101,15 @@ const getPasswordFlowClient = (username: string, password: string): Client => {
     .withLoggerMiddleware()
     .build();
   return passwordFlowClient;
+};
+
+const getRefreshTokenFlowClient = (): Client => {
+  const refreshTokenFlowClient = new ClientBuilder()
+    .withRefreshTokenFlow(getRefreshTokenFlowOptions(newToken))
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+  return refreshTokenFlowClient;
 };
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -124,4 +152,18 @@ async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {
   return (await apiRoot.productTypes().get().execute()).body;
 }
 
-export { login, registration, logout, getInfoOfAllProducts, getProductProjectionByKey, getCategories, getProductTypes };
+const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
+  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  return apiRoot.me().post({ body }).execute();
+};
+
+export {
+  login,
+  registration,
+  logout,
+  getInfoOfAllProducts,
+  getProductProjectionByKey,
+  getCategories,
+  getProductTypes,
+  update,
+};
