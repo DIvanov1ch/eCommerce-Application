@@ -1,0 +1,29 @@
+.bread-crumbs {
+  display: block;
+  font-size: 0.8em;
+}
+
+.bread-crumbs__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+}
+
+.bread-crumbs__item {
+  &:after {
+    display: inline;
+    content: '/';
+    margin: 0 0.4em;
+    font-size: 0.8em;
+  }
+
+  &:last-child:after {
+    content: '';
+  }
+}
+
+.bread-crumbs__link--active {
+  text-decoration: none;
+  pointer-events: none;
+}

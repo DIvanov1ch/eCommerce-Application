@@ -13,8 +13,11 @@ import { ServerErrors, errorMessages } from '../../types/errors';
 import warningIcon from '../../assets/icons/warning-icon.png';
 import { pause } from '../../utils/create-element';
 import Store from '../../services/Store';
-import Customer from '../../services/Customer';
+import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
+import Router from '../../services/Router';
+
+Router.registerRoute('registration', 'registration-page');
 
 const REDIRECT_DELAY = 3000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -29,7 +32,7 @@ export default class RegistrationPage extends Page {
 
   private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
 
-  private customer = new Customer();
+  private customer = new NewUser();
 
   private country = 'US';
 
@@ -76,17 +79,17 @@ export default class RegistrationPage extends Page {
 
     const countryFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll('[name="country"]');
     countryFileds.forEach((field) => {
-      field.addEventListener('focus', this.showCountrySelect.bind(this));
-      field.addEventListener('input', this.showCountrySelect.bind(this));
+      field.addEventListener('focus', this.showCountryList.bind(this));
+      field.addEventListener('input', this.showCountryList.bind(this));
     });
 
     const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
-    countrySelects.forEach((select) => select.addEventListener('click', this.hideCountrySelect.bind(this)));
+    countrySelects.forEach((select) => select.addEventListener('click', this.hideCountryList.bind(this)));
 
     this.addEventListener('click', this.hidePopupAndRedirect.bind(this));
   }
 
-  private showCountrySelect(event: Event): void {
+  private showCountryList(event: Event): void {
     const target = event.target as HTMLInputElement;
     if (!target.value || target.value.trim() !== 'United States') {
       const selector = target.id;
@@ -98,7 +101,7 @@ export default class RegistrationPage extends Page {
     }
   }
 
-  private hideCountrySelect(event: Event): void {
+  private hideCountryList(event: Event): void {
     const target = event.target as HTMLDivElement;
     const selector = Object.values(InputID).find((id) => target.classList.contains(id));
     const field: HTMLInputElement | null = this.querySelector(`#${selector}`);
@@ -212,6 +215,7 @@ export default class RegistrationPage extends Page {
     this.customer.lastName = inputValues.get(InputID.LAST_NAME);
     this.customer.email = inputValues.get(InputID.EMAIL) || '';
     this.customer.password = inputValues.get(InputID.PASSWORD) || '';
+    this.customer.dateOfBirth = inputValues.get(InputID.DATE_OF_BIRTH);
     const shippingAddress: BaseAddress = this.setAddress(inputValues, AddressType.SHIPPING);
     const billingAddress: BaseAddress = this.setAddress(inputValues, AddressType.BILLING);
     this.customer.addresses = [shippingAddress, billingAddress];
@@ -234,7 +238,7 @@ export default class RegistrationPage extends Page {
     this.customer.billingAddresses = [indexOfBilling];
   }
 
-  private registrate(): void {
+  private register(): void {
     registration(this.customer)
       .then((response) => {
         this.isSignUp = true;
@@ -257,7 +261,7 @@ export default class RegistrationPage extends Page {
     if (isValid) {
       this.disableButtons();
       this.setCustomerInformation();
-      this.registrate();
+      this.register();
     } else {
       this.setErrorMessages();
       this.showErrors();
@@ -315,6 +319,7 @@ export default class RegistrationPage extends Page {
       .then(({ body }) => {
         const { firstName, lastName } = body.customer;
         Store.user = { loggedIn: true, firstName, lastName };
+        Store.customer = body.customer;
       })
       .catch(console.error);
   }

@@ -1,0 +1,260 @@
+.user-profile__container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  position: relative;
+  border-bottom: 1px solid #a6a6a652;
+  margin-bottom: 25px;
+  padding-right: 40px;
+}
+
+.container_name .info {
+  flex: 25%;
+  min-width: 200px;
+}
+
+.container_addresses {
+  padding-left: 20px;
+
+  .info {
+    flex: 20%;
+    min-width: 150px;
+  }
+}
+
+.address-line {
+  position: relative;
+
+  .user-profile__icon-wrapper_write {
+    right: 48px;
+  }
+
+  .user-profile__separator {
+    position: absolute;
+    top: 50%;
+    margin-top: -14px;
+    right: 40px;
+    height: 20px;
+    width: 1px;
+    background: linear-gradient(0deg, hsla(0, 0%, 100%, 0.4), hsla(0, 0%, 100%, 0.4)), rgba(166, 166, 166);
+  }
+}
+
+.container_password .info__cell {
+  font-size: 1.5em;
+  letter-spacing: 0.06em;
+}
+
+.info__cell {
+  margin: 5px auto 15px;
+}
+
+.info__title {
+  font-weight: 400;
+  color: #a6a6a6;
+}
+
+.user-profile__icon-wrapper {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  margin-top: -20px;
+  width: 32px;
+  height: 32px;
+}
+
+.user-profile__icon-box {
+  height: 100%;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+
+.user-profile__icon {
+  width: 16px;
+  display: block;
+  margin: 0 auto;
+  padding-top: 7px;
+  transition: all 0.2s;
+}
+
+.user-profile__icon-box:hover {
+  background-color: rgb(218, 218, 218);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.user-profile__icon-box:active {
+  background-color: rgb(233, 233, 233);
+  transform: scale(0.9);
+  transition: all 0.2s;
+}
+
+.user-profile__address-title {
+  position: relative;
+  width: 100%;
+}
+
+.address-type {
+  display: flex;
+  flex-wrap: wrap;
+
+  div {
+    font-size: 14px;
+  }
+
+  .shipping,
+  .billing,
+  .default-shipping,
+  .default-billing {
+    border-radius: 5px;
+    padding: 2px;
+    width: fit-content;
+    margin: 5px;
+  }
+
+  .shipping,
+  .billing {
+    border: 1px solid #888888;
+    color: #525252;
+    background-color: #e9e9e9;
+    // text-decoration: underline;
+  }
+
+  .default-shipping,
+  .default-billing {
+    border: 1px solid #a57203;
+    color: #755000;
+    background-color: #f5df97;
+  }
+}
+
+.address-line__divider {
+  height: 20px;
+  position: relative;
+  width: 40%;
+  background: radial-gradient(ellipse farthest-side at top center, rgba(0, 0, 0, 0.08), transparent);
+}
+
+.address-line__divider::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0px;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(left, transparent, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.02), transparent);
+}
+
+.user-profile__button-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgb(49, 189, 107);
+  background-color: rgb(57, 214, 122);
+  margin: 10px;
+  padding: 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 600;
+
+  .user-profile__icon-box {
+    margin-right: 10px;
+    transition: 0.2s;
+  }
+
+  .user-profile__icon-box:hover {
+    background-color: rgb(49, 189, 107);
+    transition: 0.2s;
+  }
+
+  .user-profile__icon_plus {
+    padding-top: 0;
+  }
+}
+
+.user-profile__button-box:not([disabled]):hover {
+  border: 1px solid rgb(49, 189, 107);
+  background-color: rgb(49, 189, 107);
+  transition: 0.2s;
+}
+
+.user-profile__button-box:not([disabled]):active {
+  background-color: rgb(42, 167, 94);
+}
+
+.user-profile__button-box:disabled {
+  cursor: not-allowed;
+
+  .user-profile__icon-box {
+    pointer-events: none;
+  }
+
+  .user-profile__icon {
+    opacity: 0.5;
+  }
+}
+
+.user-profile__overlay {
+  background-color: rgba(13, 13, 13, 0.5);
+  max-width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.user-profile__modal-wrapper {
+  width: 380px;
+  min-height: 380px;
+  margin: 96px auto 0;
+  background-color: #fff;
+  border-radius: 8px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.user-profile__modal-header {
+  position: relative;
+  height: 50px;
+  margin-right: 5px;
+}
+
+.user-profile__modal-main {
+  padding: 0 25px 15px;
+}
+
+.user-profile__modal-footer {
+  width: 50%;
+  margin: 0 auto;
+  height: 60px;
+}
+
+@media (max-width: 500px) {
+  .address-type {
+    div {
+      font-size: 12px;
+    }
+  }
+
+  .addresses__title {
+    width: 42%;
+    display: inline-block;
+  }
+}
+
+.template__title {
+  margin: 0 auto 25px;
+  text-align: center;
+}
+
+.address-title {
+  text-align: right;
+}
+
+.address__check-box {
+  margin: 7px;
+}
