@@ -138,11 +138,11 @@ export default class BreadCrumbs extends BaseComponent {
 
   private attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (name === 'to') {
-      this.plantCrumbsTo(newValue).catch(throwError);
+      this.setToCategory(newValue);
     }
 
     if (name === 'slug') {
-      this.plantCrumbsForSlug(newValue).catch(throwError);
+      this.setCategorySlug(newValue);
     }
   }
 
@@ -152,5 +152,13 @@ export default class BreadCrumbs extends BaseComponent {
 
   private showError(text: string): void {
     this.replaceChildren(text);
+  }
+
+  public setToCategory(id: string): void {
+    this.plantCrumbsTo(id).catch(throwError);
+  }
+
+  public setCategorySlug(slug: string): void {
+    this.plantCrumbsForSlug(slug).catch(throwError);
   }
 }

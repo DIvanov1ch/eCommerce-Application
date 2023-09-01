@@ -3,6 +3,7 @@ import LoginBox from './LoginBox';
 import PageFooter from './PageFooter';
 import PageHeader from './PageHeader';
 import PageMain from './PageMain';
+import ProductCategories from './ProductCategories';
 import TimeOut from './TimeOut';
 
 const Components = {
@@ -12,6 +13,7 @@ const Components = {
   'login-box': LoginBox,
   'time-out': TimeOut,
   'bread-crumbs': BreadCrumbs,
+  'product-categories': ProductCategories,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
