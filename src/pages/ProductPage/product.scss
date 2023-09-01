@@ -1,4 +1,4 @@
-.product {
+.details {
   &__images {
     max-width: 100%;
     overflow: auto;
@@ -6,6 +6,10 @@
     flex-direction: row;
     height: 15em;
     gap: 5px;
+    margin-bottom: 1em;
+  }
+
+  &__prices {
     margin-bottom: 1em;
   }
 
