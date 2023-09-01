@@ -33,6 +33,9 @@ enum CssClasses {
   CITY = 'city',
   POSTAL_CODE = 'postal-code',
   COUNTRY = 'country',
+  INPUT_ERROR = 'field-error',
+  ERROR_TEXT = 'error-box__content',
+  ERROR_ICON = 'error-box__icon',
 }
 
 export default CssClasses;
