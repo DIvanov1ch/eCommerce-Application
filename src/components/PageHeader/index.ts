@@ -25,7 +25,10 @@ export default class PageHeader extends BaseComponent {
     if (!menuToggle) {
       return;
     }
-    menuToggle.addEventListener('click', () => toggleNavigation());
+    menuToggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      toggleNavigation();
+    });
 
     this.$(`.${CssClasses.CONTAINER}`)?.addEventListener('click', (event) => {
       const { target } = event;
