@@ -8,6 +8,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .nav-container {
@@ -53,13 +54,12 @@
   height: 1.5em;
   right: 0.75em;
   top: 0.75em;
-  display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
   overflow: hidden;
   z-index: 10;
-  visibility: hidden;
+  display: none;
 
   &:before,
   &:after,
@@ -93,9 +93,9 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .nav-toggle {
-    visibility: visible;
+    display: flex;
   }
 
   .nav-container {

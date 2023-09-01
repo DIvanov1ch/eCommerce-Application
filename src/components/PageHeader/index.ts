@@ -33,7 +33,7 @@ export default class PageHeader extends BaseComponent {
     this.$(`.${CssClasses.CONTAINER}`)?.addEventListener('click', (event) => {
       const { target } = event;
       if (target instanceof HTMLAnchorElement) {
-        const isToggleVisible = String(menuToggle.computedStyleMap().get('visibility')) === 'visible';
+        const isToggleVisible = String(menuToggle.computedStyleMap().get('display')) === 'flex';
         if (isToggleVisible) {
           toggleNavigation();
         }
