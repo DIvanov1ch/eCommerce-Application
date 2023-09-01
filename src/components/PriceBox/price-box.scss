@@ -1,0 +1,64 @@
+.price-box {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: end;
+
+  &.skeleton {
+    font-size: 3em;
+  }
+
+  &__price {
+    font-size: 2em;
+    display: flex;
+  }
+
+  &__symbol,
+  &__fraction {
+    font-size: 0.5em;
+    position: relative;
+    top: 0.25em;
+  }
+
+  &__whole {
+    font-weight: bold;
+  }
+
+  &__delimiter {
+    display: none;
+  }
+
+  &__price--current,
+  &__price--discounted {
+    gap: 0.07em;
+  }
+
+  &__price--old {
+    width: 100%;
+    font-size: 0.7em;
+
+    &:before {
+      content: 'Was:';
+      margin-right: 0.2em;
+    }
+
+    & > * {
+      font-size: 1em;
+      font-weight: normal;
+      display: inline;
+      position: static;
+      text-decoration: line-through;
+    }
+  }
+
+  &__discount {
+    font-size: 2em;
+    margin-right: 0.3em;
+    color: var(--discount-color);
+    font-weight: 300;
+
+    &:after {
+      content: 'off';
+      font-size: 0.5em;
+    }
+  }
+}
