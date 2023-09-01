@@ -59,12 +59,15 @@ export default class ProductPage extends Page {
   }
 
   private renderProduct(product: ProductProjection): void {
-    console.dir(product);
     const {
       name: { [LANG]: name },
       description: { [LANG]: description } = {},
       masterVariant: { images },
+      categories,
     } = product;
+    const { id: categoryId = '' } = categories.pop() || {};
+
+    this.setCategoryId(categoryId);
 
     const { NAME, DESCRIPTION } = CssClasses;
 
@@ -83,8 +86,12 @@ export default class ProductPage extends Page {
         img.src = url;
         return img.outerHTML;
       })
-      .join('<br>');
+      .join('');
 
     this.insertHtml(className(CssClasses.IMAGES), imagesHtml);
+  }
+
+  private setCategoryId(id: string): void {
+    this.$('bread-crumbs')?.setAttribute('to', id);
   }
 }

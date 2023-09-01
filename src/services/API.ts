@@ -19,7 +19,16 @@ import {
   MyCustomerUpdate,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
-import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
+import {
+  API_HOST,
+  API_SCOPES,
+  PROJECT_KEY,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  API_REGION,
+  AUTH_HOST,
+  CATEGORIES_LIMIT,
+} from '../config';
 import TokenClient from './Token';
 import Store from './Store';
 
@@ -142,8 +151,9 @@ async function getProductProjectionByKey(key: string): Promise<ProductProjection
 
 async function getCategories(): Promise<CategoryPagedQueryResponse> {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  const queryArgs = { limit: CATEGORIES_LIMIT };
 
-  return (await apiRoot.categories().get().execute()).body;
+  return (await apiRoot.categories().get({ queryArgs }).execute()).body;
 }
 
 async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {

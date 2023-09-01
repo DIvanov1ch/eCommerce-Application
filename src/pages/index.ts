@@ -6,6 +6,7 @@ import LogoutPage from './LogoutPage';
 import UserProfile from './UserProfilePage';
 import CatalogPage from './CatalogPage';
 import ProductPage from './ProductPage';
+import ComponentsPage from './ComponentsPage';
 
 const Pages = {
   'home-page': HomePage,
@@ -16,6 +17,7 @@ const Pages = {
   'user-profile': UserProfile,
   'catalog-page': CatalogPage,
   'product-page': ProductPage,
+  'components-page': ComponentsPage,
 };
 
 Object.entries(Pages).forEach(([elementName, elementClass]) => {

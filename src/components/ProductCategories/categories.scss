@@ -1,0 +1,23 @@
+.categories {
+  display: block;
+  max-width: 15em;
+}
+
+.categories__list {
+  margin: 0;
+  padding: 0 0 0 1em;
+  list-style: none;
+}
+
+.categories__list--level-1 {
+  margin-bottom: 0.7em;
+}
+
+.categories__list--level-top {
+  padding-left: 0;
+}
+
+.categories__link--active {
+  text-decoration: none;
+  pointer-events: none;
+}
