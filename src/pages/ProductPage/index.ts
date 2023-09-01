@@ -13,11 +13,11 @@ Router.registerRoute('product', 'product-page');
 const PAGE_TITLE = 'Product details';
 
 const CssClasses = {
-  COMPONENT: 'product',
-  NAME: 'product__name',
-  DESCRIPTION: 'product__description',
-  IMAGES: 'product__images',
-  PARAMS: 'product__params',
+  COMPONENT: 'details',
+  NAME: 'details__name',
+  DESCRIPTION: 'details__description',
+  IMAGES: 'details__images',
+  PARAMS: 'details__params',
 };
 
 const className = (name: string): string => `.${name}`;
