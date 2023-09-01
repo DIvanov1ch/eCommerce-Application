@@ -8,7 +8,8 @@ import sortBarsHtml from './sort-bars.html';
 import Page from '../Page';
 import { getInfoOfFilteredProducts } from '../../services/API';
 import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes } from '../../constants/filters';
-import { FiltersType } from '../../types/Catalog';
+import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
+import highlightSearchingElement from '../../utils/highlight-search-el';
 
 const DELAY = 1000;
 
@@ -25,14 +26,18 @@ const defaultFilterSortingValues = {
 export default class CatalogPage extends Page {
   private static filterSortingValues: FiltersType;
 
+  private static searchingText: string;
+
   constructor() {
     super(html);
     CatalogPage.filterSortingValues = structuredClone(defaultFilterSortingValues);
-    getInfoOfFilteredProducts()
+    CatalogPage.searchingText = '';
+    getInfoOfFilteredProducts({})
       .then(({ body }) => {
         this.createProductContainerWithWaitingSymbol(body.results);
         this.createFilterBars();
         this.createSortingBars();
+        this.createSearching();
       })
       .catch((err) => {
         console.log(err);
@@ -55,6 +60,7 @@ export default class CatalogPage extends Page {
 
   private static createProductName = (productCard: HTMLElement, name: LocalizedString): void => {
     const productName = createElement('div', { className: CssClasses.NAME, innerHTML: name.en });
+    productName.innerHTML = CatalogPage.highLightFoundText(productName, CatalogPage.searchingText.split(' '));
     productCard.append(productName);
   };
 
@@ -66,6 +72,10 @@ export default class CatalogPage extends Page {
       className: CssClasses.DESCRIPTION,
       innerHTML: `${description ? description.en.split('\n')[0] : ''}`,
     });
+    productDescription.innerHTML = CatalogPage.highLightFoundText(
+      productDescription,
+      CatalogPage.searchingText.split(' ')
+    );
     productCard.append(productDescription);
   };
 
@@ -124,7 +134,6 @@ export default class CatalogPage extends Page {
   private createFilteredProductCards = (productsArray: ProductProjection[]): void => {
     const productContainer = this.querySelector(`.${CssClasses.PRODUCTS}`) as HTMLElement;
     productsArray.forEach((product): void => {
-      console.log(product);
       const productCard = createElement('div', {
         className: CssClasses.CARD,
       });
@@ -151,7 +160,7 @@ export default class CatalogPage extends Page {
       filterContainer.reset();
       this.clearProductsContainer();
       CatalogPage.filterSortingValues = defaultFilterSortingValues;
-      getInfoOfFilteredProducts()
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -192,27 +201,18 @@ export default class CatalogPage extends Page {
       parentElement.append(optionElement);
     });
     parentElement.addEventListener('change', (): void => {
-      switch (cssClass) {
-        case CssClasses.FILTERPRICE:
-          CatalogPage.filterSortingValues.price = parentElement.value;
-          break;
-        case CssClasses.FILTERCOLOR:
-          CatalogPage.filterSortingValues.color = parentElement.value;
-          break;
-        case CssClasses.FILTERSIZE:
-          CatalogPage.filterSortingValues.size = parentElement.value;
-          break;
-        case CssClasses.FILTERBRAND:
-          CatalogPage.filterSortingValues.brand = parentElement.value;
-          break;
-        case CssClasses.FILTERMATERIAL:
-          CatalogPage.filterSortingValues.material = parentElement.value;
-          break;
-        default:
-          break;
-      }
+      if (parentElement.classList.contains(CssClasses.FILTERPRICE))
+        CatalogPage.filterSortingValues.price = parentElement.value;
+      if (parentElement.classList.contains(CssClasses.FILTERCOLOR))
+        CatalogPage.filterSortingValues.color = parentElement.value;
+      if (parentElement.classList.contains(CssClasses.FILTERSIZE))
+        CatalogPage.filterSortingValues.size = parentElement.value;
+      if (parentElement.classList.contains(CssClasses.FILTERBRAND))
+        CatalogPage.filterSortingValues.brand = parentElement.value;
+      if (parentElement.classList.contains(CssClasses.FILTERMATERIAL))
+        CatalogPage.filterSortingValues.material = parentElement.value;
       this.clearProductsContainer();
-      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -257,7 +257,7 @@ export default class CatalogPage extends Page {
     buttonReset.addEventListener('click', (): void => {
       sortingContainer.reset();
       this.clearProductsContainer();
-      getInfoOfFilteredProducts()
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -275,7 +275,7 @@ export default class CatalogPage extends Page {
     this.resetSortingIfButtonClicked();
     nameSorting.addEventListener('change', () => {
       CatalogPage.filterSortingValues.byName = nameSorting.value;
-      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -286,7 +286,7 @@ export default class CatalogPage extends Page {
     });
     priceSorting.addEventListener('change', () => {
       CatalogPage.filterSortingValues.byPrice = priceSorting.value;
-      getInfoOfFilteredProducts(CatalogPage.createFilterQuery(), CatalogPage.createSortingQuery())
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
         .then(({ body }) => {
           this.createProductContainerWithWaitingSymbol(body.results);
         })
@@ -314,5 +314,112 @@ export default class CatalogPage extends Page {
       }
     }
     return queryParams;
+  };
+
+  private createSearching = (): void => {
+    this.resetSearchingTextIfButtonClicked();
+    this.searchTextIfButtonClicked();
+    this.searchTextIfEntered();
+    this.searchTextIfUnfocused();
+  };
+
+  private resetSearchingTextIfButtonClicked = (): void => {
+    const resetSearchingButton = this.querySelector(`.${CssClasses.RESETSEARCHBUTTON}`) as HTMLElement;
+    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
+    resetSearchingButton.addEventListener('click', () => {
+      if (CatalogPage.searchingText === '') {
+        searchingText.value = '';
+      }
+      if (CatalogPage.searchingText !== '') {
+        searchingText.value = '';
+        CatalogPage.searchingText = '';
+        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+          .then(({ body }) => {
+            this.createProductContainerWithWaitingSymbol(body.results);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
+  };
+
+  private searchTextIfButtonClicked = (): void => {
+    const searchingButton = this.querySelector(`.${CssClasses.SEARCHBUTTON}`) as HTMLElement;
+    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
+    searchingButton.addEventListener('click', () => {
+      CatalogPage.searchingText = searchingText.value;
+      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+        .then(({ body }) => {
+          this.createProductContainerWithWaitingSymbol(body.results);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  };
+
+  private searchTextIfEntered = (): void => {
+    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
+    searchingText.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        CatalogPage.searchingText = searchingText.value;
+        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+          .then(({ body }) => {
+            this.createProductContainerWithWaitingSymbol(body.results);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
+  };
+
+  private searchTextIfUnfocused = (): void => {
+    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
+    searchingText.addEventListener('blur', () => {
+      if (searchingText.value !== CatalogPage.searchingText) {
+        CatalogPage.searchingText = searchingText.value;
+        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+          .then(({ body }) => {
+            this.createProductContainerWithWaitingSymbol(body.results);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
+  };
+
+  private static createSearchingQuery = (): string => {
+    const queryParams = CatalogPage.searchingText;
+    return queryParams;
+  };
+
+  private static highLightFoundText = (element: HTMLElement, textArray: string[]): string => {
+    const newElement = element;
+    textArray.forEach((text) => {
+      if (text.length > 1) {
+        newElement.innerHTML = CatalogPage.findAndHighLightText(newElement, text);
+      }
+    });
+    return newElement.innerHTML;
+  };
+
+  private static findAndHighLightText = (element: HTMLElement, text: string): string => {
+    const str = element.innerHTML;
+    const parts = str.split(' ').map((el) => {
+      return highlightSearchingElement(el, text);
+    });
+    const newTextForElement = parts.join(' ');
+    return newTextForElement;
+  };
+
+  private static createFiltersSortingSearchQueries = (): FilterSortingSearchQueries => {
+    return {
+      filterQuery: CatalogPage.createFilterQuery() || [],
+      sortingQuery: CatalogPage.createSortingQuery() || [],
+      searchQuery: CatalogPage.createSearchingQuery() || '',
+    };
   };
 }

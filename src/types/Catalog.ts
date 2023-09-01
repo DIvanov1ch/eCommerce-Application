@@ -7,3 +7,9 @@ export type FiltersType = {
   byPrice?: string;
   byName?: string;
 };
+
+export type FilterSortingSearchQueries = {
+  filterQuery?: string[];
+  sortingQuery?: string[];
+  searchQuery?: string;
+};

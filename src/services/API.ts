@@ -15,6 +15,7 @@ import {
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
 import TokenClient from './Token';
+import { FilterSortingSearchQueries } from '../types/Catalog';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -96,11 +97,11 @@ const logout = (): void => {
   newToken.delete();
 };
 
-const getInfoOfFilteredProducts = async (
-  filterQuery: string[] = [],
-  sortingQuery: string[] = [],
-  searchQuery: string = ''
-): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
+const getInfoOfFilteredProducts = async ({
+  filterQuery,
+  sortingQuery,
+  searchQuery,
+}: FilterSortingSearchQueries): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
     .productProjections()

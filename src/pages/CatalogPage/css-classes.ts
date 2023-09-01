@@ -22,6 +22,7 @@ enum CssClasses {
   RESETSORTINGBUTTON = 'sort__button-reset',
   RESETSEARCHBUTTON = 'search__button-reset',
   SEARCHBUTTON = 'search__button-search',
+  SEARCHTEXT = 'search__text',
   SEARCH = 'search__container',
 }
 
