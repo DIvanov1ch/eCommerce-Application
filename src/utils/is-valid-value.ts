@@ -16,12 +16,15 @@ export default function isValidValue(id: string, value: string): boolean {
       return findCurrentAge(value) >= AGE_LIMIT;
     case InputID.SHIPPING_STREET:
     case InputID.BILLING_STREET:
+    case InputID.STREET:
       return Pattern.street.test(value);
     case InputID.SHIPPING_CITY:
     case InputID.BILLING_CITY:
+    case InputID.CITY:
       return Pattern.city.test(value);
     case InputID.SHIPPING_CODE:
     case InputID.BILLING_CODE:
+    case InputID.POSTAL_CODE:
       return (
         Pattern.zip.test(value) &&
         parseInt(value, 10) >= ZipCodes.RANGE_START &&
@@ -29,6 +32,7 @@ export default function isValidValue(id: string, value: string): boolean {
       );
     case InputID.SHIPPING_COUNTRY:
     case InputID.BILLING_COUNTRY:
+    case InputID.COUNTRY:
       return Pattern.country.test(value);
     default:
       return false;
