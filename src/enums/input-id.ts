@@ -18,6 +18,9 @@ enum InputID {
   CITY = 'city',
   POSTAL_CODE = 'postal-code',
   COUNTRY = 'country',
+  OLD_PASSWORD = 'old-password',
+  NEW_PASSWORD = 'new-password',
+  RE_ENTERED_PASSWORD = 're-entered-password',
 }
 
 export default InputID;

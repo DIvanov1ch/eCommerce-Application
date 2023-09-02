@@ -129,7 +129,7 @@
 }
 
 .address-line__divider {
-  height: 20px;
+  height: 10px;
   position: relative;
   width: 40%;
   background: radial-gradient(ellipse farthest-side at top center, rgba(0, 0, 0, 0.08), transparent);
@@ -257,4 +257,18 @@
 
 .address__check-box {
   margin: 7px;
+}
+
+.submit-button[value='Delete'] {
+  border: 1px solid #b62958;
+  background-color: #e52e6b;
+  color: #ffffff;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.submit-button[value='Delete']:hover {
+  border: 1px solid #b62958;
+  background-color: #b62958;
+  color: #ffffff;
 }

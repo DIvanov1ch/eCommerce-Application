@@ -13,7 +13,6 @@ enum CssClasses {
   WRAPPER_WRITE = 'user-profile__icon-wrapper_write',
   WRAPPER_CANCEL = 'user-profile__icon-wrapper_cancel',
   WRAPPER_DELETE = 'user-profile__icon-wrapper_delete',
-  EDIT_MODE = 'edit-mode',
   OVERLAY = 'user-profile__overlay',
   MODAL = 'user-profile__modal-main',
   NAME_BOX = 'container_name',
