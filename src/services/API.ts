@@ -17,6 +17,7 @@ import {
   ProductTypePagedQueryResponse,
   Customer,
   MyCustomerUpdate,
+  MyCustomerChangePassword,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -166,6 +167,11 @@ const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>>
   return apiRoot.me().post({ body }).execute();
 };
 
+const changePassword = async (body: MyCustomerChangePassword): Promise<ClientResponse<Customer>> => {
+  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  return apiRoot.me().password().post({ body }).execute();
+};
+
 export {
   login,
   registration,
@@ -175,4 +181,5 @@ export {
   getCategories,
   getProductTypes,
   update,
+  changePassword,
 };
