@@ -99,7 +99,8 @@ export default class ProductPage extends Page {
     }
 
     const imagesString = images.map(({ url }) => url).join(';');
-    const slider = createElement('image-slider') as ImageSlider;
+    const slider = new ImageSlider();
+    slider.setAttribute('modal', 'true');
     slider.setImages(imagesString);
 
     this.$(className(CssClasses.IMAGES))?.replaceChildren(slider);
