@@ -2,4 +2,31 @@
   <h1>Look throw our collection...</h1>
   <p>...and choose your dream product!</p>
 </hgroup>
-<div class="product__block"></div>
+<div class="search__container">
+  <div class="search__button-search">
+    <svg fill="currentColor" class="search__magnifier-icon" viewBox="0 0 32 32">
+      <path
+        fill-rule="evenodd"
+        d="M17.459 6.437A7.795 7.795 0 116.24 17.265 7.795 7.795 0 0117.46 6.437zm2.197 11.334c2.875-3.782 2.643-9.199-.759-12.723-3.757-3.892-9.958-4.002-13.85-.245-3.892 3.758-4.002 9.959-.244 13.85 3.642 3.774 9.58 3.992 13.486.58l9.74 9.74a1 1 0 101.414-1.415l-9.788-9.787z"
+        clip-rule="evenodd"
+      ></path>
+    </svg>
+  </div>
+  <input type="text" class="search__text" placeholder="Search on SD Merch" />
+  <div class="search__button-reset">
+    <svg fill="#000" class="cross-icon" viewBox="0 0 32 32">
+      <path
+        fill-rule="evenodd"
+        d="M2.293 2.293a1 1 0 011.414 0L16 14.586 28.293 2.293a1 1 0 111.414 1.414L17.414 16l12.293 12.293a1 1 0 01-1.414 1.414L16 17.414 3.707 29.707a1 1 0 01-1.414-1.414L14.586 16 2.293 3.707a1 1 0 010-1.414z"
+        clip-rule="evenodd"
+      ></path>
+    </svg>
+  </div>
+</div>
+<div class="catalog__container">
+  <div class="catalog__forms">
+    <form class="filter__container"></form>
+    <form class="sort__container"></form>
+  </div>
+  <div class="product__container"></div>
+</div>

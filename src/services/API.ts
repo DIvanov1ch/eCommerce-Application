@@ -11,7 +11,7 @@ import {
   ClientResponse,
   CustomerSignInResult,
   CustomerDraft,
-  ProductPagedQueryResponse,
+  ProductProjectionPagedSearchResponse,
   ProductProjection,
   CategoryPagedQueryResponse,
   ProductTypePagedQueryResponse,
@@ -30,12 +30,14 @@ import {
   CATEGORIES_LIMIT,
 } from '../config';
 import TokenClient from './Token';
+import { FilterSortingSearchQueries } from '../types/Catalog';
 import Store from './Store';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
 const authHost = AUTH_HOST.replace('{region}', API_REGION);
 const apiHost = API_HOST.replace('{region}', API_REGION);
+const searchFilter = 'text.en';
 
 const newToken = new TokenClient();
 
@@ -135,11 +137,23 @@ const logout = (): void => {
   newToken.delete();
 };
 
-const getInfoOfAllProducts = async (): Promise<ClientResponse<ProductPagedQueryResponse>> => {
+const getInfoOfFilteredProducts = async ({
+  filterQuery,
+  sortingQuery,
+  searchQuery,
+}: FilterSortingSearchQueries): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
-    .products()
-    .get({ queryArgs: { limit: 500 } })
+    .productProjections()
+    .search()
+    .get({
+      queryArgs: {
+        limit: 500,
+        filter: filterQuery,
+        sort: sortingQuery,
+        [searchFilter]: searchQuery,
+      },
+    })
     .execute();
 };
 
@@ -171,9 +185,9 @@ export {
   login,
   registration,
   logout,
-  getInfoOfAllProducts,
   getProductProjectionByKey,
   getCategories,
+  getInfoOfFilteredProducts,
   getProductTypes,
   update,
 };
