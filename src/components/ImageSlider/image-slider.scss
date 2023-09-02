@@ -1,0 +1,46 @@
+.swiper {
+  height: 100%;
+  width: 100%;
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    opacity: 0.2;
+    transition: opacity 0.3s;
+  }
+
+  &:hover {
+    .swiper-button-prev,
+    .swiper-button-next {
+      opacity: 1;
+    }
+  }
+}
+
+.image-slider {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: block;
+
+  user-select: none;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .modal & {
+    height: 90vh;
+    max-width: 90vw;
+  }
+}
+
+.image-slider__slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .image-slider--modal & {
+    cursor: pointer;
+  }
+}

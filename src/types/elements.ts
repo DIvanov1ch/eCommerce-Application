@@ -4,10 +4,4 @@ export type HtmlElementFromTagName<TagName extends string> = TagName extends key
   ? HTMLElementTagNameMap[TagName]
   : HTMLElement;
 
-export type ElementProps = {
-  className?: string;
-  innerHTML?: string;
-  href?: string;
-  placeholder?: string;
-  type?: string;
-} | null;
+export type ElementProps = Record<string, string> | null;

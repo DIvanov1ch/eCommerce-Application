@@ -3,6 +3,40 @@
 </hgroup>
 
 <section class="section">
+  <h3 class="section__title">Modals:</h3>
+  <p>
+    <strong>Simple modal:</strong><br />
+    <code class="code">&lt;modal-dialog"&gt;</code>
+    <button id="btn-modal">Show modal</button>
+  </p>
+</section>
+
+<section class="section">
+  <h3 class="section__title">Sliders:</h3>
+  <div class="code-example">
+    <div>
+      <strong>Multiple images (with modal):</strong><br />
+      <code class="code">&lt;image-slider images="url1;url2;url3" modal="true"&gt;</code>
+      <div style="width: 100%; height: 300px">
+        <image-slider
+          images="https://files.cdn.printful.com/files/27c/27c25a5579ff2ce4ff3d16442a62bd9b_preview.png;https://files.cdn.printful.com/files/0b0/0b031f6217dd4090bb11d41af21e3a37_preview.png;https://files.cdn.printful.com/files/305/305870ac6203ca3b9fda41c7515d9082_preview.png"
+          modal="true"
+        ></image-slider>
+      </div>
+    </div>
+    <div>
+      <strong>One image:</strong><br />
+      <code class="code">&lt;image-slider images="url1"&gt;</code>
+      <div style="width: 100%; height: 300px">
+        <image-slider
+          images="https://files.cdn.printful.com/files/305/305870ac6203ca3b9fda41c7515d9082_preview.png"
+        ></image-slider>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
   <h3 class="section__title">Prices:</h3>
   <div class="code-example">
     <div>
@@ -20,17 +54,18 @@
 
 <section class="section">
   <h3 class="section__title">Bread crumbs:</h3>
-  <p>
-    <strong>With category slug:</strong><br />
-    <code class="code">&lt;bread-crumbs slug="apparel/sweatshirts"&gt;</code>
-    <bread-crumbs slug="apparel/sweatshirts"></bread-crumbs>
-  </p>
-
-  <p>
-    <strong>With category slug:</strong><br />
-    <code class="code">&lt;bread-crumbs to="118d4b9d-075b-4a05-8922-3b4ec25ee177"&gt;</code>
-    <bread-crumbs to="118d4b9d-075b-4a05-8922-3b4ec25ee177"></bread-crumbs>
-  </p>
+  <div class="code-example">
+    <div>
+      <strong>With category slug:</strong><br />
+      <code class="code">&lt;bread-crumbs slug="apparel/sweatshirts"&gt;</code>
+      <bread-crumbs slug="apparel/sweatshirts"></bread-crumbs>
+    </div>
+    <div>
+      <strong>With category id:</strong><br />
+      <code class="code">&lt;bread-crumbs to="118d4b9d-075b-4a05-8922-3b4ec25ee177"&gt;</code>
+      <bread-crumbs to="118d4b9d-075b-4a05-8922-3b4ec25ee177"></bread-crumbs>
+    </div>
+  </div>
 </section>
 
 <section class="section">

@@ -5,9 +5,9 @@ import Page from '../Page';
 import Router from '../../services/Router';
 import { getProductProjectionByKey } from '../../services/API';
 import { LANG } from '../../config';
-import { createElement } from '../../utils/create-element';
 import throwError from '../../utils/throw-error';
 import PriceBox from '../../components/PriceBox';
+import ImageSlider from '../../components/ImageSlider';
 
 Router.registerRoute('product', 'product-page');
 
@@ -27,7 +27,7 @@ const className = (name: string): string => `.${name}`;
 export default class ProductPage extends Page {
   #params = '';
 
-  #priceBox = createElement('price-box') as PriceBox;
+  #priceBox = new PriceBox();
 
   constructor() {
     super(html, PAGE_TITLE);
@@ -58,8 +58,6 @@ export default class ProductPage extends Page {
     if (product) {
       this.render(product);
     }
-
-    this.insertHtml(className(CssClasses.PARAMS), JSON.stringify(product, null, 2));
   }
 
   private render(product: ProductProjection): void {
@@ -96,15 +94,13 @@ export default class ProductPage extends Page {
     if (!images || !images.length) {
       return;
     }
-    const imagesHtml = images
-      .map(({ url }) => {
-        const img = createElement('img');
-        img.src = url;
-        return img.outerHTML;
-      })
-      .join('');
 
-    this.insertHtml(className(CssClasses.IMAGES), imagesHtml);
+    const imagesString = images.map(({ url }) => url).join(';');
+    const slider = new ImageSlider();
+    slider.setAttribute('modal', 'true');
+    slider.setImages(imagesString);
+
+    this.$(className(CssClasses.IMAGES))?.replaceChildren(slider);
   }
 
   private setCategoryId(id: string): void {
