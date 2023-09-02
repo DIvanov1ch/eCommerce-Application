@@ -1,5 +1,5 @@
 import { Address, Customer, MyCustomerUpdate, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
-import Toastify from 'toastify-js';
+import Toastify, { Options } from 'toastify-js';
 import 'toastify-js/src/toastify.css';
 import Page from '../Page';
 import html from './user-profile.html';
@@ -18,7 +18,6 @@ import ErrorMessages from '../../constants';
 import warningIcon from '../../assets/icons/warning-icon.png';
 import { update } from '../../services/API';
 import LoggedInUser from '../../services/LoggedInUser';
-import { ToastProps } from '../../types/toast';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -470,7 +469,7 @@ export default class UserProfile extends Page {
   }
 
   private static showSuccessfulMessage(message: string): void {
-    const props: ToastProps = {
+    const props: Options = {
       text: message,
       duration: 5000,
       newWindow: true,
@@ -482,15 +481,15 @@ export default class UserProfile extends Page {
         background: 'linear-gradient(to right, #00b09b, #96c93d)',
       },
       offset: {
+        x: 0,
         y: '40px',
       },
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     Toastify(props).showToast();
   }
 
   private static showErrorMessage(message: string): void {
-    const props: ToastProps = {
+    const props: Options = {
       text: message,
       duration: 5000,
       newWindow: true,
@@ -502,10 +501,10 @@ export default class UserProfile extends Page {
         background: 'linear-gradient(to right, #00b09b, #96c93d)',
       },
       offset: {
+        x: 0,
         y: '40px',
       },
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     Toastify(props).showToast();
   }
 }

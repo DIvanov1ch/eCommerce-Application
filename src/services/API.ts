@@ -75,7 +75,6 @@ const getPasswordFlowOptions = (
 };
 
 const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
-  console.log(Store.token?.refreshToken);
   return {
     host: authHost,
     projectKey,
