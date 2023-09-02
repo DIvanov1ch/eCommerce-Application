@@ -1,5 +1,7 @@
 import BreadCrumbs from './BreadCrumbs';
+import ImageSlider from './ImageSlider';
 import LoginBox from './LoginBox';
+import ModalDialog from './ModalDialog';
 import PageFooter from './PageFooter';
 import PageHeader from './PageHeader';
 import PageMain from './PageMain';
@@ -16,6 +18,8 @@ const Components = {
   'bread-crumbs': BreadCrumbs,
   'product-categories': ProductCategories,
   'price-box': PriceBox,
+  'image-slider': ImageSlider,
+  'modal-dialog': ModalDialog,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
