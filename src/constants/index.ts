@@ -21,6 +21,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
   },
+  PASSWORD_MISMATCH: { password: 'Password mismatch' },
 };
 
 export default ErrorMessages;

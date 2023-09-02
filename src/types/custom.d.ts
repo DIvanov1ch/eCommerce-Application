@@ -5,4 +5,3 @@ declare module '*.html' {
 
 declare module '*.svg';
 declare module '*.png';
-declare module 'toastify-js';
