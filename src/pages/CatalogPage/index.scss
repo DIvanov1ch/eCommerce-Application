@@ -26,9 +26,9 @@
 .product__card {
   padding: 15px;
   display: grid;
-  max-height: 450px;
+  max-height: 400px;
   grid-template-columns: 160px 140px;
-  grid-template-rows: 160px 1fr 10%;
+  grid-template-rows: 25% 35% 15% 5px;
   gap: 20px;
   border: 1px #ddd solid;
   background-color: #fff;
@@ -36,9 +36,9 @@
   cursor: pointer;
   @media (max-width: 512px) {
     padding: 5px;
-    max-height: 100%;
+    max-height: 380px;
     grid-template-columns: 120px 100px;
-    grid-template-rows: 160px 1fr 10%;
+    grid-template-rows: 25% 20px 20% 23%;
   }
   &:hover {
     transition: scale 0.5s;
@@ -56,15 +56,23 @@
       transition: 0.5s;
     }
   }
+  .price-box {
+    grid-area: 3/1/4/2;
+    @media (max-width: 512px) {
+      grid-area: 4/1/5/3;
+    }
+  }
 }
 
 .product__image {
   width: auto;
   height: 150px;
   transition: 0.3s;
+  grid-area: 1/1/3/2;
   @media (max-width: 512px) {
     padding: 5px;
     height: 120px;
+    grid-area: 1/1/2/2;
   }
 }
 
@@ -78,31 +86,15 @@
 .product__name {
   font-weight: bold;
   transition: 0.5s;
+  grid-area: 1/2/2/2;
 }
 
 .product__description {
   padding-left: 5px;
-}
-
-.product__price {
-  font-size: 22px;
-  justify-self: center;
-}
-
-.product__discount {
-  font-size: 28px;
-  color: red;
-  justify-self: center;
-}
-
-.product__discounted-price {
-  font-size: 24px;
-  color: red;
-  justify-self: center;
-}
-
-.product__price.product__price--cancel {
-  text-decoration: line-through;
+  grid-area: 2/2/4/2;
+  @media (max-width: 512px) {
+    grid-area: 3/1/4/3;
+  }
 }
 
 .filter__container,
