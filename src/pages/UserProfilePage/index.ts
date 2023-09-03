@@ -417,6 +417,7 @@ export default class UserProfile extends Page {
     const input = event.target as HTMLInputElement;
     if (isValidValue(input.id, input.value)) {
       this.hideErrorMessage(input.id);
+      this.checkAllInputsAreFilled();
     } else {
       const errorMessage = !input.value
         ? ErrorMessages.EMPTY_FIELD[`${input.name}`]
@@ -426,15 +427,22 @@ export default class UserProfile extends Page {
     }
   }
 
+  private checkAllInputsAreFilled(): void {
+    const { FIELD, SUBMIT_BUTTON } = CssClasses;
+    const fields = <HTMLInputElement[]>this.$$(classSelector(FIELD));
+    if (fields.every((input) => input.value)) {
+      this.enableInput(classSelector(SUBMIT_BUTTON));
+    }
+  }
+
   private hideErrorMessage(inputID: string): void {
-    const { INPUT_ERROR, HIDDEN, SUBMIT_BUTTON } = CssClasses;
+    const { INPUT_ERROR, HIDDEN } = CssClasses;
     const input = this.$(idSelector(inputID)) as HTMLInputElement;
     const errorBox: Element | null = input.nextElementSibling;
     input.classList.remove(INPUT_ERROR);
     if (errorBox !== null) {
       errorBox.classList.add(HIDDEN);
     }
-    this.enableInput(classSelector(SUBMIT_BUTTON));
   }
 
   private showErrorMessage(inputID: string): void {
