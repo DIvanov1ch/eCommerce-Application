@@ -106,6 +106,7 @@ export default class CatalogPage extends Page {
         name,
         description,
         masterVariant: { prices },
+        slug,
       } = product;
       CatalogPage.createProductImage(productCard, images);
       CatalogPage.createProductName(productCard, name);
@@ -114,6 +115,7 @@ export default class CatalogPage extends Page {
         CatalogPage.createProductPrice(productCard, prices);
       }
       productContainer.append(productCard);
+      productCard.setAttribute('params', slug.en);
     });
   };
 
@@ -201,6 +203,8 @@ export default class CatalogPage extends Page {
     setTimeout(() => {
       this.clearProductsContainer();
       this.createFilteredProductCards(body);
+      this.openProductFullInformationIfClicked();
+      this.setCategorySlug();
     }, DELAY);
   };
 
@@ -386,4 +390,22 @@ export default class CatalogPage extends Page {
       searchQuery: CatalogPage.createSearchingQuery() || '',
     };
   };
+
+  private openProductFullInformationIfClicked = (): void => {
+    const productCards = this.querySelectorAll(`.${CssClasses.CARD}`);
+    productCards.forEach((el) => {
+      el.addEventListener('click', () => {
+        const productTarget = el.getAttribute('params');
+        this.createWaitingSymbol();
+        setTimeout(() => {
+          window.location.href = `#product/${productTarget}`;
+        }, DELAY);
+      });
+    });
+  };
+
+  private setCategorySlug(): void {
+    const slug = this.getAttribute('params') || '';
+    this.$('bread-crumbs')?.setAttribute('slug', slug);
+  }
 }
