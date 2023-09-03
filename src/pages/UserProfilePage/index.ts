@@ -41,6 +41,8 @@ const SubmitBtnValue = {
 const ToastMessage = {
   INFO_UPDATED: 'Personal information updated',
   PASSWORD_CHANGED: 'Your password has been changed',
+  ADDRESS_SAVED: 'New address saved',
+  ADDRESS_REMOVED: 'Address removed',
   ERROR: 'Something went wrong',
 };
 const ToastBackground = {
@@ -65,6 +67,8 @@ const getToastOptions = (message: string, background: string): Options => {
     },
   };
 };
+const defaultCountry = 'US';
+
 const classSelector = (name: string): string => `.${name}`;
 const idSelector = (name: string): string => `#${name}`;
 
@@ -94,7 +98,9 @@ export default class UserProfile extends Page {
   }
 
   private createAddressLines(): void {
-    const container = this.querySelector(classSelector(CssClasses.LINE_WRAPPER));
+    const { LINE_WRAPPER } = CssClasses;
+    this.clearContent(classSelector(LINE_WRAPPER));
+    const container = this.querySelector(classSelector(LINE_WRAPPER));
     Store.customer.addresses.forEach((): void => {
       container?.insertAdjacentHTML('beforeend', addressLine);
     });
@@ -193,6 +199,7 @@ export default class UserProfile extends Page {
     this.setUserProfileInfo();
     this.setPasswordLengthDisplay();
     this.setAddressInfo();
+    this.setAddressIconsCallback();
   }
 
   private async goToMainPage(htmlText: string): Promise<void> {
@@ -255,31 +262,32 @@ export default class UserProfile extends Page {
   }
 
   private setCallback(): void {
-    const {
-      NAME_BOX,
-      WRAPPER_WRITE,
-      PASSWORD_BOX,
-      ADDRESS_BOX,
-      WRAPPER_DELETE,
-      OVERLAY,
-      ADD_BUTTON_BOX,
-      SUBMIT_BUTTON,
-    } = CssClasses;
+    const { NAME_BOX, WRAPPER_WRITE, PASSWORD_BOX, OVERLAY, ADD_BUTTON_BOX, SUBMIT_BUTTON } = CssClasses;
     const writeProfileInfoBox = this.$(`${classSelector(NAME_BOX)} ${classSelector(WRAPPER_WRITE)}`);
     const writePasswordBox = this.$(`${classSelector(PASSWORD_BOX)} ${classSelector(WRAPPER_WRITE)}`);
-    const writeAddressBoxes = this.$$(`${classSelector(ADDRESS_BOX)} ${classSelector(WRAPPER_WRITE)}`);
-    const deleteBoxes = this.$$(classSelector(WRAPPER_DELETE));
     const overlay = this.$(classSelector(OVERLAY));
     const addButton = this.$(classSelector(ADD_BUTTON_BOX));
     const submitBtn = this.querySelector(classSelector(SUBMIT_BUTTON));
 
     writeProfileInfoBox?.addEventListener('click', this.enableEditProfileInfoMode.bind(this));
     writePasswordBox?.addEventListener('click', this.enableChangePasswordMode.bind(this));
-    writeAddressBoxes.forEach((box) => box.addEventListener('click', this.enableEditAddressMode.bind(this)));
-    deleteBoxes.forEach((box) => box.addEventListener('click', this.enableDeleteAddressMode.bind(this)));
     overlay?.addEventListener('click', this.closeModalWindow.bind(this));
     addButton?.addEventListener('click', this.enableAddNewAddressMode.bind(this));
     submitBtn?.addEventListener('click', this.submit.bind(this));
+  }
+
+  private setInputCallback(): void {
+    const fields = <HTMLInputElement[]>this.$$(classSelector(CssClasses.FIELD));
+    fields.forEach((field) => field.addEventListener('input', this.checkResult.bind(this)));
+  }
+
+  private setAddressIconsCallback(): void {
+    const { ADDRESS_BOX, WRAPPER_WRITE, WRAPPER_DELETE } = CssClasses;
+    const writeAddressBoxes = this.$$(`${classSelector(ADDRESS_BOX)} ${classSelector(WRAPPER_WRITE)}`);
+    const deleteBoxes = this.$$(classSelector(WRAPPER_DELETE));
+
+    writeAddressBoxes.forEach((box) => box.addEventListener('click', this.enableEditAddressMode.bind(this)));
+    deleteBoxes.forEach((box) => box.addEventListener('click', this.enableDeleteAddressMode.bind(this)));
   }
 
   private showModalWindow(): void {
@@ -307,7 +315,7 @@ export default class UserProfile extends Page {
   }
 
   private setModalContent(submitButtonValue: string, isButtonEnabled: boolean, title?: string): void {
-    this.clearModalContent();
+    this.clearContent(classSelector(CssClasses.MODAL));
     const { MODAL, SUBMIT_BUTTON } = CssClasses;
     const contentBox = this.$(classSelector(MODAL));
 
@@ -326,8 +334,8 @@ export default class UserProfile extends Page {
     this.fillTemplate();
   }
 
-  private clearModalContent(): void {
-    const contentBox = this.querySelector(classSelector(CssClasses.MODAL));
+  private clearContent(selector: string): void {
+    const contentBox = this.querySelector(selector);
     if (contentBox) {
       while (contentBox.firstElementChild) {
         contentBox.firstElementChild.remove();
@@ -346,7 +354,10 @@ export default class UserProfile extends Page {
       this.fillDeleteTemplate();
       return;
     }
-    this.setInputCalback();
+    if (this.isAddressAdding) {
+      this.fillNewAddressTemplate();
+    }
+    this.setInputCallback();
   }
 
   private fillAddressTemplate(): void {
@@ -355,6 +366,8 @@ export default class UserProfile extends Page {
     const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+    const checkboxes = this.$$(classSelector(CssClasses.CHECKBOX));
+    checkboxes.forEach((checkbox) => checkbox.classList.remove(CssClasses.HIDDEN));
 
     this.setInputValue(idSelector(STREET), streetName);
     this.setInputValue(idSelector(CITY), city);
@@ -394,9 +407,9 @@ export default class UserProfile extends Page {
     this.setElementTextContent(classSelector(COUNTRY), country, container);
   }
 
-  private setInputCalback(): void {
-    const fields = <HTMLInputElement[]>this.$$(classSelector(CssClasses.FIELD));
-    fields.forEach((field) => field.addEventListener('input', this.checkResult.bind(this)));
+  private fillNewAddressTemplate(): void {
+    const checkboxes = this.$$(classSelector(CssClasses.CHECKBOX));
+    checkboxes.forEach((checkbox) => checkbox.classList.add(CssClasses.HIDDEN));
   }
 
   private disableInput(selector: string): void {
@@ -477,13 +490,13 @@ export default class UserProfile extends Page {
       this.submitNewPassword();
     }
     if (this.isAddressAdding) {
-      console.log('add address');
+      this.submitNewAddress();
     }
     if (this.isAddressEditing) {
       console.log('edit address');
     }
     if (this.isAddressDeleting) {
-      console.log('delete address');
+      this.removeAddress();
     }
   }
 
@@ -520,7 +533,6 @@ export default class UserProfile extends Page {
         email: newEmail,
       });
     }
-    this.hideModalWindow();
     this.updateUserProfile({ version, actions });
   }
 
@@ -540,14 +552,61 @@ export default class UserProfile extends Page {
     this.changeUserPassword({ version, currentPassword, newPassword });
   }
 
+  private submitNewAddress(): void {
+    const { STREET, CITY, POSTAL_CODE } = InputID;
+    const streetName = this.getInputValue(idSelector(STREET));
+    const city = this.getInputValue(idSelector(CITY));
+    const postalCode = this.getInputValue(idSelector(POSTAL_CODE));
+    const country = defaultCountry;
+    const { version } = Store.customer;
+    const actions: MyCustomerUpdateAction[] = [
+      {
+        action: 'addAddress',
+        address: {
+          streetName,
+          city,
+          postalCode,
+          country,
+        },
+      },
+    ];
+    this.updateUserProfile({ version, actions });
+  }
+
+  private removeAddress(): void {
+    const { version } = Store.customer;
+    const actions: MyCustomerUpdateAction[] = [
+      {
+        action: 'removeAddress',
+        addressId: this.addressID,
+      },
+    ];
+    this.updateUserProfile({ version, actions });
+  }
+
   private updateUserProfile(user: MyCustomerUpdate): void {
     update(user)
       .then(({ body }) => {
         const { firstName, lastName } = body;
         Store.user = { loggedIn: true, firstName, lastName };
         Store.customer = body;
-        UserProfile.showMessage(ToastMessage.INFO_UPDATED, true);
-        this.setUserProfileInfo();
+        if (this.isAddressAdding) {
+          this.createAddressLines();
+          this.setAddressInfo();
+          this.setAddressIconsCallback();
+          UserProfile.showMessage(ToastMessage.ADDRESS_SAVED, true);
+        }
+        if (this.isProfileEditing) {
+          this.setUserProfileInfo();
+          UserProfile.showMessage(ToastMessage.INFO_UPDATED, true);
+        }
+        if (this.isAddressDeleting) {
+          this.createAddressLines();
+          this.setAddressInfo();
+          this.setAddressIconsCallback();
+          UserProfile.showMessage(ToastMessage.ADDRESS_REMOVED, true);
+        }
+        this.hideModalWindow();
       })
       .catch(() => UserProfile.showMessage(ToastMessage.ERROR, false));
   }
