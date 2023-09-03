@@ -10,6 +10,7 @@ import { getInfoOfFilteredProducts } from '../../services/API';
 import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes } from '../../constants/filters';
 import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
 import highlightSearchingElement from '../../utils/highlight-search-el';
+import PriceBox from '../../components/PriceBox';
 
 const DELAY = 1000;
 
@@ -79,55 +80,18 @@ export default class CatalogPage extends Page {
     productCard.append(productDescription);
   };
 
-  private static cancelMainPriceIfThereIsDiscount = (
-    productPrice: HTMLElement,
-    productDiscountedPrice: HTMLElement
-  ): void => {
-    if (productDiscountedPrice.innerText.length > 0) {
-      productPrice.classList.add(CssClasses.CANCELPRICE);
-    }
-  };
-
-  private static cancelDiscountIfThereIsOnlyPrice = (
-    productDiscount: HTMLElement,
-    productDiscountedPrice: HTMLElement
-  ): void => {
-    if (productDiscountedPrice.innerText.length === 0) {
-      const element = productDiscount;
-      element.innerHTML = '';
-    }
-  };
-
   private static createProductPrice = (productCard: HTMLElement, prices: Price[]): void => {
     const isPrice = prices.length;
     if (isPrice) {
       const {
         value: { centAmount },
       } = prices[0];
-      const REALPRICE = centAmount / 100;
-      const PRICEWITHDISCOUNT = prices[0].discounted?.value.centAmount
-        ? ((1 - Number(prices[0].discounted?.value.centAmount) / centAmount) * 100).toFixed(0)
-        : '';
-      const DISCOUNT = prices[0].discounted?.value.centAmount
-        ? (Number(prices[0].discounted?.value.centAmount) / 100).toString()
-        : '';
-      const productPrice = createElement('div', {
-        className: CssClasses.PRICE,
-        innerHTML: `Price: ${REALPRICE}$`,
-      });
-      const productDiscount = createElement('div', {
-        className: CssClasses.DISCOUNT,
-        innerHTML: `-${PRICEWITHDISCOUNT}%`,
-      });
-      const productDiscountedPrice = createElement('div', {
-        className: CssClasses.DISCOUNTED,
-        innerHTML: `${DISCOUNT}${prices[0].discounted?.value.centAmount ? '$' : ''}`,
-      });
-      CatalogPage.cancelMainPriceIfThereIsDiscount(productPrice, productDiscountedPrice);
-      CatalogPage.cancelDiscountIfThereIsOnlyPrice(productDiscount, productDiscountedPrice);
-      productCard.append(productPrice);
-      productCard.append(productDiscount);
-      productCard.append(productDiscountedPrice);
+      const REALPRICE = centAmount;
+      const DISCOUNT = Number(prices[0].discounted?.value.centAmount);
+      const priceBox = new PriceBox();
+      priceBox.setPrice(REALPRICE);
+      priceBox.setDiscounted(DISCOUNT);
+      productCard.append(priceBox);
     }
   };
 
@@ -142,6 +106,7 @@ export default class CatalogPage extends Page {
         name,
         description,
         masterVariant: { prices },
+        slug,
       } = product;
       CatalogPage.createProductImage(productCard, images);
       CatalogPage.createProductName(productCard, name);
@@ -150,6 +115,7 @@ export default class CatalogPage extends Page {
         CatalogPage.createProductPrice(productCard, prices);
       }
       productContainer.append(productCard);
+      productCard.setAttribute('params', slug.en);
     });
   };
 
@@ -237,6 +203,8 @@ export default class CatalogPage extends Page {
     setTimeout(() => {
       this.clearProductsContainer();
       this.createFilteredProductCards(body);
+      this.openProductFullInformationIfClicked();
+      this.setCategorySlug();
     }, DELAY);
   };
 
@@ -422,4 +390,22 @@ export default class CatalogPage extends Page {
       searchQuery: CatalogPage.createSearchingQuery() || '',
     };
   };
+
+  private openProductFullInformationIfClicked = (): void => {
+    const productCards = this.querySelectorAll(`.${CssClasses.CARD}`);
+    productCards.forEach((el) => {
+      el.addEventListener('click', () => {
+        const productTarget = el.getAttribute('params');
+        this.createWaitingSymbol();
+        setTimeout(() => {
+          window.location.href = `#product/${productTarget}`;
+        }, DELAY);
+      });
+    });
+  };
+
+  private setCategorySlug(): void {
+    const slug = this.getAttribute('params') || '';
+    this.$('bread-crumbs')?.setAttribute('slug', slug);
+  }
 }
