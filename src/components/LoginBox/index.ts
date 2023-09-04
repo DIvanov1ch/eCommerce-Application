@@ -8,8 +8,11 @@ const CssClasses = {
   LOGIN: 'login-box__login',
   REGISTER: 'login-box__register',
   LOGOUT: 'login-box__logout',
+  PROFILE: 'login-box__profile',
   USER: 'login-box__user',
 };
+
+const classSelector = (name: string): string => `.${name}`;
 
 export default class LoginBox extends BaseComponent {
   constructor() {
@@ -27,19 +30,17 @@ export default class LoginBox extends BaseComponent {
   }
 
   private updateState(): void {
-    const { loggedIn, firstName, lastName } = Store.user;
-    const fullName = [firstName, lastName].filter((e) => e).join(' ');
+    const { loggedIn } = Store.user;
+    const { LOGOUT, LOGIN, REGISTER, PROFILE } = CssClasses;
 
-    this.$$('li').forEach((item) => {
-      const isHidden =
-        (item.matches(`.${CssClasses.LOGOUT}`) && !loggedIn) || (!item.matches(`.${CssClasses.LOGOUT}`) && loggedIn);
+    this.toggleItems([LOGIN, REGISTER], loggedIn);
+    this.toggleItems([LOGOUT, PROFILE], !loggedIn);
+  }
 
+  private toggleItems(classNames: string[], isHidden: boolean): void {
+    const selector = classNames.map(classSelector).join(', ');
+    this.$$(selector).forEach((item) => {
       item.toggleAttribute('hidden', isHidden);
     });
-
-    const userField = this.$(`.${CssClasses.USER}`);
-    if (userField) {
-      userField.innerText = fullName;
-    }
   }
 }

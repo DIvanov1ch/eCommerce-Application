@@ -1,0 +1,89 @@
+<div class="input-module">
+  <label class="input-module__label" for="street">Street</label>
+  <input
+    type="text"
+    minlength="1"
+    autocomplete="off"
+    class="input-module__input-field"
+    id="street"
+    name="street"
+    required
+  />
+  <div class="input-module__error-box hidden">
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon street" />
+    <div class="error-box__content street"></div>
+  </div>
+</div>
+
+<div class="input-module">
+  <label class="input-module__label" for="city">City</label>
+  <input
+    type="text"
+    minlength="1"
+    autocomplete="off"
+    class="input-module__input-field"
+    id="city"
+    name="city"
+    required
+  />
+  <div class="input-module__error-box hidden">
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon city" />
+    <div class="error-box__content city"></div>
+  </div>
+</div>
+
+<div class="input-module">
+  <label class="input-module__label" for="postal-code">ZIP code</label>
+  <input
+    type="text"
+    minlength="5"
+    maxlength="5"
+    autocomplete="off"
+    class="input-module__input-field"
+    id="postal-code"
+    name="code"
+    required
+  />
+  <div class="input-module__error-box hidden">
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon postal-code" />
+    <div class="error-box__content postal-code"></div>
+  </div>
+</div>
+
+<div class="input-module">
+  <label class="input-module__label" for="country">Country</label>
+  <input
+    type="text"
+    value="United States"
+    autocomplete="off"
+    class="input-module__input-field"
+    id="country"
+    name="country"
+    required
+  />
+  <div class="input-module__error-box hidden">
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon country" />
+    <div class="error-box__content country"></div>
+  </div>
+</div>
+<div class="address__country-select country hidden">United States</div>
+
+<div class="address__check-box">
+  <input type="checkbox" id="billing-country" name="billing" class="billing" />
+  <label for="billing-country">Billing address</label>
+</div>
+
+<div class="address__check-box">
+  <input type="checkbox" id="shipping-country" name="shipping" class="shipping" />
+  <label for="shipping-country">Shipping address</label>
+</div>
+
+<div class="address__check-box">
+  <input type="checkbox" id="default-billing" name="default-billing" class="billing-country" />
+  <label for="default-billing">Default billing address</label>
+</div>
+
+<div class="address__check-box">
+  <input type="checkbox" id="default-shipping" name="default-shipping" class="shipping-country" />
+  <label for="default-shipping">Default shipping address</label>
+</div>

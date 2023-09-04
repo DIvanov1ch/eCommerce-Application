@@ -4,33 +4,53 @@ import {
   type HttpMiddlewareOptions,
   PasswordAuthMiddlewareOptions,
   Client,
+  RefreshAuthMiddlewareOptions,
 } from '@commercetools/sdk-client-v2';
 import {
-  Project,
   createApiBuilderFromCtpClient,
   ClientResponse,
-  ShoppingListPagedQueryResponse,
   CustomerSignInResult,
-  BaseAddress,
+  CustomerDraft,
+  ProductProjectionPagedSearchResponse,
+  ProductProjection,
+  CategoryPagedQueryResponse,
+  ProductTypePagedQueryResponse,
+  Customer,
+  MyCustomerUpdate,
+  MyCustomerChangePassword,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
-import { API_HOST, API_SCOPES, PROJECT_KEY, CLIENT_ID, CLIENT_SECRET, API_REGION, AUTH_HOST } from '../config';
+import {
+  API_HOST,
+  API_SCOPES,
+  PROJECT_KEY,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  API_REGION,
+  AUTH_HOST,
+  CATEGORIES_LIMIT,
+} from '../config';
 import TokenClient from './Token';
+import { FilterSortingSearchQueries } from '../types/Catalog';
+import Store from './Store';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
 const authHost = AUTH_HOST.replace('{region}', API_REGION);
 const apiHost = API_HOST.replace('{region}', API_REGION);
+const searchFilter = 'text.en';
 
 const newToken = new TokenClient();
 
-const authMiddlewareOptions: AuthMiddlewareOptions = {
-  host: authHost,
-  projectKey,
-  credentials: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET },
-  scopes,
-  tokenCache: newToken,
-  fetch,
+const getAuthMiddlewareOptions = (token: TokenClient): AuthMiddlewareOptions => {
+  return {
+    host: authHost,
+    projectKey,
+    credentials: { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET },
+    scopes,
+    tokenCache: token,
+    fetch,
+  };
 };
 
 const httpMiddlewareOptions: HttpMiddlewareOptions = { host: apiHost, fetch };
@@ -57,91 +77,123 @@ const getPasswordFlowOptions = (
   };
 };
 
-const ctpClient = new ClientBuilder()
-  .withClientCredentialsFlow(authMiddlewareOptions)
-  .withHttpMiddleware(httpMiddlewareOptions)
-  .withLoggerMiddleware()
-  .build();
+const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
+  return {
+    host: authHost,
+    projectKey,
+    credentials: {
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+    },
+    refreshToken: Store.token?.refreshToken || '',
+    tokenCache: token,
+    fetch,
+  };
+};
 
 const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
   const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
   return apiRoot;
 };
 
-const passwordFlowClient = (username: string, password: string, token: TokenClient): Client => {
-  const newCtpClient = new ClientBuilder()
-    .withPasswordFlow(getPasswordFlowOptions(username, password, token))
-    .withHttpMiddleware(httpMiddlewareOptions)
-    .withLoggerMiddleware()
-    .build();
-  return newCtpClient;
-};
-
-const getProject = async (): Promise<ClientResponse<Project>> => {
-  const response = await getApiRoot(ctpClient).get().execute();
-  return response;
-};
-
-const shoppingLists = (): Promise<ClientResponse<ShoppingListPagedQueryResponse>> => {
-  return getApiRoot(ctpClient).shoppingLists().get().execute();
-};
-
-const login = async (userEmail: string, userPassword: string): Promise<ClientResponse<CustomerSignInResult>> => {
-  const newApiRoot = createApiBuilderFromCtpClient(
-    passwordFlowClient(userEmail, userPassword, newToken)
-  ).withProjectKey({
-    projectKey,
-  });
-  return newApiRoot
-    .me()
-    .login()
-    .post({ body: { email: userEmail, password: userPassword } })
-    .execute();
-};
-
 const getClientCredentialsFlowClient = (): Client => {
   const clientCredentialsFlowClient = new ClientBuilder()
-    .withClientCredentialsFlow(authMiddlewareOptions)
+    .withClientCredentialsFlow(getAuthMiddlewareOptions(newToken))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
   return clientCredentialsFlowClient;
 };
 
-const registration = async (
-  firstName: string,
-  lastName: string,
-  email: string,
-  password: string,
-  dateOfBirth: string,
-  addresses: BaseAddress[],
-  defaultShippingAddress: number | undefined,
-  shippingAddresses: number[],
-  defaultBillingAddress: number | undefined,
-  billingAddresses: number[]
-): Promise<ClientResponse<CustomerSignInResult>> => {
+const getPasswordFlowClient = (username: string, password: string): Client => {
+  const passwordFlowClient = new ClientBuilder()
+    .withPasswordFlow(getPasswordFlowOptions(username, password, newToken))
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+  return passwordFlowClient;
+};
+
+const getRefreshTokenFlowClient = (): Client => {
+  const refreshTokenFlowClient = new ClientBuilder()
+    .withRefreshTokenFlow(getRefreshTokenFlowOptions(newToken))
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+  return refreshTokenFlowClient;
+};
+
+const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
+  const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
+  return apiRoot.me().login().post({ body: { email, password } }).execute();
+};
+
+const registration = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  return apiRoot
-    .customers()
-    .post({
-      body: {
-        firstName,
-        lastName,
-        email,
-        password,
-        dateOfBirth,
-        addresses,
-        defaultShippingAddress,
-        shippingAddresses,
-        defaultBillingAddress,
-        billingAddresses,
-      },
-    })
-    .execute();
+  return apiRoot.customers().post({ body }).execute();
 };
 
 const logout = (): void => {
   newToken.delete();
 };
 
-export { getProject, shoppingLists, login, registration, logout };
+const getInfoOfFilteredProducts = async ({
+  filterQuery,
+  sortingQuery,
+  searchQuery,
+}: FilterSortingSearchQueries): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return apiRoot
+    .productProjections()
+    .search()
+    .get({
+      queryArgs: {
+        limit: 500,
+        filter: filterQuery,
+        sort: sortingQuery,
+        [searchFilter]: searchQuery,
+      },
+    })
+    .execute();
+};
+
+async function getProductProjectionByKey(key: string): Promise<ProductProjection> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+
+  return (await apiRoot.productProjections().withKey({ key }).get().execute()).body;
+}
+
+async function getCategories(): Promise<CategoryPagedQueryResponse> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  const queryArgs = { limit: CATEGORIES_LIMIT };
+
+  return (await apiRoot.categories().get({ queryArgs }).execute()).body;
+}
+
+async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+
+  return (await apiRoot.productTypes().get().execute()).body;
+}
+
+const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
+  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  return apiRoot.me().post({ body }).execute();
+};
+
+const changePassword = async (body: MyCustomerChangePassword): Promise<ClientResponse<Customer>> => {
+  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  return apiRoot.me().password().post({ body }).execute();
+};
+
+export {
+  login,
+  registration,
+  logout,
+  getProductProjectionByKey,
+  getCategories,
+  getInfoOfFilteredProducts,
+  getProductTypes,
+  update,
+  changePassword,
+};

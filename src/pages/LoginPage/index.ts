@@ -1,11 +1,14 @@
 import html from './login.html';
 import './login.scss';
 import Page from '../Page';
-import { EmailRules, PasswordRules } from '../../types/enums';
+import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
 import { login } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
+import Router from '../../services/Router';
+
+Router.registerRoute('login', 'login-page');
 
 export default class LoginPage extends Page {
   constructor() {
@@ -296,6 +299,7 @@ export default class LoginPage extends Page {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           const { firstName, lastName, id } = body.customer;
+          Store.customer = body.customer;
           this.isLogIn = true;
           this.userId = id;
           Store.user = { loggedIn: true, firstName, lastName };

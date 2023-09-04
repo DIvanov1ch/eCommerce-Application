@@ -83,32 +83,11 @@
   letter-spacing: 0.02rem;
 }
 
-.date {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.date .input-module__label {
-  align-self: center;
-}
-
-.date .input-module__error-box {
-  width: 50%;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-input[type='date'] {
-  width: 50%;
-  height: 28px;
-}
-
 .hidden {
   display: none;
 }
 
-.registration__button-container {
+.button-container {
   width: 100%;
 }
 
@@ -202,7 +181,7 @@ input[type='date'] {
 .registration__divider {
   height: 44px;
   margin-bottom: -18px;
-  background: linear-gradient(to bottom,rgba(0,0,0,.14),rgba(0,0,0,.03) 3px,transparent);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.03) 3px, transparent);
   zoom: 1;
 }
 
@@ -211,8 +190,8 @@ input[type='date'] {
   width: 100%;
   height: 44px;
   background-color: transparent;
-  background: linear-gradient(to right,#fff,rgba(255,255,255,0),#fff);
-  content: "";
+  background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0), #fff);
+  content: '';
 }
 
 .addresses__country-select {

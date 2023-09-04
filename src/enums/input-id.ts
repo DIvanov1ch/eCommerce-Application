@@ -3,10 +3,10 @@ enum InputID {
   LAST_NAME = 'last-name',
   EMAIL = 'email',
   PASSWORD = 'password',
-  B_DAY = 'date-of-birth',
+  DATE_OF_BIRTH = 'date-of-birth',
   SHIPPING_STREET = 'shipping-street',
   BILLING_STREET = 'billing-street',
-  SHIPPIN_CITY = 'shipping-city',
+  SHIPPING_CITY = 'shipping-city',
   BILLING_CITY = 'billing-city',
   SHIPPING_CODE = 'shipping-postal-code',
   BILLING_CODE = 'billing-postal-code',
@@ -14,6 +14,13 @@ enum InputID {
   BILLING_COUNTRY = 'billing-country',
   DEFAULT_SHIPPING = 'default-shipping',
   DEFAULT_BILLING = 'default-billing',
+  STREET = 'street',
+  CITY = 'city',
+  POSTAL_CODE = 'postal-code',
+  COUNTRY = 'country',
+  OLD_PASSWORD = 'old-password',
+  NEW_PASSWORD = 'new-password',
+  RE_ENTERED_PASSWORD = 're-entered-password',
 }
 
 export default InputID;

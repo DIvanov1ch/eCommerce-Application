@@ -1,0 +1,27 @@
+.code-example {
+  display: flex;
+  gap: 1em;
+
+  & > div {
+    width: 50%;
+  }
+}
+
+.code {
+  display: block;
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  font-size: 0.7em;
+  background: #eee;
+  margin: 0.5em 0;
+}
+
+@media (max-width: 600px) {
+  .code-example {
+    flex-direction: column;
+
+    & > div {
+      width: 100%;
+    }
+  }
+}

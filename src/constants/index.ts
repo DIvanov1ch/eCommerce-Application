@@ -9,6 +9,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     city: 'Put your city',
     code: 'Put your postal code',
     country: 'Must be United States',
+    current: 'Put your current password',
   },
   INVALID_VALUE: {
     forename: 'Must not contain special characters or numbers',
@@ -20,7 +21,9 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     city: 'Must not contain special characters or numbers',
     code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
+    current: 'Password is too short',
   },
+  PASSWORD_MISMATCH: { password: 'Password mismatch' },
 };
 
 export default ErrorMessages;
