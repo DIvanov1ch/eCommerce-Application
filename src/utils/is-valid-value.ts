@@ -13,9 +13,8 @@ export default function isValidValue(id: string, value: string): boolean {
     case InputID.PASSWORD:
     case InputID.NEW_PASSWORD:
     case InputID.RE_ENTERED_PASSWORD:
-      return Pattern.password.test(value);
     case InputID.OLD_PASSWORD:
-      return Pattern.current.test(value);
+      return Pattern.password.test(value);
     case InputID.DATE_OF_BIRTH:
       return findCurrentAge(value) >= AGE_LIMIT;
     case InputID.SHIPPING_STREET:
