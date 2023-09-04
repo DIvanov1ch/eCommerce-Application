@@ -8,6 +8,7 @@ import { LANG } from '../../config';
 import throwError from '../../utils/throw-error';
 import PriceBox from '../../components/PriceBox';
 import ImageSlider from '../../components/ImageSlider';
+import { className } from '../../utils/create-element';
 
 Router.registerRoute('product', 'product-page');
 
@@ -21,8 +22,6 @@ const CssClasses = {
   PRICES: 'details__prices',
   PARAMS: 'details__params',
 };
-
-const className = (name: string): string => `.${name}`;
 
 export default class ProductPage extends Page {
   #params = '';
