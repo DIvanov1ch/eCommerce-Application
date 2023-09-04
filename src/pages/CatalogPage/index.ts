@@ -11,8 +11,10 @@ import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes 
 import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
 import highlightSearchingElement from '../../utils/highlight-search-el';
 import PriceBox from '../../components/PriceBox';
-
-const DELAY = 1000;
+import Store from '../../services/Store';
+import loadProductCategories from '../../utils/load-data';
+import throwError from '../../utils/throw-error';
+import { LANG } from '../../config';
 
 const defaultFilterSortingValues = {
   price: 'any',
@@ -24,29 +26,43 @@ const defaultFilterSortingValues = {
   byName: 'no',
 };
 
+const QUERY_PARAMETERS = ['color', 'brand', 'material', 'size', 'price'];
+
+async function getCategoryIdBySlug(categorySlug: string): Promise<string> {
+  if (!Store.categories) {
+    await loadProductCategories();
+  }
+
+  if (!Store.categories) {
+    return '';
+  }
+
+  const category = Store.categories.find(({ slug }) => slug[LANG] === categorySlug);
+  return category?.id || '';
+}
+
 export default class CatalogPage extends Page {
   private static filterSortingValues: FiltersType;
 
   private static searchingText: string;
 
+  private static categoryId = '';
+
   constructor() {
     super(html);
     CatalogPage.filterSortingValues = structuredClone(defaultFilterSortingValues);
     CatalogPage.searchingText = '';
-    getInfoOfFilteredProducts({})
-      .then(({ body }) => {
-        this.createProductContainerWithWaitingSymbol(body.results);
-        this.createFilterBars();
-        this.createSortingBars();
-        this.createSearching();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   }
 
-  protected connectedCallback(): void {
+  protected async connectedCallback(): Promise<void> {
     super.connectedCallback();
+
+    this.createFilterBars();
+    this.createSortingBars();
+    this.createSearching();
+
+    await this.setCategory();
+    this.loadProducts();
   }
 
   private static createProductImage = (productCard: HTMLElement, images: Image[] | undefined): void => {
@@ -106,7 +122,7 @@ export default class CatalogPage extends Page {
         name,
         description,
         masterVariant: { prices },
-        slug,
+        key = '',
       } = product;
       CatalogPage.createProductImage(productCard, images);
       CatalogPage.createProductName(productCard, name);
@@ -115,7 +131,7 @@ export default class CatalogPage extends Page {
         CatalogPage.createProductPrice(productCard, prices);
       }
       productContainer.append(productCard);
-      productCard.setAttribute('params', slug.en);
+      productCard.dataset.key = key;
     });
   };
 
@@ -124,39 +140,33 @@ export default class CatalogPage extends Page {
     const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
     buttonReset.addEventListener('click', (): void => {
       filterContainer.reset();
-      this.clearProductsContainer();
       CatalogPage.filterSortingValues = defaultFilterSortingValues;
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
     });
   };
 
-  private static createFilterQuery = (): string[] => {
-    const queryParams: string[] = [];
-    if (CatalogPage.filterSortingValues.color !== 'any') {
-      queryParams.push(`variants.attributes.color:"${CatalogPage.filterSortingValues.color}"`);
+  private static createFilterQuery(): string[] {
+    const queryParams: string[] = Object.entries(CatalogPage.filterSortingValues)
+      .map(([key, value]) => {
+        if (!QUERY_PARAMETERS.includes(key) || value === 'any') {
+          return '';
+        }
+        if (key === 'price') {
+          const [from, to] = value.split('-').map((p) => 100 * parseInt(p, 10));
+          return `variants.price.centAmount:range (${from} to ${to})`;
+        }
+
+        return `variants.attributes.${key}:"${value}"`;
+      })
+      .filter((e) => e);
+
+    const { categoryId } = CatalogPage;
+    if (categoryId) {
+      queryParams.push(`categories.id: subtree("${categoryId}")`);
     }
-    if (CatalogPage.filterSortingValues.brand !== 'any') {
-      queryParams.push(`variants.attributes.brand:"${CatalogPage.filterSortingValues.brand}"`);
-    }
-    if (CatalogPage.filterSortingValues.size !== 'any') {
-      queryParams.push(`variants.attributes.size:"${CatalogPage.filterSortingValues.size}"`);
-    }
-    if (CatalogPage.filterSortingValues.material !== 'any') {
-      queryParams.push(`variants.attributes.material:"${CatalogPage.filterSortingValues.material}"`);
-    }
-    if (CatalogPage.filterSortingValues.price !== 'any') {
-      const firstValue = (Number(CatalogPage.filterSortingValues.price?.split('-')[0]) * 100).toString();
-      const secondValue = (Number(CatalogPage.filterSortingValues.price?.split('-')[1].slice(0, -1)) * 100).toString();
-      queryParams.push(`variants.price.centAmount:range (${firstValue} to ${secondValue})`);
-    }
+
     return queryParams;
-  };
+  }
 
   private createFilterBarsOptions = (arrayOfValuesForOption: string[], cssClass: string): void => {
     const parentElement = this.querySelector(`.${cssClass}`) as HTMLSelectElement;
@@ -177,35 +187,22 @@ export default class CatalogPage extends Page {
         CatalogPage.filterSortingValues.brand = parentElement.value;
       if (parentElement.classList.contains(CssClasses.FILTERMATERIAL))
         CatalogPage.filterSortingValues.material = parentElement.value;
-      this.clearProductsContainer();
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
     });
   };
 
-  private clearProductsContainer = (): void => {
-    const productContainer = this.querySelector(`.${CssClasses.PRODUCTS}`) as HTMLElement;
-    productContainer.innerHTML = '';
-  };
+  private clearProductsContainer(innerHTML = ''): void {
+    this.insertHtml(`.${CssClasses.PRODUCTS}`, innerHTML);
+  }
 
   private createWaitingSymbol = (): void => {
-    const productContainer = this.querySelector(`.${CssClasses.PRODUCTS}`) as HTMLElement;
-    productContainer.innerHTML = '<div class="product__loader"></div>';
+    this.clearProductsContainer('<div class="product__loader"></div>');
   };
 
-  private createProductContainerWithWaitingSymbol = (body: ProductProjection[]): void => {
-    this.createWaitingSymbol();
-    setTimeout(() => {
-      this.clearProductsContainer();
-      this.createFilteredProductCards(body);
-      this.openProductFullInformationIfClicked();
-      this.setCategorySlug();
-    }, DELAY);
+  private renderResults = (body: ProductProjection[]): void => {
+    this.clearProductsContainer();
+    this.createFilteredProductCards(body);
+    this.openProductFullInformationIfClicked();
   };
 
   private createFilterBars = (): void => {
@@ -224,14 +221,7 @@ export default class CatalogPage extends Page {
     const sortingContainer = this.querySelector(`.${CssClasses.SORT}`) as HTMLFormElement;
     buttonReset.addEventListener('click', (): void => {
       sortingContainer.reset();
-      this.clearProductsContainer();
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
     });
   };
 
@@ -243,24 +233,12 @@ export default class CatalogPage extends Page {
     this.resetSortingIfButtonClicked();
     nameSorting.addEventListener('change', () => {
       CatalogPage.filterSortingValues.byName = nameSorting.value;
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
       priceSorting.value = defaultFilterSortingValues.byPrice;
     });
     priceSorting.addEventListener('change', () => {
       CatalogPage.filterSortingValues.byPrice = priceSorting.value;
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
       nameSorting.value = defaultFilterSortingValues.byName;
     });
   };
@@ -301,13 +279,7 @@ export default class CatalogPage extends Page {
       if (CatalogPage.searchingText !== '') {
         searchingText.value = '';
         CatalogPage.searchingText = '';
-        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-          .then(({ body }) => {
-            this.createProductContainerWithWaitingSymbol(body.results);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        this.loadProducts();
       }
     });
   };
@@ -317,13 +289,7 @@ export default class CatalogPage extends Page {
     const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
     searchingButton.addEventListener('click', () => {
       CatalogPage.searchingText = searchingText.value;
-      getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-        .then(({ body }) => {
-          this.createProductContainerWithWaitingSymbol(body.results);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      this.loadProducts();
     });
   };
 
@@ -332,13 +298,7 @@ export default class CatalogPage extends Page {
     searchingText.addEventListener('keypress', (event) => {
       if (event.key === 'Enter') {
         CatalogPage.searchingText = searchingText.value;
-        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-          .then(({ body }) => {
-            this.createProductContainerWithWaitingSymbol(body.results);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        this.loadProducts();
       }
     });
   };
@@ -348,13 +308,7 @@ export default class CatalogPage extends Page {
     searchingText.addEventListener('blur', () => {
       if (searchingText.value !== CatalogPage.searchingText) {
         CatalogPage.searchingText = searchingText.value;
-        getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-          .then(({ body }) => {
-            this.createProductContainerWithWaitingSymbol(body.results);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        this.loadProducts();
       }
     });
   };
@@ -392,20 +346,35 @@ export default class CatalogPage extends Page {
   };
 
   private openProductFullInformationIfClicked = (): void => {
-    const productCards = this.querySelectorAll(`.${CssClasses.CARD}`);
-    productCards.forEach((el) => {
-      el.addEventListener('click', () => {
-        const productTarget = el.getAttribute('params');
-        this.createWaitingSymbol();
-        setTimeout(() => {
-          window.location.href = `#product/${productTarget}`;
-        }, DELAY);
-      });
+    const { PRODUCTS, CARD } = CssClasses;
+
+    this.$(`.${PRODUCTS}`)?.addEventListener('click', (event) => {
+      const { target } = event;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      const card = target?.closest(`.${CARD}`);
+      if (card instanceof HTMLElement) {
+        window.location.href = `#product/${card.dataset.key}`;
+      }
     });
   };
 
-  private setCategorySlug(): void {
+  private async setCategory(): Promise<void> {
     const slug = this.getAttribute('params') || '';
     this.$('bread-crumbs')?.setAttribute('slug', slug);
+
+    const categorySlug = slug.split('/').pop() || '';
+    CatalogPage.categoryId = await getCategoryIdBySlug(categorySlug);
+  }
+
+  private loadProducts(): void {
+    this.createWaitingSymbol();
+
+    getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+      .then(({ body }) => {
+        this.renderResults(body.results);
+      })
+      .catch(throwError);
   }
 }
