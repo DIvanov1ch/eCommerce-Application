@@ -10,7 +10,7 @@
     required
   />
   <div class="input-module__error-box hidden">
-    <img alt="Warning icon" class="error-box__icon street" />
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon street" />
     <div class="error-box__content street"></div>
   </div>
 </div>
@@ -27,7 +27,7 @@
     required
   />
   <div class="input-module__error-box hidden">
-    <img alt="Warning icon" class="error-box__icon city" />
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon city" />
     <div class="error-box__content city"></div>
   </div>
 </div>
@@ -45,7 +45,7 @@
     required
   />
   <div class="input-module__error-box hidden">
-    <img alt="Warning icon" class="error-box__icon postal-code" />
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon postal-code" />
     <div class="error-box__content postal-code"></div>
   </div>
 </div>
@@ -62,28 +62,28 @@
     required
   />
   <div class="input-module__error-box hidden">
-    <img alt="Warning icon" class="error-box__icon country" />
+    <img src="../../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon country" />
     <div class="error-box__content country"></div>
   </div>
 </div>
 <div class="address__country-select country hidden">United States</div>
 
 <div class="address__check-box">
-  <input type="checkbox" id="shipping-country" name="shipping" />
-  <label for="shipping-country">Shipping address</label>
-</div>
-
-<div class="address__check-box">
-  <input type="checkbox" id="billing-country" name="billing" />
+  <input type="checkbox" id="billing-country" name="billing" class="billing" />
   <label for="billing-country">Billing address</label>
 </div>
 
 <div class="address__check-box">
-  <input type="checkbox" id="default-shipping" name="default-shipping" />
-  <label for="default-shipping">Default shipping address</label>
+  <input type="checkbox" id="shipping-country" name="shipping" class="shipping" />
+  <label for="shipping-country">Shipping address</label>
 </div>
 
 <div class="address__check-box">
-  <input type="checkbox" id="default-billing" name="default-billing" />
+  <input type="checkbox" id="default-billing" name="default-billing" class="billing-country" />
   <label for="default-billing">Default billing address</label>
+</div>
+
+<div class="address__check-box">
+  <input type="checkbox" id="default-shipping" name="default-shipping" class="shipping-country" />
+  <label for="default-shipping">Default shipping address</label>
 </div>

@@ -35,6 +35,7 @@ enum CssClasses {
   INPUT_ERROR = 'field-error',
   ERROR_TEXT = 'error-box__content',
   ERROR_ICON = 'error-box__icon',
+  CHECKBOX = 'address__check-box',
 }
 
 export default CssClasses;
