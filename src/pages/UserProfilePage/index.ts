@@ -21,7 +21,6 @@ import CssClasses from './css-classes';
 import InputID from '../../enums/input-id';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
-import warningIcon from '../../assets/icons/warning-icon.png';
 import { changePassword, login, logout, update } from '../../services/API';
 
 const REDIRECT_DELAY = 5000;
@@ -43,6 +42,9 @@ const ToastMessage = {
   PASSWORD_CHANGED: 'Your password has been changed',
   ADDRESS_SAVED: 'New address saved',
   ADDRESS_REMOVED: 'Address removed',
+  ADDRESS_CHANGED: 'Address changed',
+  DEFAULT_SHIPPING_ADDRESS_CHANGED: 'Default shipping address changed',
+  DEFAULT_BILLING_ADDRESS_CHANGED: 'Default billing address changed',
   ERROR: 'Something went wrong',
 };
 const ToastBackground = {
@@ -85,7 +87,24 @@ export default class UserProfile extends Page {
 
   private isAddressAdding = false;
 
+  private isAddressAction = false;
+
+  private isAddressUpdating = false;
+
+  private isDefaultShippingAddressChanged = false;
+
+  private isDefaultBillingAddressChanged = false;
+
+  private addressUpdateActions: MyCustomerUpdateAction[] = [];
+
   private addressID = '';
+
+  private checkboxState = {
+    billing: false,
+    shipping: false,
+    defaultBilling: false,
+    defaultShipping: false,
+  };
 
   constructor() {
     super(html);
@@ -133,6 +152,14 @@ export default class UserProfile extends Page {
     if (checkbox) {
       checkbox.checked = true;
     }
+  }
+
+  private getCheckboxState(selector: string): boolean {
+    const checkbox = this.$<'input'>(selector);
+    if (checkbox !== null) {
+      return checkbox.checked;
+    }
+    return false;
   }
 
   private setUserProfileInfo(): void {
@@ -226,6 +253,7 @@ export default class UserProfile extends Page {
   }
 
   private enableDeleteAddressMode(event: Event): void {
+    this.isAddressAction = true;
     this.isAddressDeleting = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
@@ -236,6 +264,7 @@ export default class UserProfile extends Page {
   }
 
   private enableEditAddressMode(event: Event): void {
+    this.isAddressAction = true;
     this.isAddressEditing = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
@@ -246,6 +275,7 @@ export default class UserProfile extends Page {
   }
 
   private enableAddNewAddressMode(): void {
+    this.isAddressAction = true;
     this.isAddressAdding = true;
     this.template = addressTemplate;
     this.setModalContent(SubmitBtnValue.ADD, false, ADDRESS_TITLE.ADD);
@@ -258,7 +288,17 @@ export default class UserProfile extends Page {
     this.isProfileEditing = false;
     this.isAddressDeleting = false;
     this.isPasswordChanging = false;
+    this.isDefaultBillingAddressChanged = false;
+    this.isDefaultShippingAddressChanged = false;
+    this.isAddressAction = false;
+    this.isAddressUpdating = false;
     this.addressID = '';
+    this.checkboxState = {
+      billing: false,
+      shipping: false,
+      defaultBilling: false,
+      defaultShipping: false,
+    };
   }
 
   private setCallback(): void {
@@ -288,6 +328,31 @@ export default class UserProfile extends Page {
 
     writeAddressBoxes.forEach((box) => box.addEventListener('click', this.enableEditAddressMode.bind(this)));
     deleteBoxes.forEach((box) => box.addEventListener('click', this.enableDeleteAddressMode.bind(this)));
+  }
+
+  private setCheckboxCallback(): void {
+    const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
+    const defaultBillingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_BILLING));
+    const defaultShippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_SHIPPING));
+    const billingCheckbox = <HTMLInputElement>this.querySelector(idSelector(BILLING_COUNTRY));
+    const shippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(SHIPPING_COUNTRY));
+    if (this.isAddressAdding) {
+      [defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
+        checkbox.addEventListener('change', (event) => {
+          const target = event.target as HTMLInputElement;
+          if (target.checked) {
+            this.makeCheckboxChecked(idSelector(target.className));
+          }
+        });
+      });
+    }
+    if (this.isAddressEditing) {
+      [billingCheckbox, shippingCheckbox, defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
+        checkbox.addEventListener('change', () => {
+          this.enableInput(classSelector(CssClasses.SUBMIT_BUTTON));
+        });
+      });
+    }
   }
 
   private showModalWindow(): void {
@@ -346,6 +411,7 @@ export default class UserProfile extends Page {
   private fillTemplate(): void {
     if (this.isAddressEditing) {
       this.fillAddressTemplate();
+      this.setCheckboxCallback();
     }
     if (this.isProfileEditing) {
       this.fillPersonalTemplate();
@@ -355,7 +421,7 @@ export default class UserProfile extends Page {
       return;
     }
     if (this.isAddressAdding) {
-      this.fillNewAddressTemplate();
+      this.setCheckboxCallback();
     }
     this.setInputCallback();
   }
@@ -366,23 +432,25 @@ export default class UserProfile extends Page {
     const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
-    const checkboxes = this.$$(classSelector(CssClasses.CHECKBOX));
-    checkboxes.forEach((checkbox) => checkbox.classList.remove(CssClasses.HIDDEN));
 
     this.setInputValue(idSelector(STREET), streetName);
     this.setInputValue(idSelector(CITY), city);
     this.setInputValue(idSelector(POSTAL_CODE), postalCode);
     if (this.addressID === defaultShippingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_SHIPPING));
+      this.checkboxState.defaultShipping = true;
     }
     if (this.addressID === defaultBillingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_BILLING));
+      this.checkboxState.defaultBilling = true;
     }
     if (shippingAddressIds?.includes(this.addressID)) {
       this.makeCheckboxChecked(idSelector(SHIPPING_COUNTRY));
+      this.checkboxState.shipping = true;
     }
     if (billingAddressIds?.includes(this.addressID)) {
       this.makeCheckboxChecked(idSelector(BILLING_COUNTRY));
+      this.checkboxState.billing = true;
     }
   }
 
@@ -405,11 +473,6 @@ export default class UserProfile extends Page {
     this.setElementTextContent(classSelector(CITY), city, container);
     this.setElementTextContent(classSelector(POSTAL_CODE), postalCode, container);
     this.setElementTextContent(classSelector(COUNTRY), country, container);
-  }
-
-  private fillNewAddressTemplate(): void {
-    const checkboxes = this.$$(classSelector(CssClasses.CHECKBOX));
-    checkboxes.forEach((checkbox) => checkbox.classList.add(CssClasses.HIDDEN));
   }
 
   private disableInput(selector: string): void {
@@ -443,7 +506,7 @@ export default class UserProfile extends Page {
   private checkAllInputsAreFilled(): void {
     const { FIELD, SUBMIT_BUTTON } = CssClasses;
     const fields = <HTMLInputElement[]>this.$$(classSelector(FIELD));
-    if (fields.every((input) => input.value)) {
+    if (fields.every((input) => input.value && isValidValue(input.id, input.value))) {
       this.enableInput(classSelector(SUBMIT_BUTTON));
     }
   }
@@ -477,8 +540,6 @@ export default class UserProfile extends Page {
     const errorContent = errorBox.querySelector(classSelector(ERROR_TEXT));
     if (errorContent !== null && errorImg !== null) {
       errorContent.textContent = message;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      errorImg.src = warningIcon;
     }
   }
 
@@ -493,7 +554,7 @@ export default class UserProfile extends Page {
       this.submitNewAddress();
     }
     if (this.isAddressEditing) {
-      console.log('edit address');
+      this.submitAddressChanges();
     }
     if (this.isAddressDeleting) {
       this.removeAddress();
@@ -573,6 +634,45 @@ export default class UserProfile extends Page {
     this.updateUserProfile({ version, actions });
   }
 
+  private submitAddressChanges(): void {
+    const { STREET, CITY, POSTAL_CODE } = InputID;
+    const { addresses } = Store.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+    const { streetName, city, postalCode } = addressToChange;
+    const newStreetName = this.getInputValue(idSelector(STREET));
+    const newCity = this.getInputValue(idSelector(CITY));
+    const newPostalCode = this.getInputValue(idSelector(POSTAL_CODE));
+    const country = defaultCountry;
+    const { version } = Store.customer;
+    if (streetName !== newStreetName || city !== newCity || postalCode !== newPostalCode) {
+      const actions: MyCustomerUpdateAction[] = [
+        {
+          action: 'changeAddress',
+          addressId: this.addressID,
+          address: {
+            streetName: newStreetName,
+            city: newCity,
+            postalCode: newPostalCode,
+            country,
+          },
+        },
+      ];
+      this.updateUserProfile({ version, actions });
+    } else {
+      this.isAddressEditing = false;
+      this.submitUpdateActions();
+    }
+  }
+
+  private submitUpdateActions(): void {
+    this.setAddressUpdateActions();
+    if (this.addressUpdateActions.length !== 0) {
+      const { version } = Store.customer;
+      const actions = this.addressUpdateActions;
+      this.updateUserProfile({ version, actions });
+    }
+  }
+
   private removeAddress(): void {
     const { version } = Store.customer;
     const actions: MyCustomerUpdateAction[] = [
@@ -584,29 +684,116 @@ export default class UserProfile extends Page {
     this.updateUserProfile({ version, actions });
   }
 
+  private setNewAddressActions(): void {
+    this.addressUpdateActions = [];
+    this.isAddressUpdating = true;
+    const { addresses } = Store.customer;
+    this.addressID = addresses[addresses.length - 1].id as string;
+    const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+    const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
+    const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
+    const setAsDefaultShipping = this.getCheckboxState(idSelector(DEFAULT_SHIPPING));
+    const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
+    if (setAsShipping) {
+      this.addressUpdateActions.push({
+        action: 'addShippingAddressId',
+        addressId: this.addressID,
+      });
+    }
+    if (setAsBilling) {
+      this.addressUpdateActions.push({
+        action: 'addBillingAddressId',
+        addressId: this.addressID,
+      });
+    }
+    if (setAsDefaultShipping) {
+      this.isDefaultShippingAddressChanged = true;
+      this.addressUpdateActions.push({
+        action: 'setDefaultShippingAddress',
+        addressId: this.addressID,
+      });
+    }
+    if (setAsDefaultBilling) {
+      this.isDefaultBillingAddressChanged = true;
+      this.addressUpdateActions.push({
+        action: 'setDefaultBillingAddress',
+        addressId: this.addressID,
+      });
+    }
+  }
+
+  // eslint-disable-next-line max-lines-per-function
+  private setAddressUpdateActions(): void {
+    this.addressUpdateActions = [];
+    this.isAddressUpdating = true;
+    const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+    const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
+    const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
+    const setAsDefaultShipping = this.getCheckboxState(idSelector(DEFAULT_SHIPPING));
+    const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
+    if (setAsShipping !== this.checkboxState.shipping) {
+      if (setAsShipping) {
+        this.addressUpdateActions.push({
+          action: 'addShippingAddressId',
+          addressId: this.addressID,
+        });
+      } else {
+        this.addressUpdateActions.push({
+          action: 'removeShippingAddressId',
+          addressId: this.addressID,
+        });
+      }
+    }
+    if (setAsBilling !== this.checkboxState.billing) {
+      if (setAsBilling) {
+        this.addressUpdateActions.push({
+          action: 'addBillingAddressId',
+          addressId: this.addressID,
+        });
+      } else {
+        this.addressUpdateActions.push({
+          action: 'removeBillingAddressId',
+          addressId: this.addressID,
+        });
+      }
+    }
+    if (setAsDefaultShipping !== this.checkboxState.defaultShipping) {
+      if (setAsDefaultShipping) {
+        this.isDefaultShippingAddressChanged = true;
+        this.addressUpdateActions.push({
+          action: 'setDefaultShippingAddress',
+          addressId: this.addressID,
+        });
+      } else {
+        this.addressUpdateActions.push({
+          action: 'setDefaultShippingAddress',
+          addressId: undefined,
+        });
+      }
+    }
+    if (setAsDefaultBilling !== this.checkboxState.defaultBilling) {
+      if (setAsDefaultBilling) {
+        this.isDefaultBillingAddressChanged = true;
+        this.addressUpdateActions.push({
+          action: 'setDefaultBillingAddress',
+          addressId: this.addressID,
+        });
+      } else {
+        this.addressUpdateActions.push({
+          action: 'setDefaultBillingAddress',
+          addressId: undefined,
+        });
+      }
+    }
+  }
+
   private updateUserProfile(user: MyCustomerUpdate): void {
     update(user)
       .then(({ body }) => {
         const { firstName, lastName } = body;
         Store.user = { loggedIn: true, firstName, lastName };
         Store.customer = body;
-        if (this.isAddressAdding) {
-          this.createAddressLines();
-          this.setAddressInfo();
-          this.setAddressIconsCallback();
-          UserProfile.showMessage(ToastMessage.ADDRESS_SAVED, true);
-        }
-        if (this.isProfileEditing) {
-          this.setUserProfileInfo();
-          UserProfile.showMessage(ToastMessage.INFO_UPDATED, true);
-        }
-        if (this.isAddressDeleting) {
-          this.createAddressLines();
-          this.setAddressInfo();
-          this.setAddressIconsCallback();
-          UserProfile.showMessage(ToastMessage.ADDRESS_REMOVED, true);
-        }
-        this.hideModalWindow();
+        this.handleSubmitActionResult();
       })
       .catch(() => UserProfile.showMessage(ToastMessage.ERROR, false));
   }
@@ -626,6 +813,56 @@ export default class UserProfile extends Page {
         this.setInputErrorMessage(InputID.OLD_PASSWORD, error.message);
         this.showErrorMessage(InputID.OLD_PASSWORD);
       });
+  }
+
+  // eslint-disable-next-line max-lines-per-function
+  private handleSubmitActionResult(): void {
+    if (this.isProfileEditing) {
+      this.setUserProfileInfo();
+      UserProfile.showMessage(ToastMessage.INFO_UPDATED, true);
+    }
+    if (this.isAddressAction) {
+      if (this.isAddressAdding) {
+        UserProfile.showMessage(ToastMessage.ADDRESS_SAVED, true);
+        this.setNewAddressActions();
+        this.isAddressAdding = false;
+        if (this.addressUpdateActions.length !== 0) {
+          const { version } = Store.customer;
+          const actions = this.addressUpdateActions;
+          this.addressUpdateActions = [];
+          this.updateUserProfile({ version, actions });
+          return;
+        }
+      }
+      if (this.isAddressDeleting) {
+        UserProfile.showMessage(ToastMessage.ADDRESS_REMOVED, true);
+      }
+      if (this.isAddressEditing) {
+        UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
+        this.setAddressUpdateActions();
+        this.isAddressEditing = false;
+        if (this.addressUpdateActions.length !== 0) {
+          const { version } = Store.customer;
+          const actions = this.addressUpdateActions;
+          this.addressUpdateActions = [];
+          this.updateUserProfile({ version, actions });
+          return;
+        }
+      }
+      if (this.isAddressUpdating) {
+        if (this.isDefaultBillingAddressChanged) {
+          UserProfile.showMessage(ToastMessage.DEFAULT_BILLING_ADDRESS_CHANGED, true);
+        }
+        if (this.isDefaultShippingAddressChanged) {
+          UserProfile.showMessage(ToastMessage.DEFAULT_SHIPPING_ADDRESS_CHANGED, true);
+        }
+        UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
+      }
+      this.createAddressLines();
+      this.setAddressInfo();
+      this.setAddressIconsCallback();
+    }
+    this.hideModalWindow();
   }
 
   private static showMessage(message: string, isResultOk: boolean): void {
