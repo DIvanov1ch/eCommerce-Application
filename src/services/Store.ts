@@ -13,6 +13,8 @@ const Store: MerchStore = {
     expirationTime: 0,
     refreshToken: undefined,
   },
+  categories: [],
+  products: {},
 };
 
 type Keys = keyof typeof Store;
@@ -27,7 +29,9 @@ function loadFromStorage(): void {
 }
 
 function saveToStorage(): void {
-  localStorage.setItem(STORAGE_NAME, JSON.stringify(Store));
+  const { user, customer, token, categories } = Store;
+  const toSave = { user, customer, token, categories };
+  localStorage.setItem(STORAGE_NAME, JSON.stringify(toSave));
 }
 
 window.addEventListener('beforeunload', saveToStorage);
