@@ -6,6 +6,7 @@ import PageFooter from './PageFooter';
 import PageHeader from './PageHeader';
 import PageMain from './PageMain';
 import PriceBox from './PriceBox';
+import ProductCard from './ProductCard';
 import ProductCategories from './ProductCategories';
 import TimeOut from './TimeOut';
 
@@ -20,6 +21,7 @@ const Components = {
   'price-box': PriceBox,
   'image-slider': ImageSlider,
   'modal-dialog': ModalDialog,
+  'product-card': ProductCard,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {

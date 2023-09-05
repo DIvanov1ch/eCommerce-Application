@@ -55,13 +55,13 @@ export default class ProductCategories extends BaseComponent {
   }
 
   private async prepareCategories(): Promise<boolean> {
-    if (!Store.categories) {
+    if (!Store.categories.length) {
       await loadProductCategories();
     }
 
     this.toggleLoading(false);
 
-    if (!Store.categories) {
+    if (!Store.categories.length) {
       this.showError(ERRORS.LOADING);
       return false;
     }
