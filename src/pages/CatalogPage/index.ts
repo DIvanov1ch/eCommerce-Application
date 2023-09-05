@@ -1,4 +1,4 @@
-import { Image, LocalizedString, Price, ProductProjection } from '@commercetools/platform-sdk';
+import { ProductProjection } from '@commercetools/platform-sdk';
 import './index.scss';
 import CssClasses from './css-classes';
 import { createElement } from '../../utils/create-element';
@@ -10,11 +10,11 @@ import { getInfoOfFilteredProducts } from '../../services/API';
 import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes } from '../../constants/filters';
 import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
 import highlightSearchingElement from '../../utils/highlight-search-el';
-import PriceBox from '../../components/PriceBox';
 import Store from '../../services/Store';
 import loadProductCategories from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { LANG } from '../../config';
+import ProductCard from '../../components/ProductCard';
 
 const defaultFilterSortingValues = {
   price: 'any',
@@ -41,6 +41,12 @@ async function getCategoryIdBySlug(categorySlug: string): Promise<string> {
   return category?.id || '';
 }
 
+function saveInStorage(products: ProductProjection[]): void {
+  products.forEach((product) => {
+    Store.products[`${product.key}`] = product;
+  });
+}
+
 export default class CatalogPage extends Page {
   private static filterSortingValues: FiltersType;
 
@@ -65,74 +71,8 @@ export default class CatalogPage extends Page {
     this.loadProducts();
   }
 
-  private static createProductImage = (productCard: HTMLElement, images: Image[] | undefined): void => {
-    const productImage = createElement('img', { className: CssClasses.IMAGE });
-    if (images?.length) {
-      productImage.src = images[0].url;
-    } else {
-      productImage.classList.add(CssClasses.NOPICTURE);
-    }
-    productCard.append(productImage);
-  };
-
-  private static createProductName = (productCard: HTMLElement, name: LocalizedString): void => {
-    const productName = createElement('div', { className: CssClasses.NAME, innerHTML: name.en });
-    productName.innerHTML = CatalogPage.highLightFoundText(productName, CatalogPage.searchingText.split(' '));
-    productCard.append(productName);
-  };
-
-  private static createProductDescription = (
-    productCard: HTMLElement,
-    description: LocalizedString | undefined
-  ): void => {
-    const productDescription = createElement('div', {
-      className: CssClasses.DESCRIPTION,
-      innerHTML: `${description ? description.en.split('\n')[0] : ''}`,
-    });
-    productDescription.innerHTML = CatalogPage.highLightFoundText(
-      productDescription,
-      CatalogPage.searchingText.split(' ')
-    );
-    productCard.append(productDescription);
-  };
-
-  private static createProductPrice = (productCard: HTMLElement, prices: Price[]): void => {
-    const isPrice = prices.length;
-    if (isPrice) {
-      const {
-        value: { centAmount },
-      } = prices[0];
-      const REALPRICE = centAmount;
-      const DISCOUNT = Number(prices[0].discounted?.value.centAmount);
-      const priceBox = new PriceBox();
-      priceBox.setPrice(REALPRICE);
-      priceBox.setDiscounted(DISCOUNT);
-      productCard.append(priceBox);
-    }
-  };
-
-  private createFilteredProductCards = (productsArray: ProductProjection[]): void => {
-    const productContainer = this.querySelector(`.${CssClasses.PRODUCTS}`) as HTMLElement;
-    productsArray.forEach((product): void => {
-      const productCard = createElement('div', {
-        className: CssClasses.CARD,
-      });
-      const {
-        masterVariant: { images },
-        name,
-        description,
-        masterVariant: { prices },
-        key = '',
-      } = product;
-      CatalogPage.createProductImage(productCard, images);
-      CatalogPage.createProductName(productCard, name);
-      CatalogPage.createProductDescription(productCard, description);
-      if (prices !== undefined) {
-        CatalogPage.createProductPrice(productCard, prices);
-      }
-      productContainer.append(productCard);
-      productCard.dataset.key = key;
-    });
+  private createFilteredProductCards = (products: ProductProjection[]): void => {
+    this.$(`.${CssClasses.PRODUCTS}`)?.replaceChildren(...products.map((product) => new ProductCard(product.key)));
   };
 
   private resetFiltersIfButtonClicked = (): void => {
@@ -146,7 +86,7 @@ export default class CatalogPage extends Page {
   };
 
   private static createFilterQuery(): string[] {
-    const queryParams: string[] = Object.entries(CatalogPage.filterSortingValues)
+    const queryParams = Object.entries(CatalogPage.filterSortingValues)
       .map(([key, value]) => {
         if (!QUERY_PARAMETERS.includes(key) || value === 'any') {
           return '';
@@ -196,14 +136,21 @@ export default class CatalogPage extends Page {
   }
 
   private createWaitingSymbol = (): void => {
-    this.clearProductsContainer('<div class="product__loader"></div>');
+    const cardHtml = '<product-card class="skeleton"></product-card>';
+    this.clearProductsContainer(cardHtml.repeat(4));
   };
 
-  private renderResults = (body: ProductProjection[]): void => {
-    this.clearProductsContainer();
-    this.createFilteredProductCards(body);
-    this.openProductFullInformationIfClicked();
-  };
+  private renderResults(body: ProductProjection[]): void {
+    if (body.length) {
+      this.createFilteredProductCards(body);
+    } else {
+      this.emptyResults();
+    }
+  }
+
+  private emptyResults(): void {
+    this.clearProductsContainer('<p>Nothing is found. Try to change your request</p>');
+  }
 
   private createFilterBars = (): void => {
     const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
@@ -345,21 +292,6 @@ export default class CatalogPage extends Page {
     };
   };
 
-  private openProductFullInformationIfClicked = (): void => {
-    const { PRODUCTS, CARD } = CssClasses;
-
-    this.$(`.${PRODUCTS}`)?.addEventListener('click', (event) => {
-      const { target } = event;
-      if (!(target instanceof HTMLElement)) {
-        return;
-      }
-      const card = target?.closest(`.${CARD}`);
-      if (card instanceof HTMLElement) {
-        window.location.href = `#product/${card.dataset.key}`;
-      }
-    });
-  };
-
   private async setCategory(): Promise<void> {
     const slug = this.getAttribute('params') || '';
     this.$('bread-crumbs')?.setAttribute('slug', slug);
@@ -369,11 +301,14 @@ export default class CatalogPage extends Page {
   }
 
   private loadProducts(): void {
+    this.toggleLoading();
     this.createWaitingSymbol();
 
     getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
       .then(({ body }) => {
+        saveInStorage(body.results);
         this.renderResults(body.results);
+        this.toggleLoading(false);
       })
       .catch(throwError);
   }
