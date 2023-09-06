@@ -3,10 +3,42 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const EslintWebpackPlugin = require('eslint-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
+const WorkboxPlugin = require('workbox-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV == 'production';
 
 const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
+
+const pwaManifestPlugin = new WebpackPwaManifest({
+  publicPath: '.',
+  name: 'Slick Deals Merch',
+  short_name: 'SlickMerch',
+  description: 'Slick merch from SlickDeals',
+  background_color: '#333333',
+  theme_color: '#333333',
+  fingerprints: false,
+  icons: [
+    {
+      src: path.resolve('src/assets/icons/maskable.png'),
+      sizes: [512],
+    },
+    {
+      src: path.resolve('src/assets/icons/maskable.png'),
+      size: '1024x1024',
+    },
+    {
+      src: path.resolve('src/assets/icons/maskable.png'),
+      size: '1024x1024',
+      purpose: 'maskable',
+    },
+  ],
+});
+
+const workboxPlugin = new WorkboxPlugin.GenerateSW({
+  clientsClaim: true,
+  skipWaiting: true,
+});
 
 const config = {
   entry: './src/index.ts',
@@ -14,8 +46,7 @@ const config = {
     path: path.resolve(__dirname, 'dist'),
   },
   devServer: {
-    open: true,
-    host: 'localhost',
+    host: '0.0.0.0',
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -23,6 +54,7 @@ const config = {
     }),
     new CleanWebpackPlugin(),
     new EslintWebpackPlugin({ extensions: 'ts' }),
+    pwaManifestPlugin,
   ],
   module: {
     rules: [
@@ -57,7 +89,7 @@ const config = {
 module.exports = () => {
   if (isProduction) {
     config.mode = 'production';
-    config.plugins.push(new MiniCssExtractPlugin());
+    config.plugins.push(workboxPlugin, new MiniCssExtractPlugin());
   } else {
     Object.assign(config, {
       mode: 'development',
