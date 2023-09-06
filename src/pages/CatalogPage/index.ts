@@ -1,7 +1,6 @@
 import { ProductProjection } from '@commercetools/platform-sdk';
 import './index.scss';
 import CssClasses from './css-classes';
-import { createElement } from '../../utils/create-element';
 import html from './catalog.html';
 import filterBarsHtml from './filter-bars.html';
 import sortBarsHtml from './sort-bars.html';
@@ -15,6 +14,7 @@ import loadProductCategories from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { LANG } from '../../config';
 import ProductCard from '../../components/ProductCard';
+import { createElement } from '../../utils/create-element';
 
 const defaultFilterSortingValues = {
   price: 'any',
@@ -22,8 +22,15 @@ const defaultFilterSortingValues = {
   brand: 'any',
   material: 'any',
   size: 'any',
-  byPrice: 'no',
-  byName: 'no',
+  sort: '',
+};
+
+const SORT_OPTIONS = {
+  '': 'Featured',
+  'price asc': '↗ Price',
+  'price desc': '↘ Price',
+  'name.en asc': 'Title (A-Z)',
+  'name.en desc': 'Title (Z-A)',
 };
 
 const QUERY_PARAMETERS = ['color', 'brand', 'material', 'size', 'price'];
@@ -80,7 +87,6 @@ export default class CatalogPage extends Page {
     const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
     buttonReset.addEventListener('click', (): void => {
       filterContainer.reset();
-      CatalogPage.filterSortingValues = defaultFilterSortingValues;
       this.loadProducts();
     });
   };
@@ -109,24 +115,9 @@ export default class CatalogPage extends Page {
   }
 
   private createFilterBarsOptions = (arrayOfValuesForOption: string[], cssClass: string): void => {
-    const parentElement = this.querySelector(`.${cssClass}`) as HTMLSelectElement;
-    arrayOfValuesForOption.forEach((value): void => {
-      const optionElement = createElement('option', {
-        innerHTML: value,
-      });
-      parentElement.append(optionElement);
-    });
-    parentElement.addEventListener('change', (): void => {
-      if (parentElement.classList.contains(CssClasses.FILTERPRICE))
-        CatalogPage.filterSortingValues.price = parentElement.value;
-      if (parentElement.classList.contains(CssClasses.FILTERCOLOR))
-        CatalogPage.filterSortingValues.color = parentElement.value;
-      if (parentElement.classList.contains(CssClasses.FILTERSIZE))
-        CatalogPage.filterSortingValues.size = parentElement.value;
-      if (parentElement.classList.contains(CssClasses.FILTERBRAND))
-        CatalogPage.filterSortingValues.brand = parentElement.value;
-      if (parentElement.classList.contains(CssClasses.FILTERMATERIAL))
-        CatalogPage.filterSortingValues.material = parentElement.value;
+    const select = this.$<'select'>(`.${cssClass}`);
+    select?.append(...arrayOfValuesForOption.map((value) => new Option(value)));
+    select?.addEventListener('change', (): void => {
       this.loadProducts();
     });
   };
@@ -163,50 +154,25 @@ export default class CatalogPage extends Page {
     this.resetFiltersIfButtonClicked();
   };
 
-  private resetSortingIfButtonClicked = (): void => {
-    const buttonReset = this.querySelector(`.${CssClasses.RESETSORTINGBUTTON}`) as HTMLElement;
-    const sortingContainer = this.querySelector(`.${CssClasses.SORT}`) as HTMLFormElement;
-    buttonReset.addEventListener('click', (): void => {
-      sortingContainer.reset();
-      this.loadProducts();
-    });
-  };
-
   private createSortingBars = (): void => {
-    const sortingContainer = this.querySelector(`.${CssClasses.SORT}`) as HTMLFormElement;
+    const sortingContainer = this.$<'form'>(`.${CssClasses.SORT}`);
+    if (!sortingContainer) {
+      return;
+    }
+
     sortingContainer.innerHTML = sortBarsHtml;
-    const nameSorting = this.querySelector(`.${CssClasses.SORTNAME}`) as HTMLSelectElement;
-    const priceSorting = this.querySelector(`.${CssClasses.SORTPRICE}`) as HTMLSelectElement;
-    this.resetSortingIfButtonClicked();
-    nameSorting.addEventListener('change', () => {
-      CatalogPage.filterSortingValues.byName = nameSorting.value;
+    const select = createElement('select', { name: 'sort' });
+    select.append(...Object.entries(SORT_OPTIONS).map(([value, label]) => new Option(label, value)));
+    sortingContainer.append(select);
+
+    select.addEventListener('change', () => {
       this.loadProducts();
-      priceSorting.value = defaultFilterSortingValues.byPrice;
-    });
-    priceSorting.addEventListener('change', () => {
-      CatalogPage.filterSortingValues.byPrice = priceSorting.value;
-      this.loadProducts();
-      nameSorting.value = defaultFilterSortingValues.byName;
     });
   };
 
   private static createSortingQuery = (): string[] => {
-    const queryParams: string[] = [];
-    if (CatalogPage.filterSortingValues.byName !== 'no') {
-      if (CatalogPage.filterSortingValues.byName === 'ascending') {
-        queryParams.push(`name.en asc`);
-      } else {
-        queryParams.push(`name.en desc`);
-      }
-    }
-    if (CatalogPage.filterSortingValues.byPrice !== 'no') {
-      if (CatalogPage.filterSortingValues.byPrice === 'ascending') {
-        queryParams.push(`price asc`);
-      } else {
-        queryParams.push(`price desc`);
-      }
-    }
-    return queryParams;
+    const { sort } = CatalogPage.filterSortingValues;
+    return [sort].filter((e) => e);
   };
 
   private createSearching = (): void => {
@@ -301,6 +267,7 @@ export default class CatalogPage extends Page {
   }
 
   private loadProducts(): void {
+    this.updateSearchParams();
     this.toggleLoading();
     this.createWaitingSymbol();
 
@@ -311,5 +278,11 @@ export default class CatalogPage extends Page {
         this.toggleLoading(false);
       })
       .catch(throwError);
+  }
+
+  private updateSearchParams(): void {
+    this.$$<'select'>('select').forEach(({ name, value }) => {
+      Object.assign(CatalogPage.filterSortingValues, { [name]: value });
+    });
   }
 }
