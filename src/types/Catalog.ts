@@ -4,8 +4,7 @@ export type FiltersType = {
   brand?: string;
   color?: string;
   size?: string;
-  byPrice?: string;
-  byName?: string;
+  sort: string;
 };
 
 export type FilterSortingSearchQueries = {
