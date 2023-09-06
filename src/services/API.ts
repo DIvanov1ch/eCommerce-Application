@@ -4,7 +4,7 @@ import {
   type HttpMiddlewareOptions,
   PasswordAuthMiddlewareOptions,
   Client,
-  RefreshAuthMiddlewareOptions,
+  // RefreshAuthMiddlewareOptions,
 } from '@commercetools/sdk-client-v2';
 import {
   createApiBuilderFromCtpClient,
@@ -32,7 +32,7 @@ import {
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
-import Store from './Store';
+// import Store from './Store';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -77,19 +77,19 @@ const getPasswordFlowOptions = (
   };
 };
 
-const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
-  return {
-    host: authHost,
-    projectKey,
-    credentials: {
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
-    },
-    refreshToken: Store.token?.refreshToken || '',
-    tokenCache: token,
-    fetch,
-  };
-};
+// const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
+//   return {
+//     host: authHost,
+//     projectKey,
+//     credentials: {
+//       clientId: CLIENT_ID,
+//       clientSecret: CLIENT_SECRET,
+//     },
+//     refreshToken: Store.token?.refreshToken || '',
+//     tokenCache: token,
+//     fetch,
+//   };
+// };
 
 const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
   const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
@@ -114,14 +114,14 @@ const getPasswordFlowClient = (username: string, password: string): Client => {
   return passwordFlowClient;
 };
 
-const getRefreshTokenFlowClient = (): Client => {
-  const refreshTokenFlowClient = new ClientBuilder()
-    .withRefreshTokenFlow(getRefreshTokenFlowOptions(newToken))
-    .withHttpMiddleware(httpMiddlewareOptions)
-    .withLoggerMiddleware()
-    .build();
-  return refreshTokenFlowClient;
-};
+// const getRefreshTokenFlowClient = (): Client => {
+//   const refreshTokenFlowClient = new ClientBuilder()
+//     .withRefreshTokenFlow(getRefreshTokenFlowOptions(newToken))
+//     .withHttpMiddleware(httpMiddlewareOptions)
+//     .withLoggerMiddleware()
+//     .build();
+//   return refreshTokenFlowClient;
+// };
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
@@ -177,12 +177,12 @@ async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {
 }
 
 const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
-  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot.me().post({ body }).execute();
 };
 
 const changePassword = async (body: MyCustomerChangePassword): Promise<ClientResponse<Customer>> => {
-  const apiRoot = getApiRoot(getRefreshTokenFlowClient());
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot.me().password().post({ body }).execute();
 };
 
