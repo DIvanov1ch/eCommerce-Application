@@ -11,4 +11,10 @@ export interface MerchStore {
   token: TokenStore | null;
   categories: Category[];
   products: Record<string, ProductProjection>;
+  cart: Cart[];
+}
+
+export interface Cart {
+  key: string;
+  quantity: number;
 }
