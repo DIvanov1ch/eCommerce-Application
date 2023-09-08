@@ -2,8 +2,6 @@
   background: var(--header-bg);
   color: var(--header-text-color);
 
-  height: 3em;
-
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -22,6 +20,8 @@
 .nav {
   padding: 1em;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .nav__list {
@@ -30,6 +30,18 @@
   margin: 0;
   padding: 0;
   gap: 1em;
+}
+
+.nav__list {
+  a {
+    text-decoration: none;
+    display: flex;
+    gap: 0.2em;
+    align-items: center;
+  }
+  .icon {
+    font-size: 1.2em;
+  }
 }
 
 .logo {

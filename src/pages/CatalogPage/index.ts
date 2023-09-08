@@ -55,24 +55,24 @@ function saveInStorage(products: ProductProjection[]): void {
 }
 
 export default class CatalogPage extends Page {
-  private static filterSortingValues: FiltersType;
+  private static filterSortingValues: FiltersType = { ...defaultFilterSortingValues };
 
-  private static searchingText: string;
+  private static searchingText = '';
 
   private static categoryId = '';
 
+  #prevParams = '';
+
   constructor() {
     super(html);
-    CatalogPage.filterSortingValues = structuredClone(defaultFilterSortingValues);
-    CatalogPage.searchingText = '';
   }
 
   protected async connectedCallback(): Promise<void> {
     super.connectedCallback();
 
+    this.createSearching();
     this.createFilterBars();
     this.createSortingBars();
-    this.createSearching();
 
     await this.setCategory();
     this.loadProducts();
@@ -83,10 +83,12 @@ export default class CatalogPage extends Page {
   };
 
   private resetFiltersIfButtonClicked = (): void => {
-    const buttonReset = this.querySelector(`.${CssClasses.RESETFILTERSBUTTON}`) as HTMLElement;
-    const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
+    const buttonReset = this.$<'button'>(`.${CssClasses.RESETFILTERSBUTTON}`);
+    if (!buttonReset) {
+      return;
+    }
     buttonReset.addEventListener('click', (): void => {
-      filterContainer.reset();
+      buttonReset.form?.reset();
       this.loadProducts();
     });
   };
@@ -176,59 +178,23 @@ export default class CatalogPage extends Page {
   };
 
   private createSearching = (): void => {
-    this.resetSearchingTextIfButtonClicked();
-    this.searchTextIfButtonClicked();
-    this.searchTextIfEntered();
-    this.searchTextIfUnfocused();
-  };
+    const form = this.$<'form'>(`.${CssClasses.SEARCH}`);
+    if (!form) {
+      return;
+    }
 
-  private resetSearchingTextIfButtonClicked = (): void => {
-    const resetSearchingButton = this.querySelector(`.${CssClasses.RESETSEARCHBUTTON}`) as HTMLElement;
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    resetSearchingButton.addEventListener('click', () => {
-      if (CatalogPage.searchingText === '') {
-        searchingText.value = '';
-      }
-      if (CatalogPage.searchingText !== '') {
-        searchingText.value = '';
-        CatalogPage.searchingText = '';
-        this.loadProducts();
-      }
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.loadProducts(true);
     });
-  };
 
-  private searchTextIfButtonClicked = (): void => {
-    const searchingButton = this.querySelector(`.${CssClasses.SEARCHBUTTON}`) as HTMLElement;
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingButton.addEventListener('click', () => {
-      CatalogPage.searchingText = searchingText.value;
-      this.loadProducts();
-    });
-  };
-
-  private searchTextIfEntered = (): void => {
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingText.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') {
-        CatalogPage.searchingText = searchingText.value;
-        this.loadProducts();
-      }
-    });
-  };
-
-  private searchTextIfUnfocused = (): void => {
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingText.addEventListener('blur', () => {
-      if (searchingText.value !== CatalogPage.searchingText) {
-        CatalogPage.searchingText = searchingText.value;
-        this.loadProducts();
-      }
+    form.addEventListener('reset', () => {
+      setTimeout(() => this.loadProducts(true), 0);
     });
   };
 
   private static createSearchingQuery = (): string => {
-    const queryParams = CatalogPage.searchingText;
-    return queryParams;
+    return CatalogPage.searchingText;
   };
 
   private static highLightFoundText = (element: HTMLElement, textArray: string[]): string => {
@@ -252,9 +218,9 @@ export default class CatalogPage extends Page {
 
   private static createFiltersSortingSearchQueries = (): FilterSortingSearchQueries => {
     return {
-      filterQuery: CatalogPage.createFilterQuery() || [],
-      sortingQuery: CatalogPage.createSortingQuery() || [],
-      searchQuery: CatalogPage.createSearchingQuery() || '',
+      filterQuery: CatalogPage.createFilterQuery(),
+      sortingQuery: CatalogPage.createSortingQuery(),
+      searchQuery: CatalogPage.createSearchingQuery(),
     };
   };
 
@@ -266,12 +232,20 @@ export default class CatalogPage extends Page {
     CatalogPage.categoryId = await getCategoryIdBySlug(categorySlug);
   }
 
-  private loadProducts(): void {
+  private loadProducts(onlyOnChanges = false): void {
     this.updateSearchParams();
+    const params = CatalogPage.createFiltersSortingSearchQueries();
+    const paramsString = JSON.stringify(params);
+
+    if (onlyOnChanges && paramsString === this.#prevParams) {
+      return;
+    }
+
     this.toggleLoading();
     this.createWaitingSymbol();
+    this.#prevParams = paramsString;
 
-    getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
+    getInfoOfFilteredProducts(params)
       .then(({ body }) => {
         saveInStorage(body.results);
         this.renderResults(body.results);
@@ -284,5 +258,7 @@ export default class CatalogPage extends Page {
     this.$$<'select'>('select').forEach(({ name, value }) => {
       Object.assign(CatalogPage.filterSortingValues, { [name]: value });
     });
+
+    CatalogPage.searchingText = this.$<'input'>(`.${CssClasses.SEARCHTEXT}`)?.value || '';
   }
 }
