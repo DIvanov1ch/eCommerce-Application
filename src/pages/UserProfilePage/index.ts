@@ -22,10 +22,12 @@ import InputID from '../../enums/input-id';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import { changePassword, login, logout, update } from '../../services/API';
+import { loadCustomer } from '../../utils/load-data';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
 const HTML_NOT_YET = `<p>Looks like you are not logged into your account or have not created one yet. You will be redirected to <a href="#login">login page</a> in ${TIMER_HTML} sec...</p>`;
+const HTML_LOG_IN = `<p>Please log in to your account <a href="#login">here</a>. You will be redirected in ${TIMER_HTML} sec...</p>`;
 const PASSWORD_DOT = '•';
 const ADDRESS_TITLE = {
   EDIT: `<h2 class="template__title">Manage your addresses</h2>`,
@@ -219,9 +221,19 @@ export default class UserProfile extends Page {
 
   private checkIfUserLoggedIn(): void {
     if (!Store.user.loggedIn) {
-      this.goToMainPage(HTML_NOT_YET).then().catch(console.error);
+      this.goToLoginPage(HTML_NOT_YET).then().catch(console.error);
       return;
     }
+    if (!Store.token || Store.token.expirationTime <= Date.now()) {
+      logout();
+      Store.user.loggedIn = false;
+      this.goToLoginPage(HTML_LOG_IN).then().catch(console.error);
+      return;
+    }
+    loadCustomer().then(this.render.bind(this)).catch(console.error);
+  }
+
+  private render(): void {
     this.createAddressLines();
     this.setUserProfileInfo();
     this.setPasswordLengthDisplay();
@@ -229,7 +241,7 @@ export default class UserProfile extends Page {
     this.setAddressIconsCallback();
   }
 
-  private async goToMainPage(htmlText: string): Promise<void> {
+  private async goToLoginPage(htmlText: string): Promise<void> {
     this.innerHTML = htmlText;
 
     await pause(REDIRECT_DELAY);

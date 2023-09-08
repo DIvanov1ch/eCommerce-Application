@@ -176,6 +176,11 @@ async function getProductTypes(): Promise<ProductTypePagedQueryResponse> {
   return (await apiRoot.productTypes().get().execute()).body;
 }
 
+async function getCustomer(): Promise<Customer> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return (await apiRoot.me().get().execute()).body;
+}
+
 const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot.me().post({ body }).execute();
@@ -196,4 +201,5 @@ export {
   getProductTypes,
   update,
   changePassword,
+  getCustomer,
 };
