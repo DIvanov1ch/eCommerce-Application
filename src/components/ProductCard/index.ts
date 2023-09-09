@@ -13,6 +13,9 @@ const CssClasses = {
   DESCRIPTION: 'product-card__description',
   IMAGE: 'product-card__image',
   PRICE: 'product-card__price',
+  CART: 'product-card__cart',
+  CARTICON: 'product-card__cart-svg-icon',
+  CARTICONINACTIVE: 'product-card__cart-svg-icon--inactive',
 };
 
 export default class ProductCard extends BaseComponent {
@@ -56,6 +59,8 @@ export default class ProductCard extends BaseComponent {
     this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
+    this.setBasketIcon(this.#key);
+    this.basketIconClickHandling(this.#key);
   }
 
   private setPrice(price: number, discounted: number): void {
@@ -76,6 +81,23 @@ export default class ProductCard extends BaseComponent {
     const image = createElement('img', { src: url });
 
     this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
+  }
+
+  private setBasketIcon(key: string): void {
+    Store.cart.forEach((storeCart) => {
+      if (key === storeCart.key) {
+        this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      }
+    });
+  }
+
+  private basketIconClickHandling(productKey: string): void {
+    this.$(className(CssClasses.CARTICON))?.addEventListener('click', (event) => {
+      const productToBasket = { key: productKey, quantity: 1 };
+      Store.cart.push(productToBasket);
+      this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      event.stopPropagation();
+    });
   }
 
   private attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
