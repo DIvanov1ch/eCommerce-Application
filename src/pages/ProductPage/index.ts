@@ -8,7 +8,7 @@ import { LANG } from '../../config';
 import throwError from '../../utils/throw-error';
 import PriceBox from '../../components/PriceBox';
 import ImageSlider from '../../components/ImageSlider';
-import { className } from '../../utils/create-element';
+import { classSelector } from '../../utils/create-element';
 
 Router.registerRoute('product', 'product-page');
 
@@ -73,8 +73,8 @@ export default class ProductPage extends Page {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    this.insertHtml(className(NAME), name);
-    this.insertHtml(className(DESCRIPTION), description);
+    this.insertHtml(classSelector(NAME), name);
+    this.insertHtml(classSelector(DESCRIPTION), description);
 
     this.insertImages(images);
     this.setCategoryId(categoryId);
@@ -82,7 +82,7 @@ export default class ProductPage extends Page {
   }
 
   private setPrice(price: number, discounted: number): void {
-    const priceContainer = this.$(className(CssClasses.PRICES));
+    const priceContainer = this.$(classSelector(CssClasses.PRICES));
     this.#priceBox.setPrice(price);
     this.#priceBox.setDiscounted(discounted);
 
@@ -99,7 +99,7 @@ export default class ProductPage extends Page {
     slider.setAttribute('modal', 'true');
     slider.setImages(imagesString);
 
-    this.$(className(CssClasses.IMAGES))?.replaceChildren(slider);
+    this.$(classSelector(CssClasses.IMAGES))?.replaceChildren(slider);
   }
 
   private setCategoryId(id: string): void {

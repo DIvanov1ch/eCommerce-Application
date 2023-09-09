@@ -17,7 +17,7 @@ import addressTemplate from './html-templates/address-popup-template.html';
 import deleteTemplate from './html-templates/delete-popup-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
-import { pause } from '../../utils/create-element';
+import { classSelector, idSelector, pause } from '../../utils/create-element';
 import CssClasses from './css-classes';
 import InputID from '../../enums/input-id';
 import isValidValue from '../../utils/is-valid-value';
@@ -76,9 +76,6 @@ const getToastOptions = (message: string, background: string): Options => {
   };
 };
 const defaultCountry = 'US';
-
-const classSelector = (name: string): string => `.${name}`;
-const idSelector = (name: string): string => `#${name}`;
 
 export default class UserProfile extends Page {
   private customer: Customer = new LoggedInUser();

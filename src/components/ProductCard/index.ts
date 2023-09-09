@@ -4,7 +4,7 @@ import html from './template.html';
 import BaseComponent from '../BaseComponent';
 import Store from '../../services/Store';
 import { LANG } from '../../config';
-import { className, createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
 
 const CssClasses = {
@@ -52,14 +52,14 @@ export default class ProductCard extends BaseComponent {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    this.insertHtml(className(NAME), name);
-    this.insertHtml(className(DESCRIPTION), description.split('\n')[0]);
+    this.insertHtml(classSelector(NAME), name);
+    this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
   }
 
   private setPrice(price: number, discounted: number): void {
-    const priceContainer = this.$(className(CssClasses.PRICE));
+    const priceContainer = this.$(classSelector(CssClasses.PRICE));
     const priceBox = new PriceBox();
     priceBox.setPrice(price);
     priceBox.setDiscounted(discounted);
@@ -75,7 +75,7 @@ export default class ProductCard extends BaseComponent {
     const [{ url }] = images;
     const image = createElement('img', { src: url });
 
-    this.$(className(CssClasses.IMAGE))?.replaceChildren(image);
+    this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
   private attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
