@@ -1,17 +1,20 @@
-<bread-crumbs></bread-crumbs>
-<form class="search__container">
-  <button type="submit" class="search__button search__button--search"><span class="icon">search</span></button>
-  <input type="text" class="search__text" placeholder="Search on SD Merch" />
-  <button type="reset" class="search__button search__button--reset"><span class="icon">close</span></button>
-</form>
+<div class="filters__bar">
+  <bread-crumbs></bread-crumbs>
+  <form class="search__container">
+    <button type="submit" class="search__button search__button--search"><span class="icon">search</span></button>
+    <input type="text" class="input search__text" placeholder="Search on SD Merch" />
+    <button type="reset" class="search__button search__button--reset"><span class="icon">close</span></button>
+  </form>
+  <button class="filters__toggle"><span class="icon">filter_alt</span></button>
+</div>
 <div class="catalog__container">
   <div class="catalog__forms">
-    <section class="category__container">
+    <section class="filter__group category__container">
       <h3>Category:</h3>
       <product-categories root="false"></product-categories>
     </section>
-    <form class="filter__container"></form>
-    <form class="sort__container"></form>
+    <form class="filter__group filter__container"></form>
+    <form class="filter__group sort__container"></form>
   </div>
   <div class="product__container"></div>
 </div>

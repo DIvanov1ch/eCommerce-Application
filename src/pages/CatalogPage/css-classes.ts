@@ -1,5 +1,7 @@
 enum CssClasses {
   PRODUCTS = 'product__container',
+  FORMS = 'catalog__forms',
+  FORMS_OPEN = 'catalog__forms--open',
   FILTERS = 'filter__container',
   RESETFILTERSBUTTON = 'filter__button-reset',
   FILTERPRICE = 'filter__price',
@@ -12,6 +14,8 @@ enum CssClasses {
   SEARCHBUTTON = 'search__button--search',
   SEARCHTEXT = 'search__text',
   SEARCH = 'search__container',
+  SELECT = 'select',
+  TOGGLE = 'filters__toggle',
 }
 
 export default CssClasses;
