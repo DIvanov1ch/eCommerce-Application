@@ -1,0 +1,28 @@
+{
+  "icons": [
+    {
+      "src": "./icon_1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon_1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "name": "Slick Deals Merch",
+  "short_name": "SlickMerch",
+  "orientation": "portrait",
+  "display": "standalone",
+  "start_url": ".",
+  "description": "Slick merch from SlickDeals",
+  "background_color": "#333333",
+  "theme_color": "#333333"
+}
