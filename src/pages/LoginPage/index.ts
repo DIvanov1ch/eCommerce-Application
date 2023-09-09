@@ -16,7 +16,7 @@ export default class LoginPage extends Page {
   }
 
   protected connectedCallback(): void {
-    LoginPage.checkIfLoginByTokenInLocalStorage();
+    LoginPage.checkIfUserLoggedIn();
 
     super.connectedCallback();
     LoginPage.checkPasswordValidation();
@@ -41,10 +41,6 @@ export default class LoginPage extends Page {
 
   private static userEmail: string;
 
-  private static isLogIn: boolean;
-
-  private static userId: string;
-
   public static getPassword = (): string => {
     return this.userPassword || '';
   };
@@ -53,19 +49,13 @@ export default class LoginPage extends Page {
     return this.userEmail || '';
   };
 
-  public static getIsLogin = (): boolean => {
-    return this.isLogIn || false;
-  };
-
   public static setLoginToDefault = (): void => {
-    this.isLogIn = false;
-    this.userId = '';
     this.userPassword = '';
     this.userEmail = '';
   };
 
-  private static checkIfLoginByTokenInLocalStorage = (): void => {
-    if (Store.user.loggedIn) {
+  private static checkIfUserLoggedIn = (): void => {
+    if (Store.customer) {
       this.goToMainPage();
     }
   };
@@ -298,11 +288,7 @@ export default class LoginPage extends Page {
     inputLoginFormSubmit.addEventListener('click', (): void => {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
-          const { firstName, lastName, id } = body.customer;
           Store.customer = body.customer;
-          this.isLogIn = true;
-          this.userId = id;
-          Store.user = { loggedIn: true, firstName, lastName };
           this.goToMainPage();
         })
         .catch((error: Error) => {

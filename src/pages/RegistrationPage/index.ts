@@ -5,7 +5,7 @@ import Page from '../Page';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import CssClasses from './css-classes';
-import { login, registration } from '../../services/API';
+import { login, logout, registration } from '../../services/API';
 import InputID from '../../enums/input-id';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -44,7 +44,7 @@ export default class RegistrationPage extends Page {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    this.checkIfLoginByTokenInLocalStorage();
+    this.checkIfUserLoggedIn();
     this.fields = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
     this.setCallback();
   }
@@ -306,8 +306,8 @@ export default class RegistrationPage extends Page {
     ) {
       popup.classList.add(CssClasses.HIDDEN);
       if (this.isSignUp) {
+        logout();
         this.logIn();
-        Store.user = { loggedIn: true };
         this.goToMainPage(HTML.SUCCESS).catch(console.error);
       }
       this.enableButtons();
@@ -317,8 +317,6 @@ export default class RegistrationPage extends Page {
   private logIn(): void {
     login(this.customer.email, this.customer.password)
       .then(({ body }) => {
-        const { firstName, lastName } = body.customer;
-        Store.user = { loggedIn: true, firstName, lastName };
         Store.customer = body.customer;
       })
       .catch(console.error);
@@ -333,8 +331,8 @@ export default class RegistrationPage extends Page {
     }
   }
 
-  private checkIfLoginByTokenInLocalStorage(): void {
-    if (Store.user.loggedIn) {
+  private checkIfUserLoggedIn(): void {
+    if (Store.customer) {
       this.goToMainPage(HTML.ALREADY).then().catch(console.error);
     }
   }

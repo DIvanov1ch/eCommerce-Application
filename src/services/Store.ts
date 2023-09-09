@@ -1,13 +1,9 @@
 import { STORAGE_NAME } from '../config';
 import { dispatch } from '../utils/create-element';
 import { MerchStore } from '../types/MerchStore';
-import LoggedInUser from './LoggedInUser';
 
 const Store: MerchStore = {
-  user: {
-    loggedIn: false,
-  },
-  customer: new LoggedInUser(),
+  customer: undefined,
   token: {
     token: '',
     expirationTime: 0,
@@ -29,8 +25,8 @@ function loadFromStorage(): void {
 }
 
 function saveToStorage(): void {
-  const { user, customer, token, categories } = Store;
-  const toSave = { user, customer, token, categories };
+  const { customer, token, categories } = Store;
+  const toSave = { customer, token, categories };
   localStorage.setItem(STORAGE_NAME, JSON.stringify(toSave));
 }
 
@@ -42,7 +38,7 @@ const proxiedStore = new Proxy(Store, {
   set(target, property: Keys, value: Values): boolean {
     Reflect.set(target, property, value);
 
-    if (property === 'user') {
+    if (property === 'customer') {
       dispatch('userchange');
     }
     return true;

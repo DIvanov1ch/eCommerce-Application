@@ -2,12 +2,7 @@ import { Category, Customer, ProductProjection } from '@commercetools/platform-s
 import { TokenStore } from '@commercetools/sdk-client-v2';
 
 export interface MerchStore {
-  user: {
-    loggedIn: boolean;
-    firstName?: string;
-    lastName?: string;
-  };
-  customer: Customer;
+  customer?: Customer;
   token: TokenStore | null;
   categories: Category[];
   products: Record<string, ProductProjection>;
