@@ -126,7 +126,7 @@ export default class UserProfile extends Page {
   private createAddressLines(): void {
     const { LINE_WRAPPER } = CssClasses;
     this.clearContent(classSelector(LINE_WRAPPER));
-    const container = this.querySelector(classSelector(LINE_WRAPPER));
+    const container = this.$(classSelector(LINE_WRAPPER));
     this.customer.addresses.forEach((): void => {
       container?.insertAdjacentHTML('beforeend', addressLine);
     });
@@ -341,7 +341,7 @@ export default class UserProfile extends Page {
     const writePasswordBox = this.$(`${classSelector(PASSWORD_BOX)} ${classSelector(WRAPPER_WRITE)}`);
     const overlay = this.$(classSelector(OVERLAY));
     const addButton = this.$(classSelector(ADD_BUTTON_BOX));
-    const submitBtn = this.querySelector(classSelector(SUBMIT_BUTTON));
+    const submitBtn = this.$(classSelector(SUBMIT_BUTTON));
 
     writeProfileInfoBox?.addEventListener('click', this.enableEditProfileInfoMode.bind(this));
     writePasswordBox?.addEventListener('click', this.enableChangePasswordMode.bind(this));
@@ -366,10 +366,10 @@ export default class UserProfile extends Page {
 
   private setCheckboxCallback(): void {
     const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
-    const defaultBillingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_BILLING));
-    const defaultShippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_SHIPPING));
-    const billingCheckbox = <HTMLInputElement>this.querySelector(idSelector(BILLING_COUNTRY));
-    const shippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(SHIPPING_COUNTRY));
+    const defaultBillingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_BILLING));
+    const defaultShippingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_SHIPPING));
+    const billingCheckbox = <HTMLInputElement>this.$(idSelector(BILLING_COUNTRY));
+    const shippingCheckbox = <HTMLInputElement>this.$(idSelector(SHIPPING_COUNTRY));
     if (this.isAddressAdding) {
       [defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
         checkbox.addEventListener('change', (event) => {
@@ -390,7 +390,7 @@ export default class UserProfile extends Page {
   }
 
   private showModalWindow(): void {
-    const modal = this.querySelector(classSelector(CssClasses.OVERLAY));
+    const modal = this.$(classSelector(CssClasses.OVERLAY));
     modal?.classList.remove(CssClasses.HIDDEN);
   }
 
@@ -408,7 +408,7 @@ export default class UserProfile extends Page {
   }
 
   private hideModalWindow(): void {
-    const modal = this.querySelector(classSelector(CssClasses.OVERLAY));
+    const modal = this.$(classSelector(CssClasses.OVERLAY));
     modal?.classList.add(CssClasses.HIDDEN);
     this.disableEditMode();
   }
@@ -434,7 +434,7 @@ export default class UserProfile extends Page {
   }
 
   private clearContent(selector: string): void {
-    const contentBox = this.querySelector(selector);
+    const contentBox = this.$(selector);
     if (contentBox) {
       while (contentBox.firstElementChild) {
         contentBox.firstElementChild.remove();
