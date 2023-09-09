@@ -11,7 +11,7 @@ import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
 import warningIcon from '../../assets/icons/warning-icon.png';
-import { pause } from '../../utils/create-element';
+import { classSelector, idSelector, pause } from '../../utils/create-element';
 import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
@@ -45,45 +45,38 @@ export default class RegistrationPage extends Page {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.checkIfUserLoggedIn();
-    this.fields = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
+    this.fields = this.querySelectorAll(classSelector(CssClasses.INPUT_FIELD));
     this.setCallback();
   }
 
   private setCallback(): void {
+    const { SUBMIT_BTN, FORM, CHECKBOX, LOGIN_BTN, SELECT } = CssClasses;
     this.fields.forEach((field: HTMLInputElement): void => {
       field.addEventListener('input', this.hideError.bind(this));
       field.addEventListener('invalid', (event: Event) => event.preventDefault());
     });
 
-    const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    if (submitButton !== null) {
-      submitButton.addEventListener('click', this.checkValuesBeforeSubmit.bind(this));
-    }
+    const submitButton = <HTMLInputElement>this.$(classSelector(SUBMIT_BTN));
+    submitButton.addEventListener('click', this.checkValuesBeforeSubmit.bind(this));
 
-    const form: HTMLFormElement | null = this.querySelector(`.${CssClasses.FORM}`);
-    if (form !== null) {
-      form.addEventListener('submit', (event: Event) => event.preventDefault());
-    }
+    const form = <HTMLFormElement>this.$(classSelector(FORM));
+    form.addEventListener('submit', (event: Event) => event.preventDefault());
 
-    const sameAddressCheckbox: HTMLInputElement | null = this.querySelector(`#${CssClasses.CHECKBOX}`);
-    if (sameAddressCheckbox !== null) {
-      sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
-    }
+    const sameAddressCheckbox = <HTMLInputElement>this.$(idSelector(CHECKBOX));
+    sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
 
-    const loginButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
-    if (loginButton !== null) {
-      loginButton.addEventListener('click', (): void => {
-        window.location.href = '#login';
-      });
-    }
+    const loginButton = <HTMLInputElement>this.$(classSelector(LOGIN_BTN));
+    loginButton.addEventListener('click', () => {
+      window.location.href = '#login';
+    });
 
-    const countryFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll('[name="country"]');
+    const countryFileds = <HTMLInputElement[]>this.$$('[name="country"]');
     countryFileds.forEach((field) => {
       field.addEventListener('focus', this.showCountryList.bind(this));
       field.addEventListener('input', this.showCountryList.bind(this));
     });
 
-    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
     countrySelects.forEach((select) => select.addEventListener('click', this.hideCountryList.bind(this)));
 
     this.addEventListener('click', this.hidePopupAndRedirect.bind(this));
@@ -93,7 +86,7 @@ export default class RegistrationPage extends Page {
     const target = event.target as HTMLInputElement;
     if (!target.value || target.value.trim() !== 'United States') {
       const selector = target.id;
-      const countrySelect: HTMLDivElement | null = this.querySelector(`.${CssClasses.SELECT}.${selector}`);
+      const countrySelect = this.$(`${classSelector(CssClasses.SELECT)}${classSelector(selector)}`);
       if (countrySelect) {
         countrySelect.classList.remove(CssClasses.HIDDEN);
         countrySelect.style.top = `${target.getBoundingClientRect().bottom + window.scrollY}px`;
@@ -104,7 +97,7 @@ export default class RegistrationPage extends Page {
   private hideCountryList(event: Event): void {
     const target = event.target as HTMLDivElement;
     const selector = Object.values(InputID).find((id) => target.classList.contains(id));
-    const field: HTMLInputElement | null = this.querySelector(`#${selector}`);
+    const field = <HTMLInputElement>this.$(`#${selector}`);
     if (field) {
       field.value = target.textContent as string;
       field.dispatchEvent(new Event('input'));
@@ -140,9 +133,10 @@ export default class RegistrationPage extends Page {
   private setErrorMessages(): void {
     const invalidFields: HTMLInputElement[] = this.getInvalidFields();
     invalidFields.forEach((field: HTMLInputElement): void => {
+      const { ERROR_ICON, ERROR_TEXT } = CssClasses;
       const selector: string = field.id;
-      const errorImg: HTMLImageElement | null = this.querySelector(`.${CssClasses.ERROR_ICON}.${selector}`);
-      const errorContent: Element | null = this.querySelector(`.${CssClasses.ERROR_TEXT}.${selector}`);
+      const errorImg = <HTMLImageElement>this.$(`${classSelector(ERROR_ICON)}${classSelector(selector)}`);
+      const errorContent = this.$(`${classSelector(ERROR_TEXT)}${classSelector(selector)}`);
       const errorMessage: string = !field.value
         ? ErrorMessages.EMPTY_FIELD[`${field.name}`]
         : ErrorMessages.INVALID_VALUE[`${field.name}`];
@@ -177,16 +171,17 @@ export default class RegistrationPage extends Page {
       return;
     }
     if (error.message === errorMessages.emailError) {
-      const email = this.querySelector(`#${InputID.EMAIL}`);
+      const email = this.$(idSelector(InputID.EMAIL));
       email?.classList.add(CssClasses.INPUT_ERROR);
     }
     this.showRegistrationResult(error.message);
   }
 
   private showRegistrationResult(message: string): void {
-    const popup: HTMLDivElement | null = this.querySelector(`.${CssClasses.POP_UP}`);
-    const iconBox: HTMLImageElement | null = this.querySelector(`.${CssClasses.ICON}`);
-    const messageBox: HTMLDivElement | null = this.querySelector(`.${CssClasses.MESSAGE}`);
+    const { POP_UP, ICON, MESSAGE, HIDDEN } = CssClasses;
+    const popup = <HTMLDivElement>this.$(classSelector(POP_UP));
+    const iconBox = <HTMLImageElement>this.$(classSelector(ICON));
+    const messageBox = <HTMLDivElement>this.$(classSelector(MESSAGE));
     if (popup && iconBox && messageBox) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       iconBox.src = this.isSignUp ? successIcon : errorIcon;
@@ -194,7 +189,7 @@ export default class RegistrationPage extends Page {
       const popupSize = 300;
       popup.style.top = `${(document.documentElement.clientHeight - popupSize) / 2 + window.scrollY}px`;
       popup.style.left = `${(document.documentElement.clientWidth - popupSize) / 2}px`;
-      popup.classList.remove(CssClasses.HIDDEN);
+      popup.classList.remove(HIDDEN);
     }
   }
 
@@ -209,18 +204,19 @@ export default class RegistrationPage extends Page {
   }
 
   private setCustomerInformation(): void {
+    const { FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, DATE_OF_BIRTH, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const inputValues: Map<string, string> = new Map();
     this.fields.forEach((field) => inputValues.set(field.id, field.value));
-    this.customer.firstName = inputValues.get(InputID.FIRST_NAME);
-    this.customer.lastName = inputValues.get(InputID.LAST_NAME);
-    this.customer.email = inputValues.get(InputID.EMAIL) || '';
-    this.customer.password = inputValues.get(InputID.PASSWORD) || '';
-    this.customer.dateOfBirth = inputValues.get(InputID.DATE_OF_BIRTH);
+    this.customer.firstName = inputValues.get(FIRST_NAME);
+    this.customer.lastName = inputValues.get(LAST_NAME);
+    this.customer.email = inputValues.get(EMAIL) || '';
+    this.customer.password = inputValues.get(PASSWORD) || '';
+    this.customer.dateOfBirth = inputValues.get(DATE_OF_BIRTH);
     const shippingAddress: BaseAddress = this.setAddress(inputValues, AddressType.SHIPPING);
     const billingAddress: BaseAddress = this.setAddress(inputValues, AddressType.BILLING);
     this.customer.addresses = [shippingAddress, billingAddress];
-    const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
-    const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
+    const defaultShippingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_SHIPPING));
+    const defaultBillingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_BILLING));
     const indexOfShipping: number = this.customer.addresses.indexOf(shippingAddress);
     let indexOfBilling: number = this.customer.addresses.indexOf(billingAddress);
     if (defaultShippingCheckbox && defaultBillingCheckbox) {
@@ -270,15 +266,12 @@ export default class RegistrationPage extends Page {
 
   private setShippingAsBilling(event: Event): void {
     this.isShippingAsBilling = true;
-    const shippingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.SHIPPING}`);
-    const billingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.BILLING}`);
+    const { SHIPPING, BILLING } = CssClasses;
+    const shippingFileds = <HTMLInputElement[]>this.$$(classSelector(SHIPPING));
+    const billingFileds = <HTMLInputElement[]>this.$$(classSelector(BILLING));
     const target = event.target as HTMLInputElement;
     shippingFileds.forEach((field: HTMLInputElement, index: number): void => {
-      if (target.checked) {
-        billingFileds[index].value = field.value;
-      } else {
-        billingFileds[index].value = '';
-      }
+      billingFileds[index].value = target.checked ? field.value : '';
     });
     billingFileds.forEach((field: HTMLInputElement): void => {
       this.hideError(field);
@@ -286,25 +279,26 @@ export default class RegistrationPage extends Page {
   }
 
   private hidePopupAndRedirect(event: Event): void {
-    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+    const { SELECT, HIDDEN, POP_UP, CONTAINER, MESSAGE } = CssClasses;
+    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
     countrySelects.forEach((select) => {
       if (
-        !select.classList.contains(CssClasses.HIDDEN) &&
+        !select.classList.contains(HIDDEN) &&
         !(event.target instanceof HTMLInputElement && event.target.name === 'country')
       ) {
-        select.classList.add(CssClasses.HIDDEN);
+        select.classList.add(HIDDEN);
       }
     });
     const target = event.target as HTMLDivElement;
-    const popup: HTMLDivElement | null = this.querySelector(`.${CssClasses.POP_UP}`);
+    const popup = this.$(classSelector(POP_UP));
     if (
       popup !== null &&
-      !target.classList.contains(CssClasses.CONTAINER) &&
-      !target.classList.contains(CssClasses.POP_UP) &&
-      !target.classList.contains(CssClasses.MESSAGE) &&
-      !popup.classList.contains(CssClasses.HIDDEN)
+      !target.classList.contains(CONTAINER) &&
+      !target.classList.contains(POP_UP) &&
+      !target.classList.contains(MESSAGE) &&
+      !popup.classList.contains(HIDDEN)
     ) {
-      popup.classList.add(CssClasses.HIDDEN);
+      popup.classList.add(HIDDEN);
       if (this.isSignUp) {
         logout();
         this.logIn();
@@ -338,8 +332,9 @@ export default class RegistrationPage extends Page {
   }
 
   private disableButtons(): void {
-    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    const { SUBMIT_BTN, LOGIN_BTN } = CssClasses;
+    const submitBtn = <HTMLInputElement>this.$(classSelector(SUBMIT_BTN));
+    const loginBtn = <HTMLInputElement>this.$(classSelector(LOGIN_BTN));
     if (submitBtn && loginBtn) {
       submitBtn.disabled = true;
       loginBtn.disabled = true;
@@ -347,8 +342,9 @@ export default class RegistrationPage extends Page {
   }
 
   private enableButtons(): void {
-    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
+    const { SUBMIT_BTN, LOGIN_BTN } = CssClasses;
+    const submitBtn = <HTMLInputElement>this.$(classSelector(SUBMIT_BTN));
+    const loginBtn = <HTMLInputElement>this.$(classSelector(LOGIN_BTN));
     if (submitBtn && loginBtn) {
       submitBtn.disabled = false;
       loginBtn.disabled = false;
