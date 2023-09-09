@@ -236,9 +236,13 @@ export default class UserProfile extends Page {
   }
 
   private render(): void {
-    this.createAddressLines();
+    this.renderAddress();
     this.setUserProfileInfo();
     this.setPasswordLengthDisplay();
+  }
+
+  private renderAddress(): void {
+    this.createAddressLines();
     this.setAddressInfo();
     this.setAddressIconsCallback();
   }
@@ -674,17 +678,17 @@ export default class UserProfile extends Page {
       this.updateUserProfile({ version, actions });
     } else {
       this.isAddressEditing = false;
-      this.submitUpdateActions();
+      this.setAddressUpdateActions();
+      if (this.addressUpdateActions.length !== 0) {
+        this.submitUpdateActions();
+      }
     }
   }
 
   private submitUpdateActions(): void {
-    this.setAddressUpdateActions();
-    if (this.addressUpdateActions.length !== 0) {
-      const { version } = Store.customer;
-      const actions = this.addressUpdateActions;
-      this.updateUserProfile({ version, actions });
-    }
+    const { version } = Store.customer;
+    const actions = this.addressUpdateActions;
+    this.updateUserProfile({ version, actions });
   }
 
   private removeAddress(): void {
@@ -703,6 +707,7 @@ export default class UserProfile extends Page {
     this.isAddressUpdating = true;
     const { addresses } = Store.customer;
     this.addressId = addresses[addresses.length - 1].id as string;
+    const { addressId } = this;
     const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
     const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
@@ -711,27 +716,27 @@ export default class UserProfile extends Page {
     if (setAsShipping) {
       this.addressUpdateActions.push({
         action: UpdateActions.ADD_SHIPPING_ADDRESS_ID,
-        addressId: this.addressId,
+        addressId,
       });
     }
     if (setAsBilling) {
       this.addressUpdateActions.push({
         action: UpdateActions.ADD_BILLING_ADDRESS_ID,
-        addressId: this.addressId,
+        addressId,
       });
     }
     if (setAsDefaultShipping) {
       this.isDefaultShippingAddressChanged = true;
       this.addressUpdateActions.push({
         action: UpdateActions.SET_DEFAULT_SHIPPING_ADDRESS,
-        addressId: this.addressId,
+        addressId,
       });
     }
     if (setAsDefaultBilling) {
       this.isDefaultBillingAddressChanged = true;
       this.addressUpdateActions.push({
         action: UpdateActions.SET_DEFAULT_BILLING_ADDRESS,
-        addressId: this.addressId,
+        addressId,
       });
     }
   }
@@ -795,7 +800,6 @@ export default class UserProfile extends Page {
       });
   }
 
-  // eslint-disable-next-line max-lines-per-function
   private handleSubmitActionResult(): void {
     if (this.isProfileEditing) {
       this.setUserProfileInfo();
@@ -804,13 +808,10 @@ export default class UserProfile extends Page {
     if (this.isAddressAction) {
       if (this.isAddressAdding) {
         UserProfile.showMessage(ToastMessage.ADDRESS_SAVED, true);
-        this.setNewAddressActions();
         this.isAddressAdding = false;
+        this.setNewAddressActions();
         if (this.addressUpdateActions.length !== 0) {
-          const { version } = Store.customer;
-          const actions = this.addressUpdateActions;
-          this.addressUpdateActions = [];
-          this.updateUserProfile({ version, actions });
+          this.submitUpdateActions();
           return;
         }
       }
@@ -819,13 +820,10 @@ export default class UserProfile extends Page {
       }
       if (this.isAddressEditing) {
         UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
-        this.setAddressUpdateActions();
         this.isAddressEditing = false;
+        this.setAddressUpdateActions();
         if (this.addressUpdateActions.length !== 0) {
-          const { version } = Store.customer;
-          const actions = this.addressUpdateActions;
-          this.addressUpdateActions = [];
-          this.updateUserProfile({ version, actions });
+          this.submitUpdateActions();
           return;
         }
       }
@@ -838,9 +836,7 @@ export default class UserProfile extends Page {
         }
         UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
       }
-      this.createAddressLines();
-      this.setAddressInfo();
-      this.setAddressIconsCallback();
+      this.renderAddress();
     }
     this.hideModalWindow();
   }
