@@ -23,6 +23,7 @@ import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import { changePassword, login, logout, update } from '../../services/API';
 import { loadCustomer } from '../../utils/load-data';
+import UpdateActions from './update-actions';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -99,7 +100,7 @@ export default class UserProfile extends Page {
 
   private addressUpdateActions: MyCustomerUpdateAction[] = [];
 
-  private addressID = '';
+  private addressId = '';
 
   private checkboxState = {
     billing: false,
@@ -220,13 +221,14 @@ export default class UserProfile extends Page {
   }
 
   private checkIfUserLoggedIn(): void {
+    console.log(Number(Store.token?.expirationTime) > Date.now());
     if (!Store.user.loggedIn) {
       this.goToLoginPage(HTML_NOT_YET).then().catch(console.error);
       return;
     }
     if (!Store.token || Store.token.expirationTime <= Date.now()) {
       logout();
-      Store.user.loggedIn = false;
+      Store.user = { loggedIn: false };
       this.goToLoginPage(HTML_LOG_IN).then().catch(console.error);
       return;
     }
@@ -269,7 +271,7 @@ export default class UserProfile extends Page {
     this.isAddressDeleting = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.addressID = fieldContainer.id;
+    this.addressId = fieldContainer.id;
     this.template = deleteTemplate;
     this.setModalContent(SubmitBtnValue.DELETE, true);
     this.showModalWindow();
@@ -280,7 +282,7 @@ export default class UserProfile extends Page {
     this.isAddressEditing = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.addressID = fieldContainer.id;
+    this.addressId = fieldContainer.id;
     this.template = addressTemplate;
     this.setModalContent(SubmitBtnValue.SAVE, false, ADDRESS_TITLE.EDIT);
     this.showModalWindow();
@@ -304,7 +306,7 @@ export default class UserProfile extends Page {
     this.isDefaultShippingAddressChanged = false;
     this.isAddressAction = false;
     this.isAddressUpdating = false;
-    this.addressID = '';
+    this.addressId = '';
     this.checkboxState = {
       billing: false,
       shipping: false,
@@ -441,26 +443,26 @@ export default class UserProfile extends Page {
   private fillAddressTemplate(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
       Store.customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
 
     this.setInputValue(idSelector(STREET), streetName);
     this.setInputValue(idSelector(CITY), city);
     this.setInputValue(idSelector(POSTAL_CODE), postalCode);
-    if (this.addressID === defaultShippingAddressId) {
+    if (this.addressId === defaultShippingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_SHIPPING));
       this.checkboxState.defaultShipping = true;
     }
-    if (this.addressID === defaultBillingAddressId) {
+    if (this.addressId === defaultBillingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_BILLING));
       this.checkboxState.defaultBilling = true;
     }
-    if (shippingAddressIds?.includes(this.addressID)) {
+    if (shippingAddressIds?.includes(this.addressId)) {
       this.makeCheckboxChecked(idSelector(SHIPPING_COUNTRY));
       this.checkboxState.shipping = true;
     }
-    if (billingAddressIds?.includes(this.addressID)) {
+    if (billingAddressIds?.includes(this.addressId)) {
       this.makeCheckboxChecked(idSelector(BILLING_COUNTRY));
       this.checkboxState.billing = true;
     }
@@ -477,7 +479,7 @@ export default class UserProfile extends Page {
 
   private fillDeleteTemplate(): void {
     const { addresses } = Store.customer;
-    const addressToDelete = addresses.find((address) => address.id === this.addressID) as Address;
+    const addressToDelete = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode, country } = addressToDelete;
     const { STREET, CITY, POSTAL_CODE, COUNTRY, DELETE_BOX } = CssClasses;
     const container = <HTMLDivElement>this.$(classSelector(DELETE_BOX));
@@ -584,25 +586,25 @@ export default class UserProfile extends Page {
     const actions: MyCustomerUpdateAction[] = [];
     if (newFirstName !== firstName) {
       actions.push({
-        action: 'setFirstName',
+        action: UpdateActions.SET_FIRST_NAME,
         firstName: newFirstName,
       });
     }
     if (newLastName !== lastName) {
       actions.push({
-        action: 'setLastName',
+        action: UpdateActions.SET_LAST_NAME,
         lastName: newLastName,
       });
     }
     if (newDateOfBirth !== dateOfBirth) {
       actions.push({
-        action: 'setDateOfBirth',
+        action: UpdateActions.SET_DATE_OF_BIRTH,
         dateOfBirth: newDateOfBirth,
       });
     }
     if (newEmail !== email) {
       actions.push({
-        action: 'changeEmail',
+        action: UpdateActions.CHANGE_EMAIL,
         email: newEmail,
       });
     }
@@ -634,7 +636,7 @@ export default class UserProfile extends Page {
     const { version } = Store.customer;
     const actions: MyCustomerUpdateAction[] = [
       {
-        action: 'addAddress',
+        action: UpdateActions.ADD_ADDRESS,
         address: {
           streetName,
           city,
@@ -649,7 +651,7 @@ export default class UserProfile extends Page {
   private submitAddressChanges(): void {
     const { STREET, CITY, POSTAL_CODE } = InputID;
     const { addresses } = Store.customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const newStreetName = this.getInputValue(idSelector(STREET));
     const newCity = this.getInputValue(idSelector(CITY));
@@ -659,8 +661,8 @@ export default class UserProfile extends Page {
     if (streetName !== newStreetName || city !== newCity || postalCode !== newPostalCode) {
       const actions: MyCustomerUpdateAction[] = [
         {
-          action: 'changeAddress',
-          addressId: this.addressID,
+          action: UpdateActions.CHANGE_ADDRESS,
+          addressId: this.addressId,
           address: {
             streetName: newStreetName,
             city: newCity,
@@ -689,8 +691,8 @@ export default class UserProfile extends Page {
     const { version } = Store.customer;
     const actions: MyCustomerUpdateAction[] = [
       {
-        action: 'removeAddress',
-        addressId: this.addressID,
+        action: UpdateActions.REMOVE_ADDRESS,
+        addressId: this.addressId,
       },
     ];
     this.updateUserProfile({ version, actions });
@@ -700,7 +702,7 @@ export default class UserProfile extends Page {
     this.addressUpdateActions = [];
     this.isAddressUpdating = true;
     const { addresses } = Store.customer;
-    this.addressID = addresses[addresses.length - 1].id as string;
+    this.addressId = addresses[addresses.length - 1].id as string;
     const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
     const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
@@ -708,94 +710,60 @@ export default class UserProfile extends Page {
     const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
     if (setAsShipping) {
       this.addressUpdateActions.push({
-        action: 'addShippingAddressId',
-        addressId: this.addressID,
+        action: UpdateActions.ADD_SHIPPING_ADDRESS_ID,
+        addressId: this.addressId,
       });
     }
     if (setAsBilling) {
       this.addressUpdateActions.push({
-        action: 'addBillingAddressId',
-        addressId: this.addressID,
+        action: UpdateActions.ADD_BILLING_ADDRESS_ID,
+        addressId: this.addressId,
       });
     }
     if (setAsDefaultShipping) {
       this.isDefaultShippingAddressChanged = true;
       this.addressUpdateActions.push({
-        action: 'setDefaultShippingAddress',
-        addressId: this.addressID,
+        action: UpdateActions.SET_DEFAULT_SHIPPING_ADDRESS,
+        addressId: this.addressId,
       });
     }
     if (setAsDefaultBilling) {
       this.isDefaultBillingAddressChanged = true;
       this.addressUpdateActions.push({
-        action: 'setDefaultBillingAddress',
-        addressId: this.addressID,
+        action: UpdateActions.SET_DEFAULT_BILLING_ADDRESS,
+        addressId: this.addressId,
       });
     }
   }
 
-  // eslint-disable-next-line max-lines-per-function
   private setAddressUpdateActions(): void {
     this.addressUpdateActions = [];
     this.isAddressUpdating = true;
+    const { addressId } = this;
     const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
     const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
     const setAsDefaultShipping = this.getCheckboxState(idSelector(DEFAULT_SHIPPING));
     const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
     if (setAsShipping !== this.checkboxState.shipping) {
-      if (setAsShipping) {
-        this.addressUpdateActions.push({
-          action: 'addShippingAddressId',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'removeShippingAddressId',
-          addressId: this.addressID,
-        });
-      }
+      const action = setAsShipping ? UpdateActions.ADD_SHIPPING_ADDRESS_ID : UpdateActions.REMOVE_SHIPPING_ADDRESS_ID;
+      this.addressUpdateActions.push({ action, addressId });
     }
     if (setAsBilling !== this.checkboxState.billing) {
-      if (setAsBilling) {
-        this.addressUpdateActions.push({
-          action: 'addBillingAddressId',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'removeBillingAddressId',
-          addressId: this.addressID,
-        });
-      }
+      const action = setAsBilling ? UpdateActions.ADD_BILLING_ADDRESS_ID : UpdateActions.REMOVE_BILLING_ADDRESS_ID;
+      this.addressUpdateActions.push({ action, addressId });
     }
     if (setAsDefaultShipping !== this.checkboxState.defaultShipping) {
-      if (setAsDefaultShipping) {
-        this.isDefaultShippingAddressChanged = true;
-        this.addressUpdateActions.push({
-          action: 'setDefaultShippingAddress',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'setDefaultShippingAddress',
-          addressId: undefined,
-        });
-      }
+      const action = UpdateActions.SET_DEFAULT_SHIPPING_ADDRESS;
+      const id = setAsDefaultShipping ? addressId : undefined;
+      this.isDefaultShippingAddressChanged = setAsDefaultShipping;
+      this.addressUpdateActions.push({ action, addressId: id });
     }
     if (setAsDefaultBilling !== this.checkboxState.defaultBilling) {
-      if (setAsDefaultBilling) {
-        this.isDefaultBillingAddressChanged = true;
-        this.addressUpdateActions.push({
-          action: 'setDefaultBillingAddress',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'setDefaultBillingAddress',
-          addressId: undefined,
-        });
-      }
+      const action = UpdateActions.SET_DEFAULT_BILLING_ADDRESS;
+      const id = setAsDefaultBilling ? addressId : undefined;
+      this.isDefaultBillingAddressChanged = setAsDefaultBilling;
+      this.addressUpdateActions.push({ action, addressId: id });
     }
   }
 
