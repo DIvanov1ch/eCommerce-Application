@@ -34,4 +34,4 @@ export const pause = (msec: number): Promise<void> =>
     setTimeout(resolve, msec, `pause ${msec}`);
   });
 
-export const className = (name: string): string => `.${name}`;
+export const classSelector = (name: string): string => `.${name}`;

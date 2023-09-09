@@ -61,6 +61,10 @@
     max-width: 100%;
     overflow: hidden;
   }
+
+  &__variants {
+    margin-bottom: 1em;
+  }
 }
 
 @media (max-width: 500px) {

@@ -14,9 +14,12 @@ const Store: MerchStore = {
     refreshToken: undefined,
   },
   categories: [],
+  types: [],
   products: {},
   cart: [],
 };
+
+const SKIP = ['products'];
 
 type Keys = keyof typeof Store;
 type Values = (typeof Store)[Keys];
@@ -30,8 +33,7 @@ function loadFromStorage(): void {
 }
 
 function saveToStorage(): void {
-  const { user, customer, token, categories, cart } = Store;
-  const toSave = { user, customer, token, categories, cart };
+  const toSave = Object.fromEntries(Object.entries(Store).filter(([key]) => !SKIP.includes(key)));
   localStorage.setItem(STORAGE_NAME, JSON.stringify(toSave));
 }
 

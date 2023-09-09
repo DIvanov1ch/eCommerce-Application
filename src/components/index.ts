@@ -8,6 +8,7 @@ import PageMain from './PageMain';
 import PriceBox from './PriceBox';
 import ProductCard from './ProductCard';
 import ProductCategories from './ProductCategories';
+import ProductVariants from './ProductVariants';
 import TimeOut from './TimeOut';
 
 const Components = {
@@ -22,6 +23,7 @@ const Components = {
   'image-slider': ImageSlider,
   'modal-dialog': ModalDialog,
   'product-card': ProductCard,
+  'product-variants': ProductVariants,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {

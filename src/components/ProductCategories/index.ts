@@ -2,7 +2,7 @@ import './categories.scss';
 import html from './template.html';
 import BaseComponent from '../BaseComponent';
 import Store from '../../services/Store';
-import loadProductCategories from '../../utils/load-data';
+import { loadProductCategories } from '../../utils/load-data';
 import { LANG } from '../../config';
 import { createElement } from '../../utils/create-element';
 import throwError from '../../utils/throw-error';

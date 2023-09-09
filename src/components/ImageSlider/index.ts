@@ -5,7 +5,7 @@ import 'swiper/css/navigation';
 import './image-slider.scss';
 import html from './template.html';
 import BaseComponent from '../BaseComponent';
-import { createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
 import ModalDialog from '../ModalDialog';
 
 const CssClasses = {
@@ -18,8 +18,6 @@ const CssClasses = {
   SWIPER_BTN_NEXT: 'swiper-button-next',
   MODAL: 'image-slider--modal',
 };
-
-const classSelector = (name: string): string => `.${name}`;
 
 export default class ImageSlider extends BaseComponent {
   #images: string[] = [];

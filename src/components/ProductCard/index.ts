@@ -4,7 +4,7 @@ import html from './template.html';
 import BaseComponent from '../BaseComponent';
 import Store from '../../services/Store';
 import { LANG } from '../../config';
-import { className, createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
 
 const CssClasses = {
@@ -13,6 +13,7 @@ const CssClasses = {
   DESCRIPTION: 'product-card__description',
   IMAGE: 'product-card__image',
   PRICE: 'product-card__price',
+  VARIANTS: 'product-card__variants',
   CART: 'product-card__cart',
   CARTICON: 'product-card__cart-svg-icon',
   CARTICONINACTIVE: 'product-card__cart-svg-icon--inactive',
@@ -55,8 +56,8 @@ export default class ProductCard extends BaseComponent {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    this.insertHtml(className(NAME), name);
-    this.insertHtml(className(DESCRIPTION), description.split('\n')[0]);
+    this.insertHtml(classSelector(NAME), name);
+    this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
     this.setBasketIcon(this.#key);
@@ -64,7 +65,7 @@ export default class ProductCard extends BaseComponent {
   }
 
   private setPrice(price: number, discounted: number): void {
-    const priceContainer = this.$(className(CssClasses.PRICE));
+    const priceContainer = this.$(classSelector(CssClasses.PRICE));
     const priceBox = new PriceBox();
     priceBox.setPrice(price);
     priceBox.setDiscounted(discounted);
@@ -80,22 +81,22 @@ export default class ProductCard extends BaseComponent {
     const [{ url }] = images;
     const image = createElement('img', { src: url });
 
-    this.$(className(CssClasses.IMAGE))?.replaceChildren(image);
+    this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
   private setBasketIcon(key: string): void {
     Store.cart.forEach((storeCart) => {
       if (key === storeCart.key) {
-        this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+        this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       }
     });
   }
 
   private basketIconClickHandling(productKey: string): void {
-    this.$(className(CssClasses.CARTICON))?.addEventListener('click', (event) => {
+    this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
       const productToBasket = { key: productKey, quantity: 1 };
       Store.cart.push(productToBasket);
-      this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       event.stopPropagation();
     });
   }
