@@ -1,30 +1,19 @@
 import { Address, Customer } from '@commercetools/platform-sdk';
 
 export default class LoggedInUser implements Customer {
-  public id: string;
+  public id = '';
 
-  public version: number;
+  public version = -1;
 
-  public createdAt: string;
+  public createdAt = '';
 
-  public lastModifiedAt: string;
+  public lastModifiedAt = '';
 
-  public email: string;
+  public email = '';
 
-  public isEmailVerified: boolean;
+  public isEmailVerified = false;
 
-  public authenticationMode: string;
+  public authenticationMode = '';
 
-  public addresses: Address[];
-
-  constructor() {
-    this.id = '';
-    this.version = -1;
-    this.email = '';
-    this.createdAt = '';
-    this.lastModifiedAt = '';
-    this.addresses = [];
-    this.isEmailVerified = false;
-    this.authenticationMode = '';
-  }
+  public addresses: Address[] = [];
 }
