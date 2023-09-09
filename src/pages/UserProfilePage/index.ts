@@ -351,8 +351,8 @@ export default class UserProfile extends Page {
   }
 
   private setInputCallback(): void {
-    const fields = <HTMLInputElement[]>this.$$(classSelector(CssClasses.FIELD));
-    fields.forEach((field) => field.addEventListener('input', this.checkResult.bind(this)));
+    const inputs = <HTMLInputElement[]>this.$$(classSelector(CssClasses.INPUT));
+    inputs.forEach((input) => input.addEventListener('input', this.checkValue.bind(this)));
   }
 
   private setAddressIconsCallback(): void {
@@ -414,8 +414,8 @@ export default class UserProfile extends Page {
   }
 
   private setModalContent(submitButtonValue: string, isButtonEnabled: boolean, title?: string): void {
-    this.clearContent(classSelector(CssClasses.MODAL));
     const { MODAL, SUBMIT_BUTTON } = CssClasses;
+    this.clearContent(classSelector(MODAL));
     const contentBox = this.$(classSelector(MODAL));
 
     if (title) {
@@ -523,47 +523,53 @@ export default class UserProfile extends Page {
     }
   }
 
-  private checkResult(event: Event): void {
+  private checkValue(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (isValidValue(input.id, input.value)) {
-      this.hideErrorMessage(input.id);
-      this.checkAllInputsAreFilled();
+      this.hideInputErrorMessage(input.id);
     } else {
       const errorMessage = !input.value
         ? ErrorMessages.EMPTY_FIELD[`${input.name}`]
         : ErrorMessages.INVALID_VALUE[`${input.name}`];
       this.setInputErrorMessage(input.id, errorMessage);
-      this.showErrorMessage(input.id);
+      this.showInputErrorMessage(input.id);
     }
+    this.setSubmitButtonState();
   }
 
-  private checkAllInputsAreFilled(): void {
-    const { FIELD, SUBMIT_BUTTON } = CssClasses;
-    const fields = <HTMLInputElement[]>this.$$(classSelector(FIELD));
-    if (fields.every((input) => input.value && isValidValue(input.id, input.value))) {
+  private setSubmitButtonState(): void {
+    const { SUBMIT_BUTTON } = CssClasses;
+    if (this.isFormFilled()) {
       this.enableInput(classSelector(SUBMIT_BUTTON));
+    } else {
+      this.disableInput(classSelector(SUBMIT_BUTTON));
     }
   }
 
-  private hideErrorMessage(inputID: string): void {
-    const { INPUT_ERROR, HIDDEN } = CssClasses;
+  private isFormFilled(): boolean {
+    const { INPUT } = CssClasses;
+    const inputs = <HTMLInputElement[]>this.$$(classSelector(INPUT));
+    return inputs.every((input) => input.value && isValidValue(input.id, input.value));
+  }
+
+  private hideInputErrorMessage(inputID: string): void {
+    const { ERROR, HIDDEN } = CssClasses;
     const input = this.$(idSelector(inputID)) as HTMLInputElement;
     const errorBox: Element | null = input.nextElementSibling;
-    input.classList.remove(INPUT_ERROR);
+    input.classList.remove(ERROR);
     if (errorBox !== null) {
       errorBox.classList.add(HIDDEN);
     }
   }
 
-  private showErrorMessage(inputID: string): void {
-    const { INPUT_ERROR, HIDDEN, SUBMIT_BUTTON } = CssClasses;
+  private showInputErrorMessage(inputID: string): void {
+    const { ERROR, HIDDEN } = CssClasses;
     const input = this.$(idSelector(inputID)) as HTMLInputElement;
     const errorBox: Element | null = input.nextElementSibling;
-    input.classList.add(INPUT_ERROR);
+    input.classList.add(ERROR);
     if (errorBox !== null) {
       errorBox.classList.remove(HIDDEN);
     }
-    this.disableInput(classSelector(SUBMIT_BUTTON));
   }
 
   private setInputErrorMessage(inputID: string, message: string): void {
@@ -640,8 +646,9 @@ export default class UserProfile extends Page {
     if (newPassword !== reenteredPassword) {
       this.setInputErrorMessage(NEW_PASSWORD, ErrorMessages.PASSWORD_MISMATCH.password);
       this.setInputErrorMessage(RE_ENTERED_PASSWORD, ErrorMessages.PASSWORD_MISMATCH.password);
-      this.showErrorMessage(NEW_PASSWORD);
-      this.showErrorMessage(RE_ENTERED_PASSWORD);
+      this.showInputErrorMessage(NEW_PASSWORD);
+      this.showInputErrorMessage(RE_ENTERED_PASSWORD);
+      this.setSubmitButtonState();
       return;
     }
     this.changeUserPassword({ version, currentPassword, newPassword });
@@ -812,7 +819,8 @@ export default class UserProfile extends Page {
       .catch((error: ErrorResponse) => {
         UserProfile.showMessage(error.message, false);
         this.setInputErrorMessage(InputID.OLD_PASSWORD, error.message);
-        this.showErrorMessage(InputID.OLD_PASSWORD);
+        this.showInputErrorMessage(InputID.OLD_PASSWORD);
+        this.setSubmitButtonState();
       });
   }
 

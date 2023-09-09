@@ -3,7 +3,7 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { login } from '../../services/API';
+import { login, logout } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
@@ -286,6 +286,9 @@ export default class LoginPage extends Page {
   private static submitAction = (): void => {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
+      if (Store.token) {
+        logout();
+      }
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           Store.customer = body.customer;
