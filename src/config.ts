@@ -32,6 +32,9 @@ export const ZipCodes = {
   RANGE_START: 501,
   RANGE_END: 99950,
 };
+export const Country = {
+  UnitedStates: 'US',
+};
 
 export const STORAGE_NAME = 'sd-merch';
 export const LANG = 'en';
