@@ -14,7 +14,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
   INVALID_VALUE: {
     forename: 'Must not contain special characters or numbers',
     surname: 'Must not contain special characters or numbers',
-    email: 'Wrong or Invalid email address. Please correct and try again.',
+    email: 'Wrong or Invalid email address. Please correct it.',
     password: 'Must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and be 8 characters long',
     date: 'You need to be at least 13 years old',
     street: 'Must contain at least one character',

@@ -3,7 +3,7 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { login } from '../../services/API';
+import { login, logout } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
@@ -16,7 +16,7 @@ export default class LoginPage extends Page {
   }
 
   protected connectedCallback(): void {
-    LoginPage.checkIfLoginByTokenInLocalStorage();
+    LoginPage.checkIfUserLoggedIn();
 
     super.connectedCallback();
     LoginPage.checkPasswordValidation();
@@ -41,10 +41,6 @@ export default class LoginPage extends Page {
 
   private static userEmail: string;
 
-  private static isLogIn: boolean;
-
-  private static userId: string;
-
   public static getPassword = (): string => {
     return this.userPassword || '';
   };
@@ -53,19 +49,13 @@ export default class LoginPage extends Page {
     return this.userEmail || '';
   };
 
-  public static getIsLogin = (): boolean => {
-    return this.isLogIn || false;
-  };
-
   public static setLoginToDefault = (): void => {
-    this.isLogIn = false;
-    this.userId = '';
     this.userPassword = '';
     this.userEmail = '';
   };
 
-  private static checkIfLoginByTokenInLocalStorage = (): void => {
-    if (Store.user.loggedIn) {
+  private static checkIfUserLoggedIn = (): void => {
+    if (Store.customer) {
       this.goToMainPage();
     }
   };
@@ -296,13 +286,12 @@ export default class LoginPage extends Page {
   private static submitAction = (): void => {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
+      if (Store.token) {
+        logout();
+      }
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
-          const { firstName, lastName, id } = body.customer;
           Store.customer = body.customer;
-          this.isLogIn = true;
-          this.userId = id;
-          Store.user = { loggedIn: true, firstName, lastName };
           this.goToMainPage();
         })
         .catch((error: Error) => {
