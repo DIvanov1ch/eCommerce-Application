@@ -25,7 +25,7 @@
 .address-line {
   position: relative;
 
-  .icon__wrapper_write {
+  .image__wrapper_write {
     right: 48px;
   }
 
@@ -54,7 +54,7 @@
   color: #a6a6a6;
 }
 
-.icon__wrapper {
+.image__wrapper {
   position: absolute;
   right: 0;
   top: 50%;
@@ -63,13 +63,13 @@
   height: 32px;
 }
 
-.icon__box {
+.image__box {
   height: 100%;
   border-radius: 20px;
   transition: all 0.2s;
 }
 
-.icon {
+.image {
   width: 16px;
   display: block;
   margin: 0 auto;
@@ -77,13 +77,13 @@
   transition: all 0.2s;
 }
 
-.icon__box:hover {
+.image__box:hover {
   background-color: rgb(218, 218, 218);
   transition: all 0.2s;
   cursor: pointer;
 }
 
-.icon__box:active {
+.image__box:active {
   background-color: rgb(233, 233, 233);
   transform: scale(0.9);
   transition: all 0.2s;
@@ -157,17 +157,17 @@
   cursor: pointer;
   font-weight: 600;
 
-  .icon__box {
+  .image__box {
     margin-right: 10px;
     transition: 0.2s;
   }
 
-  .icon__box:hover {
+  .image__box:hover {
     background-color: rgb(49, 189, 107);
     transition: 0.2s;
   }
 
-  .icon_plus {
+  .image_plus {
     padding-top: 0;
   }
 }
@@ -185,11 +185,11 @@
 .user-profile__button-box:disabled {
   cursor: not-allowed;
 
-  .icon__box {
+  .image__box {
     pointer-events: none;
   }
 
-  .icon {
+  .image {
     opacity: 0.5;
   }
 }
