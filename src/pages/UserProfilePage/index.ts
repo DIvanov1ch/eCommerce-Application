@@ -26,6 +26,7 @@ import { changePassword, login, logout, update } from '../../services/API';
 import { loadCustomer } from '../../utils/load-data';
 import UpdateActions from './update-actions';
 import LoggedInUser from '../../services/LoggedInUser';
+import { Country } from '../../config';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -75,7 +76,6 @@ const getToastOptions = (message: string, background: string): Options => {
     },
   };
 };
-const defaultCountry = 'US';
 
 export default class UserProfile extends Page {
   private customer: Customer = new LoggedInUser();
@@ -659,7 +659,7 @@ export default class UserProfile extends Page {
     const streetName = this.getInputValue(idSelector(STREET));
     const city = this.getInputValue(idSelector(CITY));
     const postalCode = this.getInputValue(idSelector(POSTAL_CODE));
-    const country = defaultCountry;
+    const country = Country.UnitedStates;
     const { version } = this.customer;
     const actions: MyCustomerUpdateAction[] = [
       {
@@ -683,7 +683,7 @@ export default class UserProfile extends Page {
     const newStreetName = this.getInputValue(idSelector(STREET));
     const newCity = this.getInputValue(idSelector(CITY));
     const newPostalCode = this.getInputValue(idSelector(POSTAL_CODE));
-    const country = defaultCountry;
+    const country = Country.UnitedStates;
     const { version } = this.customer;
     if (streetName !== newStreetName || city !== newCity || postalCode !== newPostalCode) {
       const actions: MyCustomerUpdateAction[] = [

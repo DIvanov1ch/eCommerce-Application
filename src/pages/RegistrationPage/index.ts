@@ -15,6 +15,7 @@ import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
 import Router from '../../services/Router';
+import { Country } from '../../config';
 
 Router.registerRoute('registration', 'registration-page');
 
@@ -32,8 +33,6 @@ export default class RegistrationPage extends Page {
   private fields = <HTMLInputElement[]>this.$$(classSelector(CssClasses.INPUT));
 
   private customer = new NewUser();
-
-  private country = 'US';
 
   private isShippingAsBilling: boolean = false;
 
@@ -234,7 +233,7 @@ export default class RegistrationPage extends Page {
       streetName: this.getInputValue(idSelector(STREET)),
       city: this.getInputValue(idSelector(CITY)),
       postalCode: this.getInputValue(idSelector(POSTAL_CODE)),
-      country: this.country,
+      country: Country.UnitedStates,
     };
     return address;
   }
