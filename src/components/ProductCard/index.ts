@@ -6,7 +6,7 @@ import Store from '../../services/Store';
 import { LANG } from '../../config';
 import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
-import { addToCart } from '../../services/API';
+import { putProductIntoCart } from '../../services/API';
 import throwError from '../../utils/throw-error';
 
 const CssClasses = {
@@ -61,8 +61,8 @@ export default class ProductCard extends BaseComponent {
     this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
-    this.setBasketIcon(this.#key);
-    this.basketIconClickHandling(this.#key);
+    this.setCartIcon(this.#key);
+    this.CartIconClickHandling(this.#key);
   }
 
   private setPrice(price: number, discounted: number): void {
@@ -85,24 +85,17 @@ export default class ProductCard extends BaseComponent {
     this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
-  private setBasketIcon(key: string): void {
-    Store.cart.forEach((storeCart) => {
-      if (key === storeCart.key) {
-        this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
-      }
-      this.$(CssClasses.CARTICON)?.classList.remove(`${CssClasses.CARTICONINACTIVE}`);
-    });
+  private setCartIcon(key: string): void {
+    this.$(classSelector(CssClasses.CARTICON))?.classList.remove(`${CssClasses.CARTICONINACTIVE}`);
+    const arr = [];
+    arr.push(key);
   }
 
-  private basketIconClickHandling(productKey: string): void {
+  private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      const productToBasket = { key: productKey, quantity: 1 };
-      Store.cart.push(productToBasket);
-      this.$(CssClasses.CARTICON)?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
-      addToCart()
-        .then(({ body }) => {
-          console.log(body.anonymousId);
-        })
+      this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      putProductIntoCart(productKey)
+        .then(() => {})
         .catch(() => throwError);
       event.stopPropagation();
     });

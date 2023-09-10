@@ -93,7 +93,7 @@ const getPasswordFlowOptions = (
 //   };
 // };
 
-const getAnonymousMiddlewareOptions = (): AnonymousAuthMiddlewareOptions => {
+const getAnonymousMiddlewareOptions = (token: TokenClient): AnonymousAuthMiddlewareOptions => {
   return {
     host: authHost,
     projectKey,
@@ -103,6 +103,7 @@ const getAnonymousMiddlewareOptions = (): AnonymousAuthMiddlewareOptions => {
     },
     scopes,
     fetch,
+    tokenCache: token,
   };
 };
 
@@ -140,7 +141,7 @@ const getPasswordFlowClient = (username: string, password: string): Client => {
 
 const getAnonymousFlowClient = (): Client => {
   const anonymousFlowClient = new ClientBuilder()
-    .withAnonymousSessionFlow(getAnonymousMiddlewareOptions())
+    .withAnonymousSessionFlow(getAnonymousMiddlewareOptions(newToken))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
@@ -166,7 +167,7 @@ const getInfoOfFilteredProducts = async ({
   sortingQuery,
   searchQuery,
 }: FilterSortingSearchQueries): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
-  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
   return apiRoot
     .productProjections()
     .search()
@@ -215,14 +216,15 @@ const changePassword = async (body: MyCustomerChangePassword): Promise<ClientRes
   return apiRoot.me().password().post({ body }).execute();
 };
 
-const addToCart = async (): Promise<ClientResponse<Cart>> => {
-  const apiRoot = getApiRoot(getAnonymousFlowClient());
+const createNewCart = async (): Promise<ClientResponse<Cart>> => {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
     .me()
     .carts()
     .post({
       body: {
         currency: 'USD',
+        country: 'US',
       },
       headers: {
         'Content-Type': 'application/json',
@@ -230,6 +232,40 @@ const addToCart = async (): Promise<ClientResponse<Cart>> => {
     })
     .execute();
 };
+
+async function getActiveCart(): Promise<ClientResponse<Cart>> {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return apiRoot.me().activeCart().get().execute();
+}
+
+async function putProductIntoCart(product: string): Promise<ClientResponse<Cart>> {
+  await getActiveCart().catch((error: Error) => {
+    if (error.name === 'NotFound') {
+      createNewCart()
+        .then(() => {})
+        .catch(() => {});
+    }
+  });
+  const { id, version } = (await getActiveCart()).body;
+  const productId = (await getProductProjectionByKey(product)).id;
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  return apiRoot
+    .me()
+    .carts()
+    .withId({ ID: id })
+    .post({
+      body: {
+        version,
+        actions: [
+          {
+            action: 'addLineItem',
+            productId,
+          },
+        ],
+      },
+    })
+    .execute();
+}
 
 export {
   login,
@@ -241,6 +277,8 @@ export {
   getProductTypes,
   update,
   changePassword,
-  addToCart,
+  createNewCart,
+  getActiveCart,
+  putProductIntoCart,
   getCustomer,
 };
