@@ -86,14 +86,17 @@ export default class ProductCard extends BaseComponent {
   }
 
   private setCartIcon(key: string): void {
-    this.$(classSelector(CssClasses.CARTICON))?.classList.remove(`${CssClasses.CARTICONINACTIVE}`);
-    const arr = [];
-    arr.push(key);
+    Store.cart.forEach((el) => {
+      if (key === el) {
+        this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      }
+    });
   }
 
   private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
       this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      Store.cart.push(productKey);
       putProductIntoCart(productKey)
         .then(() => {})
         .catch(() => throwError);

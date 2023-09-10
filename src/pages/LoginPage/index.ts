@@ -3,7 +3,7 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { login, logout } from '../../services/API';
+import { getActiveCart, login, logout } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
@@ -292,8 +292,20 @@ export default class LoginPage extends Page {
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           Store.customer = body.customer;
-          this.goToMainPage();
         })
+        .then(() => {
+          getActiveCart()
+            .then(({ body }) => {
+              body.lineItems.forEach((el) => {
+                if (el.productSlug !== undefined) {
+                  Store.cart.push(el.productSlug.en || '');
+                }
+              });
+            })
+            .catch(() => {});
+        })
+        .then(() => this.goToMainPage())
+        .catch(() => {})
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
             this.showErrorOnLogin(error.message);

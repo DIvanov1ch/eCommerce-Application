@@ -34,7 +34,7 @@ import {
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
-// import Store from './Store';
+import Store from './Store';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -150,7 +150,11 @@ const getAnonymousFlowClient = (): Client => {
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
-  return apiRoot.me().login().post({ body: { email, password } }).execute();
+  return apiRoot
+    .me()
+    .login()
+    .post({ body: { email, password, activeCartSignInMode: 'MergeWithExistingCustomerCart' } })
+    .execute();
 };
 
 const registration = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -160,6 +164,7 @@ const registration = async (body: CustomerDraft): Promise<ClientResponse<Custome
 
 const logout = (): void => {
   newToken.delete();
+  Store.cart = [];
 };
 
 const getInfoOfFilteredProducts = async ({
@@ -246,8 +251,8 @@ async function putProductIntoCart(product: string): Promise<ClientResponse<Cart>
         .catch(() => {});
     }
   });
-  const { id, version } = (await getActiveCart()).body;
   const productId = (await getProductProjectionByKey(product)).id;
+  const { id, version } = (await getActiveCart()).body;
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot
     .me()
