@@ -21,9 +21,10 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     city: 'Must not contain special characters or numbers',
     code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
-    current: 'Password is too short',
+    current: 'Your password may be incorrect',
   },
   PASSWORD_MISMATCH: { password: 'Password mismatch' },
+  INVALID_CURRENT_PASSWORD: { password: 'The given current password does not match' },
 };
 
 export default ErrorMessages;
