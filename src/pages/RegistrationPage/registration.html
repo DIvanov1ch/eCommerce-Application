@@ -1,7 +1,6 @@
 <div class="registration__container">
-  <form class="registration__form">
+  <div class="registration__form">
     <h1 class="registration__form-title">Create account</h1>
-    <!-- First name -->
     <div class="input-module">
       <label for="first-name" class="input-module__label">First name</label>
       <input
@@ -14,12 +13,11 @@
         required
       />
       <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon first-name" />
+        <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon first-name" />
         <div class="error-box__content first-name"></div>
       </div>
     </div>
 
-    <!-- Last name -->
     <div class="input-module">
       <label for="last-name" class="input-module__label">Last name</label>
       <input
@@ -32,12 +30,11 @@
         required
       />
       <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon last-name" />
+        <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon last-name" />
         <div class="error-box__content last-name"></div>
       </div>
     </div>
 
-    <!-- Email -->
     <div class="input-module">
       <label for="email" class="input-module__label">Email</label>
       <input
@@ -50,12 +47,11 @@
         required
       />
       <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon email" />
+        <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon email" />
         <div class="error-box__content email"></div>
       </div>
     </div>
 
-    <!-- Password -->
     <div class="input-module">
       <label for="password" class="input-module__label">Password</label>
       <input
@@ -69,12 +65,11 @@
         required
       />
       <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon password" />
+        <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon password" />
         <div class="error-box__content password"></div>
       </div>
     </div>
 
-    <!-- Bday -->
     <div class="input-module">
       <label for="date-of-birth" class="input-module__label">Date of birth</label>
       <input
@@ -88,17 +83,14 @@
         required
       />
       <div class="input-module__error-box hidden">
-        <img alt="Warning icon" class="error-box__icon date-of-birth" />
+        <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon date-of-birth" />
         <div class="error-box__content date-of-birth"></div>
       </div>
     </div>
 
-    <!-- Addresses -->
     <div class="registration__addresses-container">
-      <!--Shipping address-->
       <fieldset class="registration__addresses">
         <legend class="registration__addresses-title">Shipping address</legend>
-        <!-- Shipping Street -->
         <div class="input-module">
           <label for="shipping-street" class="input-module__label">Street</label>
           <input
@@ -111,12 +103,11 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon shipping-street" />
+            <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon shipping-street" />
             <div class="error-box__content shipping-street"></div>
           </div>
         </div>
 
-        <!-- Shipping City -->
         <div class="input-module">
           <label for="shipping-city" class="input-module__label">City</label>
           <input
@@ -129,12 +120,11 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon shipping-city" />
+            <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon shipping-city" />
             <div class="error-box__content shipping-city"></div>
           </div>
         </div>
 
-        <!-- Shipping Postal code -->
         <div class="input-module">
           <label for="shipping-postal-code" class="input-module__label">ZIP code</label>
           <input
@@ -148,12 +138,15 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon shipping-postal-code" />
+            <img
+              src="../../assets/icons/warning-icon.png"
+              alt="Warning icon"
+              class="error-box__icon shipping-postal-code"
+            />
             <div class="error-box__content shipping-postal-code"></div>
           </div>
         </div>
 
-        <!-- Shipping Country -->
         <div class="input-module">
           <label for="shipping-country" class="input-module__label">Country</label>
           <input
@@ -166,7 +159,11 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon shipping-country" />
+            <img
+              src="../../assets/icons/warning-icon.png"
+              alt="Warning icon"
+              class="error-box__icon shipping-country"
+            />
             <div class="error-box__content shipping-country"></div>
           </div>
         </div>
@@ -183,10 +180,8 @@
         </div>
       </fieldset>
 
-      <!--Billing address-->
       <fieldset class="registration__addresses">
         <legend class="registration__addresses-title">Billing address</legend>
-        <!-- Billing Street -->
         <div class="input-module">
           <label for="billing-street" class="input-module__label">Street</label>
           <input
@@ -199,12 +194,11 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon billing-street" />
+            <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon billing-street" />
             <div class="error-box__content billing-street"></div>
           </div>
         </div>
 
-        <!-- Billing City -->
         <div class="input-module">
           <label for="billing-city" class="input-module__label">City</label>
           <input
@@ -217,12 +211,11 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon billing-city" />
+            <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon billing-city" />
             <div class="error-box__content billing-city"></div>
           </div>
         </div>
 
-        <!-- Billing Postal code -->
         <div class="input-module">
           <label for="billing-postal-code" class="input-module__label">ZIP code</label>
           <input
@@ -236,12 +229,15 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon billing-postal-code" />
+            <img
+              src="../../assets/icons/warning-icon.png"
+              alt="Warning icon"
+              class="error-box__icon billing-postal-code"
+            />
             <div class="error-box__content billing-postal-code"></div>
           </div>
         </div>
 
-        <!-- Billing Country -->
         <div class="input-module">
           <label for="billing-country" class="input-module__label">Country</label>
           <input
@@ -254,7 +250,7 @@
             required
           />
           <div class="input-module__error-box hidden">
-            <img alt="Warning icon" class="error-box__icon billing-country" />
+            <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon billing-country" />
             <div class="error-box__content billing-country"></div>
           </div>
         </div>
@@ -268,7 +264,7 @@
     </div>
 
     <div class="button-container">
-      <input type="submit" value="Create account" class="submit-button" />
+      <input type="submit" value="Create account" class="submit-button" disabled />
     </div>
 
     <div class="registration__divider"></div>
@@ -277,13 +273,15 @@
       <input type="button" value="Already have an account? Sign in" class="login-button" />
     </div>
 
-    <div class="registration__pop-up hidden">
-      <div class="pop-up__container">
-        <div class="pop-up__message"></div>
-        <div class="pop-up__icon-box">
-          <img alt="Succes icon" class="pop-up__icon" />
+    <div class="pop-up__overlay hidden">
+      <div class="registration__pop-up">
+        <div class="pop-up__container">
+          <div class="pop-up__message"></div>
+          <div class="pop-up__icon-box">
+            <img alt="Succes icon" class="pop-up__icon" />
+          </div>
         </div>
       </div>
     </div>
-  </form>
+  </div>
 </div>

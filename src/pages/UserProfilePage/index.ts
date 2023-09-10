@@ -1,5 +1,6 @@
 import {
   Address,
+  Customer,
   ErrorResponse,
   MyCustomerChangePassword,
   MyCustomerUpdate,
@@ -16,16 +17,21 @@ import addressTemplate from './html-templates/address-popup-template.html';
 import deleteTemplate from './html-templates/delete-popup-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
-import { pause } from '../../utils/create-element';
+import { classSelector, idSelector, pause } from '../../utils/create-element';
 import CssClasses from './css-classes';
 import InputID from '../../enums/input-id';
 import isValidValue from '../../utils/is-valid-value';
 import ErrorMessages from '../../constants';
 import { changePassword, login, logout, update } from '../../services/API';
+import { loadCustomer } from '../../utils/load-data';
+import UpdateActions from './update-actions';
+import LoggedInUser from '../../services/LoggedInUser';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
-const HTML_NOT_YET = `<p>Looks like you are not logged into your account or have not created one yet. You will be redirected to <a href="#login">login page</a> in ${TIMER_HTML} sec...</p>`;
+const HTML_NOT_LOGGED_IN = `<p>Looks like you are not logged into your account or have not created one yet. You will be redirected to <a href="#login">login page</a> in ${TIMER_HTML} sec...</p>`;
+const HTML_SESSION_EXPIRED = `<h3>Your session has expired</h3>
+<div>We're sorry, but we had to log you out and end your session. Please log in to your account <a href="#login">here</a>.</div><div>You will be redirected in ${TIMER_HTML} sec...</div>`;
 const PASSWORD_DOT = '•';
 const ADDRESS_TITLE = {
   EDIT: `<h2 class="template__title">Manage your addresses</h2>`,
@@ -71,10 +77,9 @@ const getToastOptions = (message: string, background: string): Options => {
 };
 const defaultCountry = 'US';
 
-const classSelector = (name: string): string => `.${name}`;
-const idSelector = (name: string): string => `#${name}`;
-
 export default class UserProfile extends Page {
+  private customer: Customer = new LoggedInUser();
+
   private template = '';
 
   private isProfileEditing = false;
@@ -97,7 +102,7 @@ export default class UserProfile extends Page {
 
   private addressUpdateActions: MyCustomerUpdateAction[] = [];
 
-  private addressID = '';
+  private addressId = '';
 
   private checkboxState = {
     billing: false,
@@ -113,14 +118,16 @@ export default class UserProfile extends Page {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.checkIfUserLoggedIn();
+    this.checkIfTokenFresh();
+    this.load();
     this.setCallback();
   }
 
   private createAddressLines(): void {
     const { LINE_WRAPPER } = CssClasses;
     this.clearContent(classSelector(LINE_WRAPPER));
-    const container = this.querySelector(classSelector(LINE_WRAPPER));
-    Store.customer.addresses.forEach((): void => {
+    const container = this.$(classSelector(LINE_WRAPPER));
+    this.customer.addresses.forEach((): void => {
       container?.insertAdjacentHTML('beforeend', addressLine);
     });
   }
@@ -163,7 +170,7 @@ export default class UserProfile extends Page {
   }
 
   private setUserProfileInfo(): void {
-    const { firstName, lastName, dateOfBirth, email } = Store.customer;
+    const { firstName, lastName, dateOfBirth, email } = this.customer;
     const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = CssClasses;
 
     this.setElementTextContent(classSelector(FIRST_NAME), firstName);
@@ -173,7 +180,7 @@ export default class UserProfile extends Page {
   }
 
   private setPasswordLengthDisplay(): void {
-    const { password } = Store.customer;
+    const { password } = this.customer;
     const { PASSWORD } = CssClasses;
     const length = password?.length as number;
     this.setElementTextContent(classSelector(PASSWORD), PASSWORD_DOT.repeat(length));
@@ -181,7 +188,7 @@ export default class UserProfile extends Page {
 
   private setAddressInfo(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
-      Store.customer;
+      this.customer;
     const lines = this.$$(classSelector(CssClasses.ADDRESS_LINE));
     lines.forEach((line, rowIndex) => {
       const address = addresses[rowIndex];
@@ -218,18 +225,45 @@ export default class UserProfile extends Page {
   }
 
   private checkIfUserLoggedIn(): void {
-    if (!Store.user.loggedIn) {
-      this.goToMainPage(HTML_NOT_YET).then().catch(console.error);
-      return;
+    if (!Store.customer) {
+      this.goToLoginPage(HTML_NOT_LOGGED_IN).then().catch(console.error);
     }
-    this.createAddressLines();
+  }
+
+  private checkIfTokenFresh(): void {
+    if (!Store.token || Store.token.expirationTime <= Date.now()) {
+      logout();
+      Store.customer = undefined;
+      this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
+    }
+  }
+
+  private load(): void {
+    loadCustomer()
+      .then((customer) => {
+        this.customer = customer;
+        this.render();
+      })
+      .catch(() => {
+        logout();
+        Store.customer = undefined;
+        this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
+      });
+  }
+
+  private render(): void {
+    this.renderAddress();
     this.setUserProfileInfo();
     this.setPasswordLengthDisplay();
+  }
+
+  private renderAddress(): void {
+    this.createAddressLines();
     this.setAddressInfo();
     this.setAddressIconsCallback();
   }
 
-  private async goToMainPage(htmlText: string): Promise<void> {
+  private async goToLoginPage(htmlText: string): Promise<void> {
     this.innerHTML = htmlText;
 
     await pause(REDIRECT_DELAY);
@@ -257,7 +291,7 @@ export default class UserProfile extends Page {
     this.isAddressDeleting = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.addressID = fieldContainer.id;
+    this.addressId = fieldContainer.id;
     this.template = deleteTemplate;
     this.setModalContent(SubmitBtnValue.DELETE, true);
     this.showModalWindow();
@@ -268,7 +302,7 @@ export default class UserProfile extends Page {
     this.isAddressEditing = true;
     const target = event.currentTarget as HTMLElement;
     const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.addressID = fieldContainer.id;
+    this.addressId = fieldContainer.id;
     this.template = addressTemplate;
     this.setModalContent(SubmitBtnValue.SAVE, false, ADDRESS_TITLE.EDIT);
     this.showModalWindow();
@@ -292,7 +326,7 @@ export default class UserProfile extends Page {
     this.isDefaultShippingAddressChanged = false;
     this.isAddressAction = false;
     this.isAddressUpdating = false;
-    this.addressID = '';
+    this.addressId = '';
     this.checkboxState = {
       billing: false,
       shipping: false,
@@ -307,7 +341,7 @@ export default class UserProfile extends Page {
     const writePasswordBox = this.$(`${classSelector(PASSWORD_BOX)} ${classSelector(WRAPPER_WRITE)}`);
     const overlay = this.$(classSelector(OVERLAY));
     const addButton = this.$(classSelector(ADD_BUTTON_BOX));
-    const submitBtn = this.querySelector(classSelector(SUBMIT_BUTTON));
+    const submitBtn = this.$(classSelector(SUBMIT_BUTTON));
 
     writeProfileInfoBox?.addEventListener('click', this.enableEditProfileInfoMode.bind(this));
     writePasswordBox?.addEventListener('click', this.enableChangePasswordMode.bind(this));
@@ -317,8 +351,8 @@ export default class UserProfile extends Page {
   }
 
   private setInputCallback(): void {
-    const fields = <HTMLInputElement[]>this.$$(classSelector(CssClasses.FIELD));
-    fields.forEach((field) => field.addEventListener('input', this.checkResult.bind(this)));
+    const inputs = <HTMLInputElement[]>this.$$(classSelector(CssClasses.INPUT));
+    inputs.forEach((input) => input.addEventListener('input', this.checkValue.bind(this)));
   }
 
   private setAddressIconsCallback(): void {
@@ -332,10 +366,10 @@ export default class UserProfile extends Page {
 
   private setCheckboxCallback(): void {
     const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
-    const defaultBillingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_BILLING));
-    const defaultShippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(DEFAULT_SHIPPING));
-    const billingCheckbox = <HTMLInputElement>this.querySelector(idSelector(BILLING_COUNTRY));
-    const shippingCheckbox = <HTMLInputElement>this.querySelector(idSelector(SHIPPING_COUNTRY));
+    const defaultBillingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_BILLING));
+    const defaultShippingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_SHIPPING));
+    const billingCheckbox = <HTMLInputElement>this.$(idSelector(BILLING_COUNTRY));
+    const shippingCheckbox = <HTMLInputElement>this.$(idSelector(SHIPPING_COUNTRY));
     if (this.isAddressAdding) {
       [defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
         checkbox.addEventListener('change', (event) => {
@@ -356,7 +390,7 @@ export default class UserProfile extends Page {
   }
 
   private showModalWindow(): void {
-    const modal = this.querySelector(classSelector(CssClasses.OVERLAY));
+    const modal = this.$(classSelector(CssClasses.OVERLAY));
     modal?.classList.remove(CssClasses.HIDDEN);
   }
 
@@ -374,14 +408,14 @@ export default class UserProfile extends Page {
   }
 
   private hideModalWindow(): void {
-    const modal = this.querySelector(classSelector(CssClasses.OVERLAY));
+    const modal = this.$(classSelector(CssClasses.OVERLAY));
     modal?.classList.add(CssClasses.HIDDEN);
     this.disableEditMode();
   }
 
   private setModalContent(submitButtonValue: string, isButtonEnabled: boolean, title?: string): void {
-    this.clearContent(classSelector(CssClasses.MODAL));
     const { MODAL, SUBMIT_BUTTON } = CssClasses;
+    this.clearContent(classSelector(MODAL));
     const contentBox = this.$(classSelector(MODAL));
 
     if (title) {
@@ -400,7 +434,7 @@ export default class UserProfile extends Page {
   }
 
   private clearContent(selector: string): void {
-    const contentBox = this.querySelector(selector);
+    const contentBox = this.$(selector);
     if (contentBox) {
       while (contentBox.firstElementChild) {
         contentBox.firstElementChild.remove();
@@ -428,34 +462,34 @@ export default class UserProfile extends Page {
 
   private fillAddressTemplate(): void {
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
-      Store.customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+      this.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
 
     this.setInputValue(idSelector(STREET), streetName);
     this.setInputValue(idSelector(CITY), city);
     this.setInputValue(idSelector(POSTAL_CODE), postalCode);
-    if (this.addressID === defaultShippingAddressId) {
+    if (this.addressId === defaultShippingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_SHIPPING));
       this.checkboxState.defaultShipping = true;
     }
-    if (this.addressID === defaultBillingAddressId) {
+    if (this.addressId === defaultBillingAddressId) {
       this.makeCheckboxChecked(idSelector(DEFAULT_BILLING));
       this.checkboxState.defaultBilling = true;
     }
-    if (shippingAddressIds?.includes(this.addressID)) {
+    if (shippingAddressIds?.includes(this.addressId)) {
       this.makeCheckboxChecked(idSelector(SHIPPING_COUNTRY));
       this.checkboxState.shipping = true;
     }
-    if (billingAddressIds?.includes(this.addressID)) {
+    if (billingAddressIds?.includes(this.addressId)) {
       this.makeCheckboxChecked(idSelector(BILLING_COUNTRY));
       this.checkboxState.billing = true;
     }
   }
 
   private fillPersonalTemplate(): void {
-    const { firstName, lastName, dateOfBirth, email } = Store.customer;
+    const { firstName, lastName, dateOfBirth, email } = this.customer;
     const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
     this.setInputValue(idSelector(FIRST_NAME), firstName);
     this.setInputValue(idSelector(LAST_NAME), lastName);
@@ -464,8 +498,8 @@ export default class UserProfile extends Page {
   }
 
   private fillDeleteTemplate(): void {
-    const { addresses } = Store.customer;
-    const addressToDelete = addresses.find((address) => address.id === this.addressID) as Address;
+    const { addresses } = this.customer;
+    const addressToDelete = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode, country } = addressToDelete;
     const { STREET, CITY, POSTAL_CODE, COUNTRY, DELETE_BOX } = CssClasses;
     const container = <HTMLDivElement>this.$(classSelector(DELETE_BOX));
@@ -489,47 +523,53 @@ export default class UserProfile extends Page {
     }
   }
 
-  private checkResult(event: Event): void {
+  private checkValue(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (isValidValue(input.id, input.value)) {
-      this.hideErrorMessage(input.id);
-      this.checkAllInputsAreFilled();
+      this.hideInputErrorMessage(input.id);
     } else {
       const errorMessage = !input.value
         ? ErrorMessages.EMPTY_FIELD[`${input.name}`]
         : ErrorMessages.INVALID_VALUE[`${input.name}`];
       this.setInputErrorMessage(input.id, errorMessage);
-      this.showErrorMessage(input.id);
+      this.showInputErrorMessage(input.id);
     }
+    this.setSubmitButtonState();
   }
 
-  private checkAllInputsAreFilled(): void {
-    const { FIELD, SUBMIT_BUTTON } = CssClasses;
-    const fields = <HTMLInputElement[]>this.$$(classSelector(FIELD));
-    if (fields.every((input) => input.value && isValidValue(input.id, input.value))) {
+  private setSubmitButtonState(): void {
+    const { SUBMIT_BUTTON } = CssClasses;
+    if (this.isFormFilled()) {
       this.enableInput(classSelector(SUBMIT_BUTTON));
+    } else {
+      this.disableInput(classSelector(SUBMIT_BUTTON));
     }
   }
 
-  private hideErrorMessage(inputID: string): void {
-    const { INPUT_ERROR, HIDDEN } = CssClasses;
+  private isFormFilled(): boolean {
+    const { INPUT } = CssClasses;
+    const inputs = <HTMLInputElement[]>this.$$(classSelector(INPUT));
+    return inputs.every((input) => input.value && isValidValue(input.id, input.value));
+  }
+
+  private hideInputErrorMessage(inputID: string): void {
+    const { ERROR, HIDDEN } = CssClasses;
     const input = this.$(idSelector(inputID)) as HTMLInputElement;
     const errorBox: Element | null = input.nextElementSibling;
-    input.classList.remove(INPUT_ERROR);
+    input.classList.remove(ERROR);
     if (errorBox !== null) {
       errorBox.classList.add(HIDDEN);
     }
   }
 
-  private showErrorMessage(inputID: string): void {
-    const { INPUT_ERROR, HIDDEN, SUBMIT_BUTTON } = CssClasses;
+  private showInputErrorMessage(inputID: string): void {
+    const { ERROR, HIDDEN } = CssClasses;
     const input = this.$(idSelector(inputID)) as HTMLInputElement;
     const errorBox: Element | null = input.nextElementSibling;
-    input.classList.add(INPUT_ERROR);
+    input.classList.add(ERROR);
     if (errorBox !== null) {
       errorBox.classList.remove(HIDDEN);
     }
-    this.disableInput(classSelector(SUBMIT_BUTTON));
   }
 
   private setInputErrorMessage(inputID: string, message: string): void {
@@ -562,35 +602,35 @@ export default class UserProfile extends Page {
   }
 
   private submitProfileInfo(): void {
-    const { firstName, lastName, dateOfBirth, email } = Store.customer;
+    const { firstName, lastName, dateOfBirth, email } = this.customer;
     const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
     const newFirstName = this.getInputValue(idSelector(FIRST_NAME));
     const newLastName = this.getInputValue(idSelector(LAST_NAME));
     const newDateOfBirth = this.getInputValue(idSelector(DATE_OF_BIRTH));
     const newEmail = this.getInputValue(idSelector(EMAIL));
-    const { version } = Store.customer;
+    const { version } = this.customer;
     const actions: MyCustomerUpdateAction[] = [];
     if (newFirstName !== firstName) {
       actions.push({
-        action: 'setFirstName',
+        action: UpdateActions.SET_FIRST_NAME,
         firstName: newFirstName,
       });
     }
     if (newLastName !== lastName) {
       actions.push({
-        action: 'setLastName',
+        action: UpdateActions.SET_LAST_NAME,
         lastName: newLastName,
       });
     }
     if (newDateOfBirth !== dateOfBirth) {
       actions.push({
-        action: 'setDateOfBirth',
+        action: UpdateActions.SET_DATE_OF_BIRTH,
         dateOfBirth: newDateOfBirth,
       });
     }
     if (newEmail !== email) {
       actions.push({
-        action: 'changeEmail',
+        action: UpdateActions.CHANGE_EMAIL,
         email: newEmail,
       });
     }
@@ -599,15 +639,16 @@ export default class UserProfile extends Page {
 
   private submitNewPassword(): void {
     const { NEW_PASSWORD, OLD_PASSWORD, RE_ENTERED_PASSWORD } = InputID;
-    const { version } = Store.customer;
+    const { version } = this.customer;
     const currentPassword = this.getInputValue(idSelector(OLD_PASSWORD));
     const newPassword = this.getInputValue(idSelector(NEW_PASSWORD));
     const reenteredPassword = this.getInputValue(idSelector(RE_ENTERED_PASSWORD));
     if (newPassword !== reenteredPassword) {
       this.setInputErrorMessage(NEW_PASSWORD, ErrorMessages.PASSWORD_MISMATCH.password);
       this.setInputErrorMessage(RE_ENTERED_PASSWORD, ErrorMessages.PASSWORD_MISMATCH.password);
-      this.showErrorMessage(NEW_PASSWORD);
-      this.showErrorMessage(RE_ENTERED_PASSWORD);
+      this.showInputErrorMessage(NEW_PASSWORD);
+      this.showInputErrorMessage(RE_ENTERED_PASSWORD);
+      this.setSubmitButtonState();
       return;
     }
     this.changeUserPassword({ version, currentPassword, newPassword });
@@ -619,10 +660,10 @@ export default class UserProfile extends Page {
     const city = this.getInputValue(idSelector(CITY));
     const postalCode = this.getInputValue(idSelector(POSTAL_CODE));
     const country = defaultCountry;
-    const { version } = Store.customer;
+    const { version } = this.customer;
     const actions: MyCustomerUpdateAction[] = [
       {
-        action: 'addAddress',
+        action: UpdateActions.ADD_ADDRESS,
         address: {
           streetName,
           city,
@@ -636,19 +677,19 @@ export default class UserProfile extends Page {
 
   private submitAddressChanges(): void {
     const { STREET, CITY, POSTAL_CODE } = InputID;
-    const { addresses } = Store.customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressID) as Address;
+    const { addresses } = this.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode } = addressToChange;
     const newStreetName = this.getInputValue(idSelector(STREET));
     const newCity = this.getInputValue(idSelector(CITY));
     const newPostalCode = this.getInputValue(idSelector(POSTAL_CODE));
     const country = defaultCountry;
-    const { version } = Store.customer;
+    const { version } = this.customer;
     if (streetName !== newStreetName || city !== newCity || postalCode !== newPostalCode) {
       const actions: MyCustomerUpdateAction[] = [
         {
-          action: 'changeAddress',
-          addressId: this.addressID,
+          action: UpdateActions.CHANGE_ADDRESS,
+          addressId: this.addressId,
           address: {
             streetName: newStreetName,
             city: newCity,
@@ -660,25 +701,25 @@ export default class UserProfile extends Page {
       this.updateUserProfile({ version, actions });
     } else {
       this.isAddressEditing = false;
-      this.submitUpdateActions();
+      this.setAddressUpdateActions();
+      if (this.addressUpdateActions.length !== 0) {
+        this.submitUpdateActions();
+      }
     }
   }
 
   private submitUpdateActions(): void {
-    this.setAddressUpdateActions();
-    if (this.addressUpdateActions.length !== 0) {
-      const { version } = Store.customer;
-      const actions = this.addressUpdateActions;
-      this.updateUserProfile({ version, actions });
-    }
+    const { version } = this.customer;
+    const actions = this.addressUpdateActions;
+    this.updateUserProfile({ version, actions });
   }
 
   private removeAddress(): void {
-    const { version } = Store.customer;
+    const { version } = this.customer;
     const actions: MyCustomerUpdateAction[] = [
       {
-        action: 'removeAddress',
-        addressId: this.addressID,
+        action: UpdateActions.REMOVE_ADDRESS,
+        addressId: this.addressId,
       },
     ];
     this.updateUserProfile({ version, actions });
@@ -687,8 +728,9 @@ export default class UserProfile extends Page {
   private setNewAddressActions(): void {
     this.addressUpdateActions = [];
     this.isAddressUpdating = true;
-    const { addresses } = Store.customer;
-    this.addressID = addresses[addresses.length - 1].id as string;
+    const { addresses } = this.customer;
+    this.addressId = addresses[addresses.length - 1].id as string;
+    const { addressId } = this;
     const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
     const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
@@ -696,103 +738,68 @@ export default class UserProfile extends Page {
     const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
     if (setAsShipping) {
       this.addressUpdateActions.push({
-        action: 'addShippingAddressId',
-        addressId: this.addressID,
+        action: UpdateActions.ADD_SHIPPING_ADDRESS_ID,
+        addressId,
       });
     }
     if (setAsBilling) {
       this.addressUpdateActions.push({
-        action: 'addBillingAddressId',
-        addressId: this.addressID,
+        action: UpdateActions.ADD_BILLING_ADDRESS_ID,
+        addressId,
       });
     }
     if (setAsDefaultShipping) {
       this.isDefaultShippingAddressChanged = true;
       this.addressUpdateActions.push({
-        action: 'setDefaultShippingAddress',
-        addressId: this.addressID,
+        action: UpdateActions.SET_DEFAULT_SHIPPING_ADDRESS,
+        addressId,
       });
     }
     if (setAsDefaultBilling) {
       this.isDefaultBillingAddressChanged = true;
       this.addressUpdateActions.push({
-        action: 'setDefaultBillingAddress',
-        addressId: this.addressID,
+        action: UpdateActions.SET_DEFAULT_BILLING_ADDRESS,
+        addressId,
       });
     }
   }
 
-  // eslint-disable-next-line max-lines-per-function
   private setAddressUpdateActions(): void {
     this.addressUpdateActions = [];
     this.isAddressUpdating = true;
+    const { addressId } = this;
     const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
     const setAsShipping = this.getCheckboxState(idSelector(SHIPPING_COUNTRY));
     const setAsBilling = this.getCheckboxState(idSelector(BILLING_COUNTRY));
     const setAsDefaultShipping = this.getCheckboxState(idSelector(DEFAULT_SHIPPING));
     const setAsDefaultBilling = this.getCheckboxState(idSelector(DEFAULT_BILLING));
     if (setAsShipping !== this.checkboxState.shipping) {
-      if (setAsShipping) {
-        this.addressUpdateActions.push({
-          action: 'addShippingAddressId',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'removeShippingAddressId',
-          addressId: this.addressID,
-        });
-      }
+      const action = setAsShipping ? UpdateActions.ADD_SHIPPING_ADDRESS_ID : UpdateActions.REMOVE_SHIPPING_ADDRESS_ID;
+      this.addressUpdateActions.push({ action, addressId });
     }
     if (setAsBilling !== this.checkboxState.billing) {
-      if (setAsBilling) {
-        this.addressUpdateActions.push({
-          action: 'addBillingAddressId',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'removeBillingAddressId',
-          addressId: this.addressID,
-        });
-      }
+      const action = setAsBilling ? UpdateActions.ADD_BILLING_ADDRESS_ID : UpdateActions.REMOVE_BILLING_ADDRESS_ID;
+      this.addressUpdateActions.push({ action, addressId });
     }
     if (setAsDefaultShipping !== this.checkboxState.defaultShipping) {
-      if (setAsDefaultShipping) {
-        this.isDefaultShippingAddressChanged = true;
-        this.addressUpdateActions.push({
-          action: 'setDefaultShippingAddress',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'setDefaultShippingAddress',
-          addressId: undefined,
-        });
-      }
+      const action = UpdateActions.SET_DEFAULT_SHIPPING_ADDRESS;
+      const id = setAsDefaultShipping ? addressId : undefined;
+      this.isDefaultShippingAddressChanged = setAsDefaultShipping;
+      this.addressUpdateActions.push({ action, addressId: id });
     }
     if (setAsDefaultBilling !== this.checkboxState.defaultBilling) {
-      if (setAsDefaultBilling) {
-        this.isDefaultBillingAddressChanged = true;
-        this.addressUpdateActions.push({
-          action: 'setDefaultBillingAddress',
-          addressId: this.addressID,
-        });
-      } else {
-        this.addressUpdateActions.push({
-          action: 'setDefaultBillingAddress',
-          addressId: undefined,
-        });
-      }
+      const action = UpdateActions.SET_DEFAULT_BILLING_ADDRESS;
+      const id = setAsDefaultBilling ? addressId : undefined;
+      this.isDefaultBillingAddressChanged = setAsDefaultBilling;
+      this.addressUpdateActions.push({ action, addressId: id });
     }
   }
 
   private updateUserProfile(user: MyCustomerUpdate): void {
     update(user)
       .then(({ body }) => {
-        const { firstName, lastName } = body;
-        Store.user = { loggedIn: true, firstName, lastName };
         Store.customer = body;
+        this.customer = body;
         this.handleSubmitActionResult();
       })
       .catch(() => UserProfile.showMessage(ToastMessage.ERROR, false));
@@ -802,8 +809,9 @@ export default class UserProfile extends Page {
     changePassword(requestBody)
       .then(({ body }) => {
         Store.customer = body;
+        this.customer = body;
         logout();
-        UserProfile.logIn(requestBody.newPassword);
+        this.logIn(requestBody.newPassword);
         UserProfile.showMessage(ToastMessage.PASSWORD_CHANGED, true);
         this.setPasswordLengthDisplay();
         this.hideModalWindow();
@@ -811,11 +819,11 @@ export default class UserProfile extends Page {
       .catch((error: ErrorResponse) => {
         UserProfile.showMessage(error.message, false);
         this.setInputErrorMessage(InputID.OLD_PASSWORD, error.message);
-        this.showErrorMessage(InputID.OLD_PASSWORD);
+        this.showInputErrorMessage(InputID.OLD_PASSWORD);
+        this.setSubmitButtonState();
       });
   }
 
-  // eslint-disable-next-line max-lines-per-function
   private handleSubmitActionResult(): void {
     if (this.isProfileEditing) {
       this.setUserProfileInfo();
@@ -824,13 +832,10 @@ export default class UserProfile extends Page {
     if (this.isAddressAction) {
       if (this.isAddressAdding) {
         UserProfile.showMessage(ToastMessage.ADDRESS_SAVED, true);
-        this.setNewAddressActions();
         this.isAddressAdding = false;
+        this.setNewAddressActions();
         if (this.addressUpdateActions.length !== 0) {
-          const { version } = Store.customer;
-          const actions = this.addressUpdateActions;
-          this.addressUpdateActions = [];
-          this.updateUserProfile({ version, actions });
+          this.submitUpdateActions();
           return;
         }
       }
@@ -839,13 +844,10 @@ export default class UserProfile extends Page {
       }
       if (this.isAddressEditing) {
         UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
-        this.setAddressUpdateActions();
         this.isAddressEditing = false;
+        this.setAddressUpdateActions();
         if (this.addressUpdateActions.length !== 0) {
-          const { version } = Store.customer;
-          const actions = this.addressUpdateActions;
-          this.addressUpdateActions = [];
-          this.updateUserProfile({ version, actions });
+          this.submitUpdateActions();
           return;
         }
       }
@@ -858,9 +860,7 @@ export default class UserProfile extends Page {
         }
         UserProfile.showMessage(ToastMessage.ADDRESS_CHANGED, true);
       }
-      this.createAddressLines();
-      this.setAddressInfo();
-      this.setAddressIconsCallback();
+      this.renderAddress();
     }
     this.hideModalWindow();
   }
@@ -872,7 +872,8 @@ export default class UserProfile extends Page {
     Toastify(props).showToast();
   }
 
-  private static logIn(password: string): void {
-    login(Store.customer.email, password).then().catch(console.error);
+  private logIn(password: string): void {
+    const { email } = this.customer;
+    login(email, password).then().catch(console.error);
   }
 }
