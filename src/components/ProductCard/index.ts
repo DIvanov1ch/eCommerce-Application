@@ -6,6 +6,8 @@ import Store from '../../services/Store';
 import { LANG } from '../../config';
 import { className, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
+import { addToCart } from '../../services/API';
+import throwError from '../../utils/throw-error';
 
 const CssClasses = {
   COMPONENT: 'product-card',
@@ -88,6 +90,7 @@ export default class ProductCard extends BaseComponent {
       if (key === storeCart.key) {
         this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       }
+      this.$(className(CssClasses.CARTICON))?.classList.remove(`${CssClasses.CARTICONINACTIVE}`);
     });
   }
 
@@ -96,6 +99,11 @@ export default class ProductCard extends BaseComponent {
       const productToBasket = { key: productKey, quantity: 1 };
       Store.cart.push(productToBasket);
       this.$(className(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      addToCart()
+        .then(({ body }) => {
+          console.log(body.anonymousId);
+        })
+        .catch(() => throwError);
       event.stopPropagation();
     });
   }

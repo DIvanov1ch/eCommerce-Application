@@ -5,6 +5,7 @@ import {
   PasswordAuthMiddlewareOptions,
   Client,
   RefreshAuthMiddlewareOptions,
+  AnonymousAuthMiddlewareOptions,
 } from '@commercetools/sdk-client-v2';
 import {
   createApiBuilderFromCtpClient,
@@ -18,6 +19,7 @@ import {
   Customer,
   MyCustomerUpdate,
   MyCustomerChangePassword,
+  Cart,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -91,6 +93,19 @@ const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOp
   };
 };
 
+const getAnonymousMiddlewareOptions = (): AnonymousAuthMiddlewareOptions => {
+  return {
+    host: authHost,
+    projectKey,
+    credentials: {
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
+    },
+    scopes,
+    fetch,
+  };
+};
+
 const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
   const apiRoot = createApiBuilderFromCtpClient(client).withProjectKey({ projectKey });
   return apiRoot;
@@ -121,6 +136,15 @@ const getRefreshTokenFlowClient = (): Client => {
     .withLoggerMiddleware()
     .build();
   return refreshTokenFlowClient;
+};
+
+const getAnonymousFlowClient = (): Client => {
+  const anonymousFlowClient = new ClientBuilder()
+    .withAnonymousSessionFlow(getAnonymousMiddlewareOptions())
+    .withHttpMiddleware(httpMiddlewareOptions)
+    .withLoggerMiddleware()
+    .build();
+  return anonymousFlowClient;
 };
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -186,6 +210,22 @@ const changePassword = async (body: MyCustomerChangePassword): Promise<ClientRes
   return apiRoot.me().password().post({ body }).execute();
 };
 
+const addToCart = async (): Promise<ClientResponse<Cart>> => {
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
+  return apiRoot
+    .me()
+    .carts()
+    .post({
+      body: {
+        currency: 'USD',
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    .execute();
+};
+
 export {
   login,
   registration,
@@ -196,4 +236,5 @@ export {
   getProductTypes,
   update,
   changePassword,
+  addToCart,
 };
