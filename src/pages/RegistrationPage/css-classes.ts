@@ -15,8 +15,6 @@ enum CssClasses {
   POP_UP_ICON_BOX = 'pop-up__icon-box',
   INPUT = 'input-module__input-field',
   ERROR = 'field-error',
-  ERROR_TEXT = 'error-box__content',
-  ERROR_ICON = 'error-box__icon',
   SUBMIT_BUTTON = 'submit-button',
 }
 
