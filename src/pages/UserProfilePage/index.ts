@@ -29,6 +29,8 @@ export default class UserProfile extends Page {
 
   private popupMenu: PopupMenu | undefined;
 
+  private windowCallback: (() => void) | undefined;
+
   constructor() {
     super(html);
   }
@@ -165,7 +167,8 @@ export default class UserProfile extends Page {
     writePasswordBox?.addEventListener('click', this.changePassword.bind(this));
     addButton?.addEventListener('click', this.addNewAddress.bind(this));
 
-    window.addEventListener('userchange', this.updateCustomer.bind(this));
+    this.windowCallback = this.updateCustomer.bind(this);
+    window.addEventListener('userchange', this.windowCallback);
   }
 
   private setAddressIconsCallback(): void {
@@ -213,5 +216,9 @@ export default class UserProfile extends Page {
         contentBox.firstElementChild.remove();
       }
     }
+  }
+
+  protected disconnectedCallback(): void {
+    window.removeEventListener('userchange', this.windowCallback as () => void);
   }
 }
