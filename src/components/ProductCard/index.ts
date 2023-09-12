@@ -95,10 +95,11 @@ export default class ProductCard extends BaseComponent {
 
   private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
-      Store.cart.push(productKey);
       putProductIntoCart(productKey)
-        .then(() => {})
+        .then(() => {
+          Store.cart.push(productKey);
+          this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+        })
         .catch(() => throwError);
       event.stopPropagation();
     });

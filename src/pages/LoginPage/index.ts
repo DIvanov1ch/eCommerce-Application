@@ -3,10 +3,11 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { getActiveCart, login, logout } from '../../services/API';
-import { errorAlert, errorMessages } from '../../types/errors';
+import { createNewCart, getActiveCart, login } from '../../services/API';
+import { errorAlert, errorMessages, errorsClient } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
+import mergeAnonymousCartWithUserCart from '../../utils/cart-merge';
 
 Router.registerRoute('login', 'login-page');
 
@@ -286,23 +287,26 @@ export default class LoginPage extends Page {
   private static submitAction = (): void => {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
-      if (Store.token) {
-        logout();
-      }
       login(this.getEmail(), this.getPassword())
         .then(({ body }) => {
           Store.customer = body.customer;
         })
         .then(() => {
           getActiveCart()
-            .then(({ body }) => {
-              body.lineItems.forEach((el) => {
-                if (el.productSlug !== undefined) {
-                  Store.cart.push(el.productSlug.en || '');
-                }
-              });
-            })
-            .catch(() => {});
+            .then(({ body }) => mergeAnonymousCartWithUserCart(body))
+            .catch((error: Error) => {
+              if (error.name === errorsClient.noCart) {
+                createNewCart()
+                  .then(() =>
+                    getActiveCart()
+                      .then(({ body }) => {
+                        mergeAnonymousCartWithUserCart(body);
+                      })
+                      .catch(() => {})
+                  )
+                  .catch(() => {});
+              }
+            });
         })
         .then(() => this.goToMainPage())
         .catch(() => {})

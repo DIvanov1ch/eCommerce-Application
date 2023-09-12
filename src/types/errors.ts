@@ -15,3 +15,8 @@ export const errorAlert = {
   firstAlert: `<i class="error-box__icon">!</i>`,
   secondAlert: `<i class="login__error-icon"></i>`,
 };
+
+export const errorsClient = {
+  noCart: 'NotFound',
+  wrongToken: 'Forbidden',
+};

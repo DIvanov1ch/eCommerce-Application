@@ -35,6 +35,7 @@ import {
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
 import Store from './Store';
+import { errorsClient } from '../types/errors';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -149,12 +150,11 @@ const getAnonymousFlowClient = (): Client => {
 };
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
+  if (Store.token) {
+    newToken.delete();
+  }
   const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
-  return apiRoot
-    .me()
-    .login()
-    .post({ body: { email, password, activeCartSignInMode: 'MergeWithExistingCustomerCart' } })
-    .execute();
+  return apiRoot.me().login().post({ body: { email, password } }).execute();
 };
 
 const registration = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -222,7 +222,7 @@ const changePassword = async (body: MyCustomerChangePassword): Promise<ClientRes
 };
 
 const createNewCart = async (): Promise<ClientResponse<Cart>> => {
-  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
   return apiRoot
     .me()
     .carts()
@@ -239,18 +239,26 @@ const createNewCart = async (): Promise<ClientResponse<Cart>> => {
 };
 
 async function getActiveCart(): Promise<ClientResponse<Cart>> {
-  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  return apiRoot.me().activeCart().get().execute();
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
+  return apiRoot.me().activeCart().get().execute().catch();
 }
 
-async function putProductIntoCart(product: string): Promise<ClientResponse<Cart>> {
-  await getActiveCart().catch((error: Error) => {
-    if (error.name === 'NotFound') {
-      createNewCart()
-        .then(() => {})
-        .catch(() => {});
-    }
-  });
+async function putProductIntoCart(product: string, hasCart = false): Promise<ClientResponse<Cart>> {
+  if (hasCart === false) {
+    await getActiveCart().catch((error: Error) => {
+      if (error.name === errorsClient.noCart) {
+        createNewCart()
+          .then(() => {})
+          .catch(() => {});
+      }
+      if (error.name === errorsClient.wrongToken) {
+        newToken.delete();
+        createNewCart()
+          .then(() => {})
+          .catch(() => {});
+      }
+    });
+  }
   const productId = (await getProductProjectionByKey(product)).id;
   const { id, version } = (await getActiveCart()).body;
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
