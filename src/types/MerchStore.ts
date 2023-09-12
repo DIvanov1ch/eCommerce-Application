@@ -7,4 +7,5 @@ export interface MerchStore {
   categories: Category[];
   products: Record<string, ProductProjection>;
   cart: string[];
+  cartiSMerged: boolean;
 }

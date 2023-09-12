@@ -8,6 +8,7 @@ import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
 import { putProductIntoCart } from '../../services/API';
 import throwError from '../../utils/throw-error';
+import { createLoader, deleteLoader } from '../../utils/loader';
 
 const CssClasses = {
   COMPONENT: 'product-card',
@@ -95,10 +96,12 @@ export default class ProductCard extends BaseComponent {
 
   private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
+      createLoader();
       putProductIntoCart(productKey)
         .then(() => {
           Store.cart.push(productKey);
           this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+          deleteLoader();
         })
         .catch(() => throwError);
       event.stopPropagation();

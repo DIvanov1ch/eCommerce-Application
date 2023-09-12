@@ -165,6 +165,7 @@ const registration = async (body: CustomerDraft): Promise<ClientResponse<Custome
 const logout = (): void => {
   newToken.delete();
   Store.cart = [];
+  Store.cartiSMerged = false;
 };
 
 const getInfoOfFilteredProducts = async ({

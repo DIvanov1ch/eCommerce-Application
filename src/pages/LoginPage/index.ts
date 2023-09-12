@@ -7,9 +7,12 @@ import { createNewCart, getActiveCart, login } from '../../services/API';
 import { errorAlert, errorMessages, errorsClient } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
-import mergeAnonymousCartWithUserCart from '../../utils/cart-merge';
+import mergeAnonymousCartWithUserCart from '../../services/cart-merge';
+import { pause } from '../../utils/create-element';
 
 Router.registerRoute('login', 'login-page');
+
+const LOGIN_DELAY = 3000;
 
 export default class LoginPage extends Page {
   constructor() {
@@ -284,7 +287,7 @@ export default class LoginPage extends Page {
     this.hasSubmitErrorMessage = true;
   };
 
-  private static submitAction = (): void => {
+  private static submitAction(): void {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
       login(this.getEmail(), this.getPassword())
@@ -308,7 +311,7 @@ export default class LoginPage extends Page {
               }
             });
         })
-        .then(() => this.goToMainPage())
+        .then(() => LoginPage.createwaitingText())
         .catch(() => {})
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
@@ -316,7 +319,7 @@ export default class LoginPage extends Page {
           }
         });
     });
-  };
+  }
 
   private static goToRegistrationPage = (): void => {
     const buttonForRegistration = document.querySelector('.login__button.button_registration') as HTMLInputElement;
@@ -328,4 +331,15 @@ export default class LoginPage extends Page {
   private static goToMainPage = (): void => {
     window.location.href = '#';
   };
+
+  private static createwaitingText(): void {
+    const page = document.querySelector('.page') as HTMLElement;
+    page.innerHTML = 'LOGIN SUCCESSFUL. PLEASE WAIT!!!';
+    page.style.textAlign = 'center';
+    pause(LOGIN_DELAY)
+      .then(() => {
+        this.goToMainPage();
+      })
+      .catch(() => {});
+  }
 }
