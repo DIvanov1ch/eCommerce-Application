@@ -3,12 +3,11 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { createNewCart, getActiveCart, login } from '../../services/API';
-import { errorAlert, errorMessages, errorsClient } from '../../types/errors';
+import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
-import mergeAnonymousCartWithUserCart from '../../services/cart-merge';
 import { pause } from '../../utils/create-element';
+import loginUser from '../../utils/login';
 
 Router.registerRoute('login', 'login-page');
 
@@ -290,28 +289,8 @@ export default class LoginPage extends Page {
   private static submitAction(): void {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
-      login(this.getEmail(), this.getPassword())
-        .then(({ body }) => {
-          Store.customer = body.customer;
-        })
-        .then(() => {
-          getActiveCart()
-            .then(({ body }) => mergeAnonymousCartWithUserCart(body))
-            .catch((error: Error) => {
-              if (error.name === errorsClient.noCart) {
-                createNewCart()
-                  .then(() =>
-                    getActiveCart()
-                      .then(({ body }) => {
-                        mergeAnonymousCartWithUserCart(body);
-                      })
-                      .catch(() => {})
-                  )
-                  .catch(() => {});
-              }
-            });
-        })
-        .then(() => LoginPage.createwaitingText())
+      loginUser(this.getEmail(), this.getPassword())
+        .then(() => LoginPage.createWaitingText())
         .catch(() => {})
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
@@ -332,7 +311,7 @@ export default class LoginPage extends Page {
     window.location.href = '#';
   };
 
-  private static createwaitingText(): void {
+  private static createWaitingText(): void {
     const page = document.querySelector('.page') as HTMLElement;
     page.innerHTML = 'LOGIN SUCCESSFUL. PLEASE WAIT!!!';
     page.style.textAlign = 'center';

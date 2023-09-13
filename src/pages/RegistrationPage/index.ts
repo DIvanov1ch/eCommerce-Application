@@ -3,7 +3,7 @@ import { BaseAddress, ErrorResponse } from '@commercetools/platform-sdk';
 import html from './registration.html';
 import Page from '../Page';
 import CssClasses from './css-classes';
-import { login, logout, registration } from '../../services/API';
+import { registration } from '../../services/API';
 import InputID from '../../enums/input-id';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -16,6 +16,7 @@ import Router from '../../services/Router';
 import { Country } from '../../config';
 import { disableInput, enableInput, getCheckboxState, getInputValue } from '../../utils/service-functions';
 import Validator from '../../services/Validator';
+import loginUser from '../../utils/login';
 
 Router.registerRoute('registration', 'registration-page');
 
@@ -258,12 +259,7 @@ export default class RegistrationPage extends Page {
   }
 
   private logIn(): void {
-    logout();
-    login(this.customer.email, this.customer.password)
-      .then(({ body }) => {
-        Store.customer = body.customer;
-      })
-      .catch(console.error);
+    loginUser(this.customer.email, this.customer.password).catch(console.error);
   }
 
   private async goToMainPage(htmlText: string): Promise<void> {
