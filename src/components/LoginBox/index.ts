@@ -2,6 +2,7 @@ import './login-box.scss';
 import html from './login-box.html';
 import BaseComponent from '../BaseComponent';
 import Store from '../../services/Store';
+import { classSelector } from '../../utils/create-element';
 
 const CssClasses = {
   BOX: 'login-box',
@@ -11,8 +12,6 @@ const CssClasses = {
   PROFILE: 'login-box__profile',
   USER: 'login-box__user',
 };
-
-const classSelector = (name: string): string => `.${name}`;
 
 export default class LoginBox extends BaseComponent {
   constructor() {

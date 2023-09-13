@@ -9,6 +9,8 @@ import throwError from '../../utils/throw-error';
 import PriceBox from '../../components/PriceBox';
 import ImageSlider from '../../components/ImageSlider';
 import { classSelector } from '../../utils/create-element';
+import Store from '../../services/Store';
+import ProductVariants from '../../components/ProductVariants';
 
 Router.registerRoute('product', 'product-page');
 
@@ -21,6 +23,7 @@ const CssClasses = {
   IMAGES: 'details__images',
   PRICES: 'details__prices',
   PARAMS: 'details__params',
+  VARIANTS: 'details__variants',
 };
 
 export default class ProductPage extends Page {
@@ -55,6 +58,8 @@ export default class ProductPage extends Page {
 
     this.toggleLoading(false);
     if (product) {
+      const { key } = product;
+      Store.products[String(key)] = product;
       this.render(product);
     }
   }
@@ -62,6 +67,7 @@ export default class ProductPage extends Page {
   private render(product: ProductProjection): void {
     const { NAME, DESCRIPTION } = CssClasses;
     const {
+      key,
       name: { [LANG]: name },
       description: { [LANG]: description } = {},
       masterVariant: { images, prices = [] },
@@ -75,8 +81,10 @@ export default class ProductPage extends Page {
 
     this.insertHtml(classSelector(NAME), name);
     this.insertHtml(classSelector(DESCRIPTION), description);
+
     this.insertImages(images);
     this.setCategoryId(categoryId);
+    this.renderVariants(key);
     this.setPrice(price, discounted);
   }
 
@@ -86,6 +94,11 @@ export default class ProductPage extends Page {
     this.#priceBox.setDiscounted(discounted);
 
     priceContainer?.replaceChildren(this.#priceBox);
+  }
+
+  private renderVariants(key = ''): void {
+    const variants = new ProductVariants(key);
+    this.$(classSelector(CssClasses.VARIANTS))?.append(variants);
   }
 
   private insertImages(images?: Image[]): void {
