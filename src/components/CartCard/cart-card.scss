@@ -1,0 +1,33 @@
+.cart-card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(166, 166, 166, 0.3215686275);
+}
+
+.cart-card__name,
+.cart-card__image {
+  cursor: pointer;
+}
+
+.cart-card__image img {
+  max-width: 200px;
+}
+
+.cart-card__content {
+  width: 50%;
+}
+
+.cart-card__price {
+  display: flex;
+  align-items: start;
+  position: relative;
+  width: 100px;
+
+  .price-box__discount,
+  .price-box__price--old:before {
+    display: none;
+  }
+}

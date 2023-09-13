@@ -13,6 +13,7 @@ const Store: MerchStore = {
   types: [],
   products: {},
   cart: [],
+  customerCart: undefined,
   cartiSMerged: false,
 };
 

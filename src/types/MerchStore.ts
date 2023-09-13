@@ -1,4 +1,4 @@
-import { Category, Customer, ProductProjection, ProductType } from '@commercetools/platform-sdk';
+import { Cart, Category, Customer, ProductProjection, ProductType } from '@commercetools/platform-sdk';
 import { TokenStore } from '@commercetools/sdk-client-v2';
 
 export interface MerchStore {
@@ -9,4 +9,5 @@ export interface MerchStore {
   products: Record<string, ProductProjection>;
   cart: string[];
   cartiSMerged: boolean;
+  customerCart?: Cart;
 }

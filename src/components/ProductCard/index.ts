@@ -39,7 +39,7 @@ export default class ProductCard extends BaseComponent {
     });
   }
 
-  private render(): void {
+  protected render(): void {
     const { NAME, DESCRIPTION } = CssClasses;
 
     if (!(this.#key in Store.products)) {
@@ -67,7 +67,7 @@ export default class ProductCard extends BaseComponent {
     this.CartIconClickHandling(this.#key);
   }
 
-  private setPrice(price: number, discounted: number): void {
+  protected setPrice(price: number, discounted: number): void {
     const priceContainer = this.$(classSelector(CssClasses.PRICE));
     const priceBox = new PriceBox();
     priceBox.setPrice(price);
@@ -76,7 +76,7 @@ export default class ProductCard extends BaseComponent {
     priceContainer?.replaceChildren(priceBox);
   }
 
-  private insertImages(images?: Image[]): void {
+  protected insertImages(images?: Image[]): void {
     if (!images || !images.length) {
       return;
     }
@@ -109,18 +109,18 @@ export default class ProductCard extends BaseComponent {
     });
   }
 
-  private attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+  protected attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (name === 'key') {
       this.#key = newValue;
       this.render();
     }
   }
 
-  private static get observedAttributes(): string[] {
+  protected static get observedAttributes(): string[] {
     return ['key'];
   }
 
-  private showError(): void {
+  protected showError(): void {
     this.replaceChildren('Loading...');
   }
 }
