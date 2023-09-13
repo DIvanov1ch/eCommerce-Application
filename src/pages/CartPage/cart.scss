@@ -1,0 +1,17 @@
+.page--cart {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.cart__title {
+  width: 100%;
+}
+
+.cart__carts {
+  width: 70%;
+}
+
+.cart__total {
+  width: 30%;
+}
