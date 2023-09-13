@@ -75,7 +75,6 @@ export default class ProductPage extends Page {
 
     this.insertHtml(classSelector(NAME), name);
     this.insertHtml(classSelector(DESCRIPTION), description);
-
     this.insertImages(images);
     this.setCategoryId(categoryId);
     this.setPrice(price, discounted);

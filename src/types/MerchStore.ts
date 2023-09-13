@@ -6,11 +6,7 @@ export interface MerchStore {
   token: TokenStore | null;
   categories: Category[];
   products: Record<string, ProductProjection>;
-  cart: NewCart[];
+  cart: string[];
+  cartiSMerged: boolean;
   customerCart?: Cart;
-}
-
-export interface NewCart {
-  key: string;
-  quantity: number;
 }
