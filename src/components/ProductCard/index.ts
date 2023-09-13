@@ -16,6 +16,7 @@ const CssClasses = {
   DESCRIPTION: 'product-card__description',
   IMAGE: 'product-card__image',
   PRICE: 'product-card__price',
+  VARIANTS: 'product-card__variants',
   CART: 'product-card__cart',
   CARTICON: 'product-card__cart-svg-icon',
   CARTICONINACTIVE: 'product-card__cart-svg-icon--inactive',

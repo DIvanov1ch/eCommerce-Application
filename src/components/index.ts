@@ -14,6 +14,7 @@ import ChangePassword from './ChangePassword';
 import PriceBox from './PriceBox';
 import ProductCard from './ProductCard';
 import ProductCategories from './ProductCategories';
+import ProductVariants from './ProductVariants';
 import TimeOut from './TimeOut';
 import CartCard from './CartCard';
 
@@ -29,6 +30,7 @@ const Components = {
   'image-slider': ImageSlider,
   'modal-dialog': ModalDialog,
   'product-card': ProductCard,
+  'product-variants': ProductVariants,
   'popup-menu': PopupMenu,
   'edit-profile': EditProfile,
   'change-password': ChangePassword,

@@ -10,7 +10,7 @@ import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes 
 import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
 import highlightSearchingElement from '../../utils/highlight-search-el';
 import Store from '../../services/Store';
-import loadProductCategories from '../../utils/load-data';
+import { loadProductCategories } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { LANG } from '../../config';
 import ProductCard from '../../components/ProductCard';

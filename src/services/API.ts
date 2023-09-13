@@ -257,7 +257,7 @@ async function getActiveCart(): Promise<ClientResponse<Cart>> {
   return apiRoot.me().activeCart().get().execute().catch();
 }
 
-async function putProductIntoCart(product: string, hasCart = false): Promise<ClientResponse<Cart>> {
+async function putProductIntoCart(product: string, hasCart = false, variantId = 1): Promise<ClientResponse<Cart>> {
   if (hasCart === false) {
     await getActiveCart().catch((error: Error) => {
       if (error.name === errorsClient.noCart) {
@@ -287,6 +287,7 @@ async function putProductIntoCart(product: string, hasCart = false): Promise<Cli
           {
             action: 'addLineItem',
             productId,
+            variantId,
           },
         ],
       },
