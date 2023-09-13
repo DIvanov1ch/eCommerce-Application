@@ -12,6 +12,7 @@ const Store: MerchStore = {
   categories: [],
   products: {},
   cart: [],
+  cartiSMerged: false,
 };
 
 type Keys = keyof typeof Store;
