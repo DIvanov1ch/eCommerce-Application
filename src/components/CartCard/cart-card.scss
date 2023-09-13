@@ -1,0 +1,26 @@
+.cart-card {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cart-card__name,
+.cart-card__image {
+  cursor: pointer;
+}
+
+.cart-card__image img {
+  max-width: 200px;
+}
+
+.cart-card__price {
+  display: flex;
+  align-items: start;
+  justify-content: end;
+  position: relative;
+  width: 100px;
+
+  .price-box__discount,
+  .price-box__price--old:before {
+    display: none;
+  }
+}

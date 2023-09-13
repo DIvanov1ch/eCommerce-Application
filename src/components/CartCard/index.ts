@@ -1,18 +1,20 @@
+import { LineItem, Image } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
 import { LANG } from '../../config';
-import { classSelector } from '../../utils/create-element';
-import ProductCard from '../ProductCard';
+import { classSelector, createElement } from '../../utils/create-element';
+import BaseComponent from '../BaseComponent';
+import PriceBox from '../PriceBox';
 
 const CssClasses = {
-  COMPONENT: 'cart-card',
+  CART: 'cart-card',
   NAME: 'cart-card__name',
   IMAGE: 'cart-card__image',
   PRICE: 'cart-card__price',
 };
 
-export default class CartCard extends ProductCard {
+export default class CartCard extends BaseComponent {
   #key = '';
 
   constructor(key = '') {
@@ -22,25 +24,24 @@ export default class CartCard extends ProductCard {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    this.classList.add(CssClasses.COMPONENT);
+    this.classList.add(CssClasses.CART);
     this.render();
-    this.addEventListener('click', () => {
-      window.location.href = `#product/${this.#key}`;
-    });
+    this.setCallback();
   }
 
   protected render(): void {
     const { NAME } = CssClasses;
 
-    if (!(this.#key in Store.products)) {
-      super.showError();
+    if (!Store.customerCart) {
+      this.showError();
       return;
     }
 
-    const product = Store.products[this.#key];
+    const products: LineItem[] = Store.customerCart.lineItems;
+    const product = products.find((item) => item.productKey === this.#key) as LineItem;
     const {
       name: { [LANG]: name },
-      masterVariant: { images, prices = [] },
+      variant: { images, prices = [] },
     } = product;
 
     const {
@@ -48,8 +49,53 @@ export default class CartCard extends ProductCard {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    super.insertHtml(classSelector(NAME), name);
-    super.insertImages(images);
-    super.setPrice(price, discounted);
+    this.insertHtml(classSelector(NAME), name);
+    this.insertImages(images);
+    this.setPrice(price, discounted);
+  }
+
+  private setCallback(): void {
+    const image = <HTMLDivElement>this.$(classSelector(CssClasses.IMAGE));
+    const name = <HTMLDivElement>this.$(classSelector(CssClasses.NAME));
+    [image, name].forEach((el) =>
+      el.addEventListener('click', () => {
+        window.location.href = `#product/${this.#key}`;
+      })
+    );
+  }
+
+  protected insertImages(images?: Image[]): void {
+    if (!images || !images.length) {
+      return;
+    }
+
+    const [{ url }] = images;
+    const image = createElement('img', { src: url });
+
+    this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
+  }
+
+  protected setPrice(price: number, discounted: number): void {
+    const priceContainer = this.$(classSelector(CssClasses.PRICE));
+    const priceBox = new PriceBox();
+    priceBox.setPrice(price);
+    priceBox.setDiscounted(discounted);
+
+    priceContainer?.replaceChildren(priceBox);
+  }
+
+  protected attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+    if (name === 'key') {
+      this.#key = newValue;
+      this.render();
+    }
+  }
+
+  protected static get observedAttributes(): string[] {
+    return ['key'];
+  }
+
+  protected showError(): void {
+    this.replaceChildren('Loading...');
   }
 }

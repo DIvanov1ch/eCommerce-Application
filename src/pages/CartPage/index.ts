@@ -8,6 +8,7 @@ import CustomerCart from '../../services/CustomerCart';
 import CssClasses from './css-classes';
 import { classSelector } from '../../utils/create-element';
 import CartCard from '../../components/CartCard';
+import Store from '../../services/Store';
 
 Router.registerRoute('cart', 'cart-page');
 
@@ -27,6 +28,8 @@ export default class CartPage extends Page {
   private loadCart(): void {
     getCart()
       .then((body) => {
+        console.log(body);
+        Store.customerCart = body;
         this.cart = body;
         this.render(body.lineItems);
       })
@@ -37,7 +40,7 @@ export default class CartPage extends Page {
 
   private render(products: LineItem[]): void {
     this.$(classSelector(CssClasses.CARTS_WRAPPER))?.replaceChildren(
-      ...products.map((product: LineItem) => new CartCard(product.key))
+      ...products.map((product: LineItem) => new CartCard(product.productKey))
     );
   }
 
