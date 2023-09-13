@@ -9,6 +9,8 @@ import CssClasses from './css-classes';
 import { classSelector } from '../../utils/create-element';
 import CartCard from '../../components/CartCard';
 import Store from '../../services/Store';
+import { setElementTextContent } from '../../utils/service-functions';
+import PriceBox from '../../components/PriceBox';
 
 Router.registerRoute('cart', 'cart-page');
 
@@ -32,6 +34,7 @@ export default class CartPage extends Page {
         Store.customerCart = body;
         this.cart = body;
         this.render(body.lineItems);
+        this.setTotal();
       })
       .catch(() => {
         this.renderEmpty();
@@ -39,7 +42,7 @@ export default class CartPage extends Page {
   }
 
   private render(products: LineItem[]): void {
-    this.$(classSelector(CssClasses.CARTS_WRAPPER))?.replaceChildren(
+    this.$(classSelector(CssClasses.CARTS))?.replaceChildren(
       ...products.map((product: LineItem) => new CartCard(product.productKey))
     );
   }
@@ -49,6 +52,19 @@ export default class CartPage extends Page {
   }
 
   private clearCartContainer(innerHTML = ''): void {
-    this.insertHtml(classSelector(CssClasses.CARTS_WRAPPER), innerHTML);
+    this.insertHtml(classSelector(CssClasses.CARTS), innerHTML);
+  }
+
+  private setTotal(): void {
+    const { PRICE, SUMMARY } = CssClasses;
+    const {
+      totalPrice: { centAmount: totalPrice },
+      lineItems: { length: summary },
+    } = this.cart;
+    const priceContainer = this.$(classSelector(PRICE));
+    const priceBox = new PriceBox();
+    priceBox.setPrice(totalPrice);
+    priceContainer?.replaceChildren(priceBox);
+    setElementTextContent(classSelector(SUMMARY), this, summary.toString());
   }
 }
