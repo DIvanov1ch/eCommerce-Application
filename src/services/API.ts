@@ -18,6 +18,7 @@ import {
   Customer,
   MyCustomerUpdate,
   MyCustomerChangePassword,
+  Cart,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -32,6 +33,7 @@ import {
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
+import Store from './Store';
 // import Store from './Store';
 
 const projectKey = PROJECT_KEY;
@@ -191,6 +193,20 @@ const changePassword = async (body: MyCustomerChangePassword): Promise<ClientRes
   return apiRoot.me().password().post({ body }).execute();
 };
 
+const getCart = async (): Promise<Cart> => {
+  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
+  const customerId = Store.customer?.id as string;
+  return (
+    await apiRoot
+      .carts()
+      .withCustomerId({
+        customerId,
+      })
+      .get()
+      .execute()
+  ).body;
+};
+
 export {
   login,
   registration,
@@ -202,4 +218,5 @@ export {
   update,
   changePassword,
   getCustomer,
+  getCart,
 };
