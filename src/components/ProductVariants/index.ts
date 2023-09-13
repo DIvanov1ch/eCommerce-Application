@@ -7,6 +7,7 @@ import { loadProductTypes } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { createElement } from '../../utils/create-element';
 import { LANG } from '../../config';
+import { putProductIntoCart } from '../../services/API';
 
 const CssClasses = {
   COMPONENT: 'product-variants',
@@ -93,7 +94,10 @@ export default class ProductVariants extends BaseComponent {
 
     this.#form = createElement('form', null);
     this.#btnCart = createElement('button', { type: 'submit', className: CssClasses.ADD_TO_CART }, ADD_TO_CART);
-    this.#form.addEventListener('submit', this.handleAddToCart.bind(this));
+    this.#form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.handleAddToCart().catch(throwError);
+    });
   }
 
   protected connectedCallback(): void {
@@ -192,9 +196,11 @@ export default class ProductVariants extends BaseComponent {
     }
   }
 
-  private handleAddToCart(event: Event): void {
-    event.preventDefault();
+  private async handleAddToCart(): Promise<void> {
+    this.#btnCart.disabled = true;
+    const { key } = this.#product;
 
-    console.log(this.#selectedVariantId);
+    await putProductIntoCart(String(key), false, this.#selectedVariantId);
+    this.#btnCart.disabled = false;
   }
 }
