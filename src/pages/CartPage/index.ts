@@ -1,5 +1,5 @@
 import { Cart, LineItem } from '@commercetools/platform-sdk';
-import { getCart } from '../../services/API';
+import { getActiveCart, getCartByCustomerId } from '../../services/API';
 import Router from '../../services/Router';
 import Page from '../Page';
 import html from './cart.html';
@@ -28,26 +28,47 @@ export default class CartPage extends Page {
   }
 
   private loadCart(): void {
-    getCart()
-      .then((body) => {
-        console.log(body);
-        Store.customerCart = body;
-        this.cart = body;
-        this.render(body.lineItems);
-        this.setTotal();
-      })
-      .catch(() => {
-        this.renderEmpty();
-      });
+    if (Store.customer) {
+      const customerId = Store.customer.id;
+      getCartByCustomerId(customerId)
+        .then((body) => {
+          console.log('cartById', body);
+          this.saveCart(body);
+          this.render();
+        })
+        .catch(() => {
+          this.showResponseError();
+        });
+    } else {
+      getActiveCart()
+        .then(({ body }) => {
+          console.log('activeCart', body);
+          this.saveCart(body);
+          this.render();
+        })
+        .catch(() => {
+          this.showResponseError();
+        });
+    }
   }
 
-  private render(products: LineItem[]): void {
+  private saveCart(cart: Cart): void {
+    Store.customerCart = cart;
+    this.cart = cart;
+  }
+
+  private render(): void {
+    this.renderLineItems(this.cart.lineItems);
+    this.setTotalPrice();
+  }
+
+  private renderLineItems(products: LineItem[]): void {
     this.$(classSelector(CssClasses.CARTS))?.replaceChildren(
       ...products.map((product: LineItem) => new CartCard(product.productKey))
     );
   }
 
-  private renderEmpty(): void {
+  private showResponseError(): void {
     this.clearCartContainer('<p>An active cart does not exist.</p>');
   }
 
@@ -55,7 +76,7 @@ export default class CartPage extends Page {
     this.insertHtml(classSelector(CssClasses.CARTS), innerHTML);
   }
 
-  private setTotal(): void {
+  private setTotalPrice(): void {
     const { PRICE, SUMMARY } = CssClasses;
     const {
       totalPrice: { centAmount: totalPrice },

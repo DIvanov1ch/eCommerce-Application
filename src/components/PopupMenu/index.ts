@@ -2,7 +2,7 @@ import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import { classSelector } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import html from './template.html';
-import { update } from '../../services/API';
+import { updateCustomer } from '../../services/API';
 import Store from '../../services/Store';
 import showToastMessage from '../../utils/show-toast-message';
 import Validator from '../../services/Validator';
@@ -91,7 +91,7 @@ export default class PopupMenu extends BaseComponent {
 
   protected submit(): void {
     const { version, actions } = this;
-    update({ version, actions })
+    updateCustomer({ version, actions })
       .then(({ body }) => {
         Store.customer = body;
         this.isUpdateSuccessful = true;

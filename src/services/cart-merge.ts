@@ -15,7 +15,7 @@ const mergeAnonymousCartWithUserCart = (body: Cart): void => {
   const promise = (i: number): Promise<void> =>
     putProductIntoCart(newProductInAnonymousCart[i], true)
       .then(() => {
-        if (i > 1) return promise(i - 1);
+        if (i > 0) return promise(i - 1);
         Store.cartiSMerged = true;
         return undefined;
       })

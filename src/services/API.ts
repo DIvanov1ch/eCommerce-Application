@@ -157,7 +157,7 @@ const login = async (email: string, password: string): Promise<ClientResponse<Cu
   return apiRoot.me().login().post({ body: { email, password } }).execute();
 };
 
-const registration = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
+const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot.customers().post({ body }).execute();
 };
@@ -212,7 +212,7 @@ async function getCustomer(): Promise<Customer> {
   return (await apiRoot.me().get().execute()).body;
 }
 
-const update = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
+const updateCustomer = async (body: MyCustomerUpdate): Promise<ClientResponse<Customer>> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
   return apiRoot.me().post({ body }).execute();
 };
@@ -222,9 +222,8 @@ const changePassword = async (body: MyCustomerChangePassword): Promise<ClientRes
   return apiRoot.me().password().post({ body }).execute();
 };
 
-const getCart = async (): Promise<Cart> => {
+const getCartByCustomerId = async (customerId: string): Promise<Cart> => {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  const customerId = Store.customer?.id as string;
   return (
     await apiRoot
       .carts()
@@ -297,17 +296,17 @@ async function putProductIntoCart(product: string, hasCart = false): Promise<Cli
 
 export {
   login,
-  registration,
+  registerCustomer,
   logout,
   getProductProjectionByKey,
   getCategories,
   getInfoOfFilteredProducts,
   getProductTypes,
-  update,
+  updateCustomer,
   changePassword,
   createNewCart,
   getActiveCart,
   putProductIntoCart,
   getCustomer,
-  getCart,
+  getCartByCustomerId,
 };

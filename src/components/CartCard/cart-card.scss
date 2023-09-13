@@ -1,7 +1,7 @@
 .cart-card {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-between;
   margin-bottom: 10px;
   background-color: #ffffff;
   border-bottom: 1px solid rgba(166, 166, 166, 0.3215686275);
@@ -16,10 +16,13 @@
   max-width: 200px;
 }
 
+.cart-card__content {
+  width: 50%;
+}
+
 .cart-card__price {
   display: flex;
   align-items: start;
-  justify-content: end;
   position: relative;
   width: 100px;
 

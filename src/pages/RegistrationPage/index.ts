@@ -3,7 +3,7 @@ import { BaseAddress, ErrorResponse } from '@commercetools/platform-sdk';
 import html from './registration.html';
 import Page from '../Page';
 import CssClasses from './css-classes';
-import { registration } from '../../services/API';
+import { registerCustomer } from '../../services/API';
 import InputID from '../../enums/input-id';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
@@ -184,7 +184,7 @@ export default class RegistrationPage extends Page {
   }
 
   private register(): void {
-    registration(this.customer)
+    registerCustomer(this.customer)
       .then((response) => {
         this.isSignUp = true;
         const { customer } = response.body;
