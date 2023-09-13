@@ -6,6 +6,9 @@ import Store from '../../services/Store';
 import { LANG } from '../../config';
 import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
+import { putProductIntoCart } from '../../services/API';
+import throwError from '../../utils/throw-error';
+import { createLoader, deleteLoader } from '../../utils/loader';
 
 const CssClasses = {
   COMPONENT: 'product-card',
@@ -60,8 +63,8 @@ export default class ProductCard extends BaseComponent {
     this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
-    this.setBasketIcon(this.#key);
-    this.basketIconClickHandling(this.#key);
+    this.setCartIcon(this.#key);
+    this.CartIconClickHandling(this.#key);
   }
 
   private setPrice(price: number, discounted: number): void {
@@ -84,19 +87,24 @@ export default class ProductCard extends BaseComponent {
     this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
-  private setBasketIcon(key: string): void {
-    Store.cart.forEach((storeCart) => {
-      if (key === storeCart.key) {
+  private setCartIcon(key: string): void {
+    Store.cart.forEach((el) => {
+      if (key === el) {
         this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       }
     });
   }
 
-  private basketIconClickHandling(productKey: string): void {
+  private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      const productToBasket = { key: productKey, quantity: 1 };
-      Store.cart.push(productToBasket);
-      this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      createLoader();
+      putProductIntoCart(productKey)
+        .then(() => {
+          Store.cart.push(productKey);
+          this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+          deleteLoader();
+        })
+        .catch(() => throwError);
       event.stopPropagation();
     });
   }

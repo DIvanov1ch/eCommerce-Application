@@ -14,16 +14,17 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
   INVALID_VALUE: {
     forename: 'Must not contain special characters or numbers',
     surname: 'Must not contain special characters or numbers',
-    email: 'Wrong or Invalid email address. Please correct and try again.',
+    email: 'Wrong or Invalid email address. Please correct it.',
     password: 'Must contain at least 1 uppercase letter, 1 lowercase letter, 1 number and be 8 characters long',
     date: 'You need to be at least 13 years old',
     street: 'Must contain at least one character',
     city: 'Must not contain special characters or numbers',
     code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
-    current: 'Password is too short',
+    current: 'Your password may be incorrect',
   },
   PASSWORD_MISMATCH: { password: 'Password mismatch' },
+  INVALID_CURRENT_PASSWORD: { password: 'The given current password does not match' },
 };
 
 export default ErrorMessages;

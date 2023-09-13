@@ -3,12 +3,15 @@ import './login.scss';
 import Page from '../Page';
 import { EmailRules, PasswordRules } from '../../enums/rules';
 import Pattern from '../../constants/pattern';
-import { login } from '../../services/API';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
+import { pause } from '../../utils/create-element';
+import loginUser from '../../utils/login';
 
 Router.registerRoute('login', 'login-page');
+
+const LOGIN_DELAY = 3000;
 
 export default class LoginPage extends Page {
   constructor() {
@@ -16,7 +19,7 @@ export default class LoginPage extends Page {
   }
 
   protected connectedCallback(): void {
-    LoginPage.checkIfLoginByTokenInLocalStorage();
+    LoginPage.checkIfUserLoggedIn();
 
     super.connectedCallback();
     LoginPage.checkPasswordValidation();
@@ -41,10 +44,6 @@ export default class LoginPage extends Page {
 
   private static userEmail: string;
 
-  private static isLogIn: boolean;
-
-  private static userId: string;
-
   public static getPassword = (): string => {
     return this.userPassword || '';
   };
@@ -53,19 +52,13 @@ export default class LoginPage extends Page {
     return this.userEmail || '';
   };
 
-  public static getIsLogin = (): boolean => {
-    return this.isLogIn || false;
-  };
-
   public static setLoginToDefault = (): void => {
-    this.isLogIn = false;
-    this.userId = '';
     this.userPassword = '';
     this.userEmail = '';
   };
 
-  private static checkIfLoginByTokenInLocalStorage = (): void => {
-    if (Store.user.loggedIn) {
+  private static checkIfUserLoggedIn = (): void => {
+    if (Store.customer) {
       this.goToMainPage();
     }
   };
@@ -293,25 +286,19 @@ export default class LoginPage extends Page {
     this.hasSubmitErrorMessage = true;
   };
 
-  private static submitAction = (): void => {
+  private static submitAction(): void {
     const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
-      login(this.getEmail(), this.getPassword())
-        .then(({ body }) => {
-          const { firstName, lastName, id } = body.customer;
-          Store.customer = body.customer;
-          this.isLogIn = true;
-          this.userId = id;
-          Store.user = { loggedIn: true, firstName, lastName };
-          this.goToMainPage();
-        })
+      loginUser(this.getEmail(), this.getPassword())
+        .then(() => LoginPage.createWaitingText())
+        .catch(() => {})
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
             this.showErrorOnLogin(error.message);
           }
         });
     });
-  };
+  }
 
   private static goToRegistrationPage = (): void => {
     const buttonForRegistration = document.querySelector('.login__button.button_registration') as HTMLInputElement;
@@ -323,4 +310,15 @@ export default class LoginPage extends Page {
   private static goToMainPage = (): void => {
     window.location.href = '#';
   };
+
+  private static createWaitingText(): void {
+    const page = document.querySelector('.page') as HTMLElement;
+    page.innerHTML = 'LOGIN SUCCESSFUL. PLEASE WAIT!!!';
+    page.style.textAlign = 'center';
+    pause(LOGIN_DELAY)
+      .then(() => {
+        this.goToMainPage();
+      })
+      .catch(() => {});
+  }
 }

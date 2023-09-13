@@ -29,7 +29,7 @@ export default class LoginBox extends BaseComponent {
   }
 
   private updateState(): void {
-    const { loggedIn } = Store.user;
+    const loggedIn = !!Store.customer;
     const { LOGOUT, LOGIN, REGISTER, PROFILE } = CssClasses;
 
     this.toggleItems([LOGIN, REGISTER], loggedIn);

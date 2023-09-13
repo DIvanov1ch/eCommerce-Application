@@ -2,20 +2,21 @@ import './registration.scss';
 import { BaseAddress, ErrorResponse } from '@commercetools/platform-sdk';
 import html from './registration.html';
 import Page from '../Page';
-import isValidValue from '../../utils/is-valid-value';
-import ErrorMessages from '../../constants';
 import CssClasses from './css-classes';
-import { login, registration } from '../../services/API';
+import { registration } from '../../services/API';
 import InputID from '../../enums/input-id';
 import successIcon from '../../assets/icons/success.svg';
 import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
-import warningIcon from '../../assets/icons/warning-icon.png';
-import { pause } from '../../utils/create-element';
+import { classSelector, idSelector, pause } from '../../utils/create-element';
 import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
 import AddressType from '../../enums/address-type';
 import Router from '../../services/Router';
+import { Country } from '../../config';
+import { disableInput, enableInput, getCheckboxState, getInputValue } from '../../utils/service-functions';
+import Validator from '../../services/Validator';
+import loginUser from '../../utils/login';
 
 Router.registerRoute('registration', 'registration-page');
 
@@ -30,11 +31,9 @@ const HTML = {
 export default class RegistrationPage extends Page {
   private isSignUp: boolean = false;
 
-  private fields: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
+  private validator: Validator | undefined = undefined;
 
   private customer = new NewUser();
-
-  private country = 'US';
 
   private isShippingAsBilling: boolean = false;
 
@@ -43,57 +42,56 @@ export default class RegistrationPage extends Page {
   }
 
   protected connectedCallback(): void {
+    if (Store.customer) {
+      this.goToMainPage(HTML.ALREADY).then().catch(console.error);
+      return;
+    }
     super.connectedCallback();
-    this.checkIfLoginByTokenInLocalStorage();
-    this.fields = this.querySelectorAll(`.${CssClasses.INPUT_FIELD}`);
     this.setCallback();
+    this.createValidator();
   }
 
   private setCallback(): void {
-    this.fields.forEach((field: HTMLInputElement): void => {
-      field.addEventListener('input', this.hideError.bind(this));
-      field.addEventListener('invalid', (event: Event) => event.preventDefault());
+    const { CHECKBOX, LOGIN_BTN, SELECT, OVERLAY, SUBMIT_BUTTON } = CssClasses;
+
+    const submitButton = <HTMLInputElement>this.$(classSelector(SUBMIT_BUTTON));
+    submitButton.addEventListener('click', this.submit.bind(this));
+
+    const sameAddressCheckbox = <HTMLInputElement>this.$(idSelector(CHECKBOX));
+    sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
+
+    const loginButton = <HTMLInputElement>this.$(classSelector(LOGIN_BTN));
+    loginButton.addEventListener('click', () => {
+      window.location.href = '#login';
     });
 
-    const submitButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    if (submitButton !== null) {
-      submitButton.addEventListener('click', this.checkValuesBeforeSubmit.bind(this));
-    }
-
-    const form: HTMLFormElement | null = this.querySelector(`.${CssClasses.FORM}`);
-    if (form !== null) {
-      form.addEventListener('submit', (event: Event) => event.preventDefault());
-    }
-
-    const sameAddressCheckbox: HTMLInputElement | null = this.querySelector(`#${CssClasses.CHECKBOX}`);
-    if (sameAddressCheckbox !== null) {
-      sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
-    }
-
-    const loginButton: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
-    if (loginButton !== null) {
-      loginButton.addEventListener('click', (): void => {
-        window.location.href = '#login';
-      });
-    }
-
-    const countryFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll('[name="country"]');
+    const countryFileds = <HTMLInputElement[]>this.$$('[name="country"]');
     countryFileds.forEach((field) => {
       field.addEventListener('focus', this.showCountryList.bind(this));
       field.addEventListener('input', this.showCountryList.bind(this));
     });
 
-    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
     countrySelects.forEach((select) => select.addEventListener('click', this.hideCountryList.bind(this)));
 
-    this.addEventListener('click', this.hidePopupAndRedirect.bind(this));
+    const overlay = this.$(classSelector(OVERLAY));
+    overlay?.addEventListener('click', this.closeModalWindow.bind(this));
+
+    this.addEventListener('click', this.closeCountryList.bind(this));
+  }
+
+  private createValidator(): void {
+    const { INPUT, SUBMIT_BUTTON } = CssClasses;
+    const inputs = <HTMLInputElement[]>this.$$(classSelector(INPUT));
+    const submitBtn = <HTMLInputElement>this.$(classSelector(SUBMIT_BUTTON));
+    this.validator = new Validator(inputs, submitBtn);
   }
 
   private showCountryList(event: Event): void {
     const target = event.target as HTMLInputElement;
     if (!target.value || target.value.trim() !== 'United States') {
       const selector = target.id;
-      const countrySelect: HTMLDivElement | null = this.querySelector(`.${CssClasses.SELECT}.${selector}`);
+      const countrySelect = this.$(`${classSelector(CssClasses.SELECT)}${classSelector(selector)}`);
       if (countrySelect) {
         countrySelect.classList.remove(CssClasses.HIDDEN);
         countrySelect.style.top = `${target.getBoundingClientRect().bottom + window.scrollY}px`;
@@ -104,65 +102,12 @@ export default class RegistrationPage extends Page {
   private hideCountryList(event: Event): void {
     const target = event.target as HTMLDivElement;
     const selector = Object.values(InputID).find((id) => target.classList.contains(id));
-    const field: HTMLInputElement | null = this.querySelector(`#${selector}`);
+    const field = <HTMLInputElement>this.$(`#${selector}`);
     if (field) {
       field.value = target.textContent as string;
       field.dispatchEvent(new Event('input'));
     }
     target.classList.add(CssClasses.HIDDEN);
-  }
-
-  private getInvalidFields(): HTMLInputElement[] {
-    const invalidFields: HTMLInputElement[] = [...this.fields].filter(
-      (field: HTMLInputElement): boolean => !isValidValue(field.id, field.value.trim())
-    );
-    return invalidFields;
-  }
-
-  private hideError(event: Event): void;
-  private hideError(field: HTMLInputElement): void;
-  private hideError(eventOrInput: Event | HTMLInputElement): void {
-    const target: HTMLInputElement =
-      eventOrInput instanceof Event ? (eventOrInput.target as HTMLInputElement) : eventOrInput;
-    if (target && target.classList.contains(CssClasses.INPUT_ERROR)) {
-      if (isValidValue(target.id, target.value)) {
-        target.classList.remove(CssClasses.INPUT_ERROR);
-        const errorBox: Element | null = target.nextElementSibling;
-        if (errorBox !== null) {
-          errorBox.classList.add(CssClasses.HIDDEN);
-        }
-      } else {
-        this.setErrorMessages();
-      }
-    }
-  }
-
-  private setErrorMessages(): void {
-    const invalidFields: HTMLInputElement[] = this.getInvalidFields();
-    invalidFields.forEach((field: HTMLInputElement): void => {
-      const selector: string = field.id;
-      const errorImg: HTMLImageElement | null = this.querySelector(`.${CssClasses.ERROR_ICON}.${selector}`);
-      const errorContent: Element | null = this.querySelector(`.${CssClasses.ERROR_TEXT}.${selector}`);
-      const errorMessage: string = !field.value
-        ? ErrorMessages.EMPTY_FIELD[`${field.name}`]
-        : ErrorMessages.INVALID_VALUE[`${field.name}`];
-      if (errorContent !== null && errorImg !== null) {
-        errorContent.textContent = errorMessage;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        errorImg.src = warningIcon;
-      }
-    });
-  }
-
-  private showErrors(): void {
-    const invalidFields: HTMLInputElement[] = this.getInvalidFields();
-    invalidFields.forEach((field: HTMLInputElement): void => {
-      field.classList.add(CssClasses.INPUT_ERROR);
-      const errorBox: Element | null = field.nextElementSibling;
-      if (errorBox !== null) {
-        errorBox.classList.remove(CssClasses.HIDDEN);
-      }
-    });
   }
 
   private handleErrorResponse(error: ErrorResponse): void {
@@ -177,62 +122,62 @@ export default class RegistrationPage extends Page {
       return;
     }
     if (error.message === errorMessages.emailError) {
-      const email = this.querySelector(`#${InputID.EMAIL}`);
-      email?.classList.add(CssClasses.INPUT_ERROR);
+      const email = this.$(idSelector(InputID.EMAIL));
+      email?.classList.add(CssClasses.ERROR);
     }
     this.showRegistrationResult(error.message);
   }
 
   private showRegistrationResult(message: string): void {
-    const popup: HTMLDivElement | null = this.querySelector(`.${CssClasses.POP_UP}`);
-    const iconBox: HTMLImageElement | null = this.querySelector(`.${CssClasses.ICON}`);
-    const messageBox: HTMLDivElement | null = this.querySelector(`.${CssClasses.MESSAGE}`);
-    if (popup && iconBox && messageBox) {
+    const { OVERLAY, ICON, MESSAGE, HIDDEN } = CssClasses;
+    const overlay = this.$(classSelector(OVERLAY));
+    const iconBox = <HTMLImageElement>this.$(classSelector(ICON));
+    const messageBox = <HTMLDivElement>this.$(classSelector(MESSAGE));
+    if (iconBox && messageBox) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       iconBox.src = this.isSignUp ? successIcon : errorIcon;
       messageBox.textContent = message;
-      const popupSize = 300;
-      popup.style.top = `${(document.documentElement.clientHeight - popupSize) / 2 + window.scrollY}px`;
-      popup.style.left = `${(document.documentElement.clientWidth - popupSize) / 2}px`;
-      popup.classList.remove(CssClasses.HIDDEN);
+      overlay?.classList.remove(HIDDEN);
+      document.body.classList.add(CssClasses.HAS_MODAL);
     }
   }
 
-  private setAddress(values: Map<string, string>, addressType: AddressType): BaseAddress {
+  private static setAddress(addressType: AddressType): BaseAddress {
+    const STREET = InputID[`${addressType}_STREET`];
+    const CITY = InputID[`${addressType}_CITY`];
+    const POSTAL_CODE = InputID[`${addressType}_CODE`];
     const address: BaseAddress = {
-      streetName: values.get(InputID[`${addressType}_STREET`]),
-      city: values.get(InputID[`${addressType}_CITY`]),
-      postalCode: values.get(InputID[`${addressType}_CODE`]),
-      country: this.country,
+      streetName: getInputValue(idSelector(STREET)),
+      city: getInputValue(idSelector(CITY)),
+      postalCode: getInputValue(idSelector(POSTAL_CODE)),
+      country: Country.UnitedStates,
     };
     return address;
   }
 
   private setCustomerInformation(): void {
-    const inputValues: Map<string, string> = new Map();
-    this.fields.forEach((field) => inputValues.set(field.id, field.value));
-    this.customer.firstName = inputValues.get(InputID.FIRST_NAME);
-    this.customer.lastName = inputValues.get(InputID.LAST_NAME);
-    this.customer.email = inputValues.get(InputID.EMAIL) || '';
-    this.customer.password = inputValues.get(InputID.PASSWORD) || '';
-    this.customer.dateOfBirth = inputValues.get(InputID.DATE_OF_BIRTH);
-    const shippingAddress: BaseAddress = this.setAddress(inputValues, AddressType.SHIPPING);
-    const billingAddress: BaseAddress = this.setAddress(inputValues, AddressType.BILLING);
+    const { FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, DATE_OF_BIRTH, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+    this.customer.firstName = getInputValue(idSelector(FIRST_NAME));
+    this.customer.lastName = getInputValue(idSelector(LAST_NAME));
+    this.customer.email = getInputValue(idSelector(EMAIL));
+    this.customer.password = getInputValue(idSelector(PASSWORD));
+    this.customer.dateOfBirth = getInputValue(idSelector(DATE_OF_BIRTH));
+
+    const shippingAddress: BaseAddress = RegistrationPage.setAddress(AddressType.SHIPPING);
+    const billingAddress: BaseAddress = RegistrationPage.setAddress(AddressType.BILLING);
     this.customer.addresses = [shippingAddress, billingAddress];
-    const defaultShippingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_SHIPPING}`);
-    const defaultBillingCheckbox: HTMLInputElement | null = this.querySelector(`#${InputID.DEFAULT_BILLING}`);
     const indexOfShipping: number = this.customer.addresses.indexOf(shippingAddress);
     let indexOfBilling: number = this.customer.addresses.indexOf(billingAddress);
-    if (defaultShippingCheckbox && defaultBillingCheckbox) {
-      this.customer.defaultShippingAddress = defaultShippingCheckbox.checked ? indexOfShipping : undefined;
-      this.customer.defaultBillingAddress = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
-    }
+
+    const setAsDefaultShipping = getCheckboxState(idSelector(DEFAULT_SHIPPING));
+    const setAsDefaultBilling = getCheckboxState(idSelector(DEFAULT_BILLING));
+    this.customer.defaultShippingAddress = setAsDefaultShipping ? indexOfShipping : undefined;
+    this.customer.defaultBillingAddress = setAsDefaultBilling ? indexOfBilling : undefined;
+
     if (this.isShippingAsBilling) {
       this.customer.addresses = [shippingAddress];
       indexOfBilling = indexOfShipping;
-      if (defaultShippingCheckbox && defaultBillingCheckbox) {
-        this.customer.defaultBillingAddress = defaultBillingCheckbox.checked ? indexOfBilling : undefined;
-      }
+      this.customer.defaultBillingAddress = setAsDefaultBilling ? indexOfBilling : undefined;
     }
     this.customer.shippingAddresses = [indexOfShipping];
     this.customer.billingAddresses = [indexOfBilling];
@@ -247,6 +192,7 @@ export default class RegistrationPage extends Page {
           const message = `Thanks for signing up, ${customer.firstName} ${customer.lastName}. Your account has been created.`;
           this.showRegistrationResult(message);
         }
+        this.logIn();
       })
       .catch((error: ErrorResponse) => {
         this.isSignUp = false;
@@ -254,74 +200,66 @@ export default class RegistrationPage extends Page {
       });
   }
 
-  private checkValuesBeforeSubmit(): void {
-    const isValid: boolean = [...this.fields].every((field: HTMLInputElement): boolean =>
-      isValidValue(field.id, field.value.trim())
-    );
-    if (isValid) {
-      this.disableButtons();
-      this.setCustomerInformation();
-      this.register();
-    } else {
-      this.setErrorMessages();
-      this.showErrors();
-    }
+  private submit(): void {
+    RegistrationPage.disableButtons();
+    this.setCustomerInformation();
+    this.register();
   }
 
   private setShippingAsBilling(event: Event): void {
     this.isShippingAsBilling = true;
-    const shippingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.SHIPPING}`);
-    const billingFileds: NodeListOf<HTMLInputElement> = this.querySelectorAll(`.${CssClasses.BILLING}`);
+    const { SHIPPING, BILLING } = CssClasses;
+    const shippingFileds = <HTMLInputElement[]>this.$$(classSelector(SHIPPING));
+    const billingFileds = <HTMLInputElement[]>this.$$(classSelector(BILLING));
     const target = event.target as HTMLInputElement;
     shippingFileds.forEach((field: HTMLInputElement, index: number): void => {
-      if (target.checked) {
-        billingFileds[index].value = field.value;
-      } else {
-        billingFileds[index].value = '';
-      }
+      billingFileds[index].value = target.checked ? field.value : '';
     });
     billingFileds.forEach((field: HTMLInputElement): void => {
-      this.hideError(field);
+      this.validator?.hideErrorMessage(field.id);
+      this.validator?.setSubmitButtonState();
     });
   }
 
-  private hidePopupAndRedirect(event: Event): void {
-    const countrySelects: NodeListOf<HTMLDivElement> = this.querySelectorAll(`.${CssClasses.SELECT}`);
+  private closeCountryList(event: Event): void {
+    const { SELECT, HIDDEN } = CssClasses;
+    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
     countrySelects.forEach((select) => {
       if (
-        !select.classList.contains(CssClasses.HIDDEN) &&
+        !select.classList.contains(HIDDEN) &&
         !(event.target instanceof HTMLInputElement && event.target.name === 'country')
       ) {
-        select.classList.add(CssClasses.HIDDEN);
+        select.classList.add(HIDDEN);
       }
     });
-    const target = event.target as HTMLDivElement;
-    const popup: HTMLDivElement | null = this.querySelector(`.${CssClasses.POP_UP}`);
+  }
+
+  private closeModalWindow(event: Event): void {
+    const target: HTMLDivElement = event.target as HTMLDivElement;
+    const { OVERLAY, POP_UP_ICON_BOX, ICON } = CssClasses;
     if (
-      popup !== null &&
-      !target.classList.contains(CssClasses.CONTAINER) &&
-      !target.classList.contains(CssClasses.POP_UP) &&
-      !target.classList.contains(CssClasses.MESSAGE) &&
-      !popup.classList.contains(CssClasses.HIDDEN)
+      !target.classList.contains(OVERLAY) &&
+      !target.classList.contains(POP_UP_ICON_BOX) &&
+      !target.classList.contains(ICON)
     ) {
-      popup.classList.add(CssClasses.HIDDEN);
-      if (this.isSignUp) {
-        this.logIn();
-        Store.user = { loggedIn: true };
-        this.goToMainPage(HTML.SUCCESS).catch(console.error);
-      }
-      this.enableButtons();
+      return;
+    }
+    this.hideModalWindow();
+  }
+
+  private hideModalWindow(): void {
+    const { OVERLAY, HIDDEN, HAS_MODAL } = CssClasses;
+    const modal = this.$(classSelector(OVERLAY));
+    modal?.classList.add(HIDDEN);
+    document.body.classList.remove(HAS_MODAL);
+    RegistrationPage.enableButtons();
+    if (this.isSignUp) {
+      this.goToMainPage(HTML.SUCCESS).catch(console.error);
     }
   }
 
   private logIn(): void {
-    login(this.customer.email, this.customer.password)
-      .then(({ body }) => {
-        const { firstName, lastName } = body.customer;
-        Store.user = { loggedIn: true, firstName, lastName };
-        Store.customer = body.customer;
-      })
-      .catch(console.error);
+    loginUser(this.customer.email, this.customer.password).catch(console.error);
   }
 
   private async goToMainPage(htmlText: string): Promise<void> {
@@ -333,27 +271,15 @@ export default class RegistrationPage extends Page {
     }
   }
 
-  private checkIfLoginByTokenInLocalStorage(): void {
-    if (Store.user.loggedIn) {
-      this.goToMainPage(HTML.ALREADY).then().catch(console.error);
-    }
+  private static disableButtons(): void {
+    const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
+    disableInput(classSelector(SUBMIT_BUTTON));
+    disableInput(classSelector(LOGIN_BTN));
   }
 
-  private disableButtons(): void {
-    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
-    if (submitBtn && loginBtn) {
-      submitBtn.disabled = true;
-      loginBtn.disabled = true;
-    }
-  }
-
-  private enableButtons(): void {
-    const submitBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.SUBMIT_BTN}`);
-    const loginBtn: HTMLInputElement | null = this.querySelector(`.${CssClasses.LOGIN_BTN}`);
-    if (submitBtn && loginBtn) {
-      submitBtn.disabled = false;
-      loginBtn.disabled = false;
-    }
+  private static enableButtons(): void {
+    const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
+    enableInput(classSelector(SUBMIT_BUTTON));
+    enableInput(classSelector(LOGIN_BTN));
   }
 }

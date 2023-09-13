@@ -35,3 +35,4 @@ export const pause = (msec: number): Promise<void> =>
   });
 
 export const classSelector = (name: string): string => `.${name}`;
+export const idSelector = (name: string): string => `#${name}`;

@@ -1,13 +1,9 @@
 import { STORAGE_NAME } from '../config';
 import { dispatch } from '../utils/create-element';
 import { MerchStore } from '../types/MerchStore';
-import LoggedInUser from './LoggedInUser';
 
 const Store: MerchStore = {
-  user: {
-    loggedIn: false,
-  },
-  customer: new LoggedInUser(),
+  customer: undefined,
   token: {
     token: '',
     expirationTime: 0,
@@ -17,6 +13,7 @@ const Store: MerchStore = {
   types: [],
   products: {},
   cart: [],
+  cartiSMerged: false,
 };
 
 const SKIP = ['products'];
@@ -45,7 +42,7 @@ const proxiedStore = new Proxy(Store, {
   set(target, property: Keys, value: Values): boolean {
     Reflect.set(target, property, value);
 
-    if (property === 'user') {
+    if (property === 'customer') {
       dispatch('userchange');
     }
     return true;
