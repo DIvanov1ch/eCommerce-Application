@@ -1,5 +1,5 @@
 import { Cart, LineItem } from '@commercetools/platform-sdk';
-import { getActiveCart, getCartByCustomerId } from '../../services/API';
+import { createNewCart, getActiveCart /* , getCartByCustomerId */ } from '../../services/API';
 import Router from '../../services/Router';
 import Page from '../Page';
 import html from './cart.html';
@@ -28,28 +28,14 @@ export default class CartPage extends Page {
   }
 
   private loadCart(): void {
-    if (Store.customer) {
-      const customerId = Store.customer.id;
-      getCartByCustomerId(customerId)
-        .then((body) => {
-          console.log('cartById', body);
-          this.saveCart(body);
-          this.render();
-        })
-        .catch(() => {
-          this.showResponseError();
-        });
-    } else {
-      getActiveCart()
-        .then(({ body }) => {
-          console.log('activeCart', body);
-          this.saveCart(body);
-          this.render();
-        })
-        .catch(() => {
-          this.showResponseError();
-        });
-    }
+    getActiveCart()
+      .then((body) => {
+        this.saveCart(body);
+        this.render();
+      })
+      .catch(() => {
+        this.showResponseError();
+      });
   }
 
   private saveCart(cart: Cart): void {
@@ -69,7 +55,13 @@ export default class CartPage extends Page {
   }
 
   private showResponseError(): void {
-    this.clearCartContainer('<p>An active cart does not exist.</p>');
+    createNewCart()
+      .then((body) => {
+        this.saveCart(body);
+        this.render();
+      })
+      .catch(console.error);
+    // this.clearCartContainer('<p>An active cart does not exist.</p>');
   }
 
   private clearCartContainer(innerHTML = ''): void {

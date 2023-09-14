@@ -14,7 +14,6 @@ const Store: MerchStore = {
   products: {},
   cart: [],
   customerCart: undefined,
-  cartiSMerged: false,
 };
 
 const SKIP = ['products'];

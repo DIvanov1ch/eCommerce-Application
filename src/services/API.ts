@@ -5,7 +5,6 @@ import {
   PasswordAuthMiddlewareOptions,
   Client,
   AnonymousAuthMiddlewareOptions,
-  // RefreshAuthMiddlewareOptions,
 } from '@commercetools/sdk-client-v2';
 import {
   createApiBuilderFromCtpClient,
@@ -20,6 +19,8 @@ import {
   MyCustomerUpdate,
   MyCustomerChangePassword,
   Cart,
+  MyCartUpdate,
+  LineItemDraft,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -35,7 +36,7 @@ import {
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
 import Store from './Store';
-import { errorsClient } from '../types/errors';
+// import { errorsClient } from '../types/errors';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -43,7 +44,7 @@ const authHost = AUTH_HOST.replace('{region}', API_REGION);
 const apiHost = API_HOST.replace('{region}', API_REGION);
 const searchFilter = 'text.en';
 
-const newToken = new TokenClient();
+const tokenClient = new TokenClient();
 
 const getAuthMiddlewareOptions = (token: TokenClient): AuthMiddlewareOptions => {
   return {
@@ -80,20 +81,6 @@ const getPasswordFlowOptions = (
   };
 };
 
-// const getRefreshTokenFlowOptions = (token: TokenClient): RefreshAuthMiddlewareOptions => {
-//   return {
-//     host: authHost,
-//     projectKey,
-//     credentials: {
-//       clientId: CLIENT_ID,
-//       clientSecret: CLIENT_SECRET,
-//     },
-//     refreshToken: Store.token?.refreshToken || '',
-//     tokenCache: token,
-//     fetch,
-//   };
-// };
-
 const getAnonymousMiddlewareOptions = (token: TokenClient): AnonymousAuthMiddlewareOptions => {
   return {
     host: authHost,
@@ -115,7 +102,7 @@ const getApiRoot = (client: Client): ByProjectKeyRequestBuilder => {
 
 const getClientCredentialsFlowClient = (): Client => {
   const clientCredentialsFlowClient = new ClientBuilder()
-    .withClientCredentialsFlow(getAuthMiddlewareOptions(newToken))
+    .withClientCredentialsFlow(getAuthMiddlewareOptions(tokenClient))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
@@ -124,25 +111,16 @@ const getClientCredentialsFlowClient = (): Client => {
 
 const getPasswordFlowClient = (username: string, password: string): Client => {
   const passwordFlowClient = new ClientBuilder()
-    .withPasswordFlow(getPasswordFlowOptions(username, password, newToken))
+    .withPasswordFlow(getPasswordFlowOptions(username, password, tokenClient))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
   return passwordFlowClient;
 };
 
-// const getRefreshTokenFlowClient = (): Client => {
-//   const refreshTokenFlowClient = new ClientBuilder()
-//     .withRefreshTokenFlow(getRefreshTokenFlowOptions(newToken))
-//     .withHttpMiddleware(httpMiddlewareOptions)
-//     .withLoggerMiddleware()
-//     .build();
-//   return refreshTokenFlowClient;
-// };
-
 const getAnonymousFlowClient = (): Client => {
   const anonymousFlowClient = new ClientBuilder()
-    .withAnonymousSessionFlow(getAnonymousMiddlewareOptions(newToken))
+    .withAnonymousSessionFlow(getAnonymousMiddlewareOptions(tokenClient))
     .withHttpMiddleware(httpMiddlewareOptions)
     .withLoggerMiddleware()
     .build();
@@ -151,10 +129,11 @@ const getAnonymousFlowClient = (): Client => {
 
 const login = async (email: string, password: string): Promise<ClientResponse<CustomerSignInResult>> => {
   if (Store.token) {
-    newToken.delete();
+    tokenClient.delete();
   }
+  const anonymousId = Store.customerCart?.anonymousId;
   const apiRoot = getApiRoot(getPasswordFlowClient(email, password));
-  return apiRoot.me().login().post({ body: { email, password } }).execute();
+  return apiRoot.login().post({ body: { email, password, anonymousId } }).execute();
 };
 
 const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<CustomerSignInResult>> => {
@@ -163,9 +142,8 @@ const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<Cus
 };
 
 const logout = (): void => {
-  newToken.delete();
+  tokenClient.delete();
   Store.cart = [];
-  Store.cartiSMerged = false;
 };
 
 const getInfoOfFilteredProducts = async ({
@@ -235,65 +213,33 @@ const getCartByCustomerId = async (customerId: string): Promise<Cart> => {
   ).body;
 };
 
-const createNewCart = async (): Promise<ClientResponse<Cart>> => {
+const createNewCart = async (lineItems: LineItemDraft[] | undefined = undefined): Promise<Cart> => {
+  tokenClient.delete();
   const apiRoot = getApiRoot(getAnonymousFlowClient());
-  return apiRoot
-    .me()
-    .carts()
-    .post({
-      body: {
-        currency: 'USD',
-        country: 'US',
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    .execute();
+  return (
+    await apiRoot
+      .me()
+      .carts()
+      .post({
+        body: {
+          currency: 'USD',
+          country: 'US',
+          lineItems,
+        },
+      })
+      .execute()
+  ).body;
 };
 
-async function getActiveCart(): Promise<ClientResponse<Cart>> {
+async function getActiveCart(): Promise<Cart> {
   const apiRoot = getApiRoot(getAnonymousFlowClient());
-  return apiRoot.me().activeCart().get().execute().catch();
+  return (await apiRoot.me().activeCart().get().execute()).body;
 }
 
-async function putProductIntoCart(product: string, hasCart = false, variantId = 1): Promise<ClientResponse<Cart>> {
-  if (hasCart === false) {
-    await getActiveCart().catch((error: Error) => {
-      if (error.name === errorsClient.noCart) {
-        createNewCart()
-          .then(() => {})
-          .catch(() => {});
-      }
-      if (error.name === errorsClient.wrongToken) {
-        newToken.delete();
-        createNewCart()
-          .then(() => {})
-          .catch(() => {});
-      }
-    });
-  }
-  const productId = (await getProductProjectionByKey(product)).id;
-  const { id, version } = (await getActiveCart()).body;
-  const apiRoot = getApiRoot(getClientCredentialsFlowClient());
-  return apiRoot
-    .me()
-    .carts()
-    .withId({ ID: id })
-    .post({
-      body: {
-        version,
-        actions: [
-          {
-            action: 'addLineItem',
-            productId,
-            variantId,
-          },
-        ],
-      },
-    })
-    .execute();
-}
+const updateCart = async (id: string, body: MyCartUpdate): Promise<Cart> => {
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
+  return (await apiRoot.me().carts().withId({ ID: id }).post({ body }).execute()).body;
+};
 
 export {
   login,
@@ -307,7 +253,7 @@ export {
   changePassword,
   createNewCart,
   getActiveCart,
-  putProductIntoCart,
   getCustomer,
   getCartByCustomerId,
+  updateCart,
 };
