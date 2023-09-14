@@ -11,4 +11,6 @@ export type FilterSortingSearchQueries = {
   filterQuery?: string[];
   sortingQuery?: string[];
   searchQuery?: string;
+  offset?: number;
+  limit?: number;
 };
