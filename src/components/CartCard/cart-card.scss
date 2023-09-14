@@ -30,4 +30,43 @@
   .price-box__price--old:before {
     display: none;
   }
+
+  .price-box__price {
+    font-size: 1.8rem;
+  }
+
+  .price-box__price--old {
+    width: 100%;
+    font-size: 1rem;
+  }
+}
+
+.cart-card__quantity {
+  display: flex;
+  flex-direction: column;
+  text-align: end;
+
+  .price-box__price {
+    font-size: 1.8rem;
+  }
+}
+
+.cart-card__total-price {
+  align-self: flex-end;
+}
+
+@media (max-width: 695px) {
+  .cart-card__content {
+    width: 100%;
+  }
+
+  .cart-card__image {
+    margin: 0 auto;
+  }
+
+  .total-price__price {
+    .price-box__price {
+      font-size: 1.6rem;
+    }
+  }
 }
