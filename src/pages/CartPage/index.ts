@@ -17,6 +17,10 @@ Router.registerRoute('cart', 'cart-page');
 export default class CartPage extends Page {
   private cart: Cart = new CustomerCart();
 
+  private updateCallback: (() => void) | undefined;
+
+  private removeCallback: (() => void) | undefined;
+
   constructor() {
     super(html);
   }
@@ -25,6 +29,7 @@ export default class CartPage extends Page {
     super.connectedCallback();
     this.classList.add(CssClasses.PAGE);
     this.loadCart();
+    this.setCallback();
   }
 
   private loadCart(): void {
@@ -38,9 +43,22 @@ export default class CartPage extends Page {
       });
   }
 
+  protected setCallback(): void {
+    this.updateCallback = this.updateCart.bind(this);
+    this.removeCallback = this.loadCart.bind(this);
+    window.addEventListener('updateTotalCost', this.updateCallback);
+    window.addEventListener('removeLineItem', this.removeCallback);
+  }
+
   private saveCart(cart: Cart): void {
     Store.customerCart = cart;
     this.cart = cart;
+  }
+
+  private updateCart(): void {
+    const { customerCart } = Store;
+    this.cart = customerCart || this.cart;
+    this.setTotalPrice();
   }
 
   private render(): void {
@@ -48,9 +66,9 @@ export default class CartPage extends Page {
     this.setTotalPrice();
   }
 
-  private renderLineItems(products: LineItem[]): void {
+  private renderLineItems(lineItems: LineItem[]): void {
     this.$(classSelector(CssClasses.CARTS))?.replaceChildren(
-      ...products.map((product: LineItem) => new CartCard(product.productKey))
+      ...lineItems.map((lineItem: LineItem) => new CartCard(lineItem))
     );
   }
 
@@ -61,23 +79,23 @@ export default class CartPage extends Page {
         this.render();
       })
       .catch(console.error);
-    // this.clearCartContainer('<p>An active cart does not exist.</p>');
-  }
-
-  private clearCartContainer(innerHTML = ''): void {
-    this.insertHtml(classSelector(CssClasses.CARTS), innerHTML);
   }
 
   private setTotalPrice(): void {
     const { PRICE, SUMMARY } = CssClasses;
     const {
       totalPrice: { centAmount: totalPrice },
-      lineItems: { length: summary },
+      totalLineItemQuantity,
     } = this.cart;
     const priceContainer = this.$(classSelector(PRICE));
     const priceBox = new PriceBox();
     priceBox.setPrice(totalPrice);
     priceContainer?.replaceChildren(priceBox);
-    setElementTextContent(classSelector(SUMMARY), this, summary.toString());
+    setElementTextContent(classSelector(SUMMARY), this, (totalLineItemQuantity || 0).toString());
+  }
+
+  private disconnectedCallback(): void {
+    window.removeEventListener('updateTotalCost', this.updateCallback as () => void);
+    window.removeEventListener('removeLineItem', this.removeCallback as () => void);
   }
 }
