@@ -1,12 +1,13 @@
-import { LineItem, Image } from '@commercetools/platform-sdk';
+import { LineItem, Image, MyCartUpdate, MyCartUpdateAction, Cart } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
 import { LANG } from '../../config';
-import { classSelector, createElement } from '../../utils/create-element';
+import { classSelector, createElement, dispatch } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import PriceBox from '../PriceBox';
 import ItemCounter from '../ItemCounter';
+import { getActiveCart, updateCart } from '../../services/API';
 
 const CssClasses = {
   CART: 'cart-card',
@@ -15,6 +16,7 @@ const CssClasses = {
   PRICE: 'cart-card__price',
   AMOUNT: 'cart-card__amount',
   TOTAL: 'cart-card__total-price',
+  REMOVE: 'cart-card__remove',
 };
 
 export default class CartCard extends BaseComponent {
@@ -60,11 +62,13 @@ export default class CartCard extends BaseComponent {
   private setCallback(): void {
     const image = <HTMLDivElement>this.$(classSelector(CssClasses.IMAGE));
     const name = <HTMLDivElement>this.$(classSelector(CssClasses.NAME));
+    const remove = <HTMLDivElement>this.$(classSelector(CssClasses.REMOVE));
     [image, name].forEach((el) =>
       el.addEventListener('click', () => {
         window.location.href = `#product/${this.lineItem.productKey}`;
       })
     );
+    remove.addEventListener('click', this.setUpdateAction.bind(this));
     this.windowCallback = this.updateLineItem.bind(this);
     window.addEventListener('updateTotalCost', this.windowCallback);
   }
@@ -108,6 +112,33 @@ export default class CartCard extends BaseComponent {
     const lineItem = <LineItem>customerCart?.lineItems.find((line) => line.id === this.lineItem.id);
     this.lineItem = lineItem;
     this.setTotalPrice(this.lineItem.totalPrice.centAmount);
+  }
+
+  protected setUpdateAction(): void {
+    const lineItemId = this.lineItem.id;
+    const updateAction: MyCartUpdateAction = {
+      action: 'changeLineItemQuantity',
+      lineItemId,
+      quantity: 0,
+    };
+    CartCard.removeLineItem(updateAction).then().catch(console.error);
+  }
+
+  protected static async removeLineItem(updateAction: MyCartUpdateAction): Promise<void> {
+    const cart = Store.customerCart as Cart;
+    const { version, id } = cart;
+    const body: MyCartUpdate = {
+      version,
+      actions: [updateAction],
+    };
+    try {
+      const newCart = await updateCart(id, body);
+      Store.customerCart = newCart;
+      dispatch('removeLineItem');
+    } catch (error) {
+      const activeCart = await getActiveCart();
+      Store.customerCart = activeCart;
+    }
   }
 
   protected showError(): void {
