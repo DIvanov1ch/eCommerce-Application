@@ -15,7 +15,7 @@ export default async function putProductIntoCart(productKey: string, variantId =
     Store.customerCart = updatedCart;
   } catch (error) {
     const productId = product.id;
-    const lineItems: LineItemDraft = { productId };
+    const lineItems: LineItemDraft = { productId, variantId };
     const newCart = await createNewCart([lineItems]);
     Store.customerCart = newCart;
   }
