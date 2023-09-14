@@ -17,6 +17,7 @@ import ProductCategories from './ProductCategories';
 import ProductVariants from './ProductVariants';
 import TimeOut from './TimeOut';
 import CartCard from './CartCard';
+import ItemCounter from './ItemCounter';
 
 const Components = {
   'page-header': PageHeader,
@@ -38,6 +39,7 @@ const Components = {
   'edit-address': EditAddress,
   'delete-address': DeleteAddress,
   'cart-card': CartCard,
+  'item-counter': ItemCounter,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
