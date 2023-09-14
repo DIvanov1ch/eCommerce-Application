@@ -6,20 +6,22 @@ import { LANG } from '../../config';
 import { classSelector, createElement } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import PriceBox from '../PriceBox';
+import ItemCounter from '../ItemCounter';
 
 const CssClasses = {
   CART: 'cart-card',
   NAME: 'cart-card__name',
   IMAGE: 'cart-card__image',
   PRICE: 'cart-card__price',
+  AMOUNT: 'cart-card__amount',
+  TOTAL: 'cart-card__total-price',
 };
 
 export default class CartCard extends BaseComponent {
-  #key = '';
+  private windowCallback: (() => void) | undefined;
 
-  constructor(key = '') {
+  constructor(protected lineItem: LineItem) {
     super(html);
-    this.#key = key;
   }
 
   protected connectedCallback(): void {
@@ -37,12 +39,11 @@ export default class CartCard extends BaseComponent {
       return;
     }
 
-    const products: LineItem[] = Store.customerCart.lineItems;
-    const product = products.find((item) => item.productKey === this.#key) as LineItem;
     const {
       name: { [LANG]: name },
       variant: { images, prices = [] },
-    } = product;
+      totalPrice: { centAmount },
+    } = this.lineItem;
 
     const {
       value: { centAmount: price = 0 },
@@ -52,6 +53,8 @@ export default class CartCard extends BaseComponent {
     this.insertHtml(classSelector(NAME), name);
     this.insertImages(images);
     this.setPrice(price, discounted);
+    this.setTotalPrice(centAmount);
+    this.addItemCounter();
   }
 
   private setCallback(): void {
@@ -59,9 +62,11 @@ export default class CartCard extends BaseComponent {
     const name = <HTMLDivElement>this.$(classSelector(CssClasses.NAME));
     [image, name].forEach((el) =>
       el.addEventListener('click', () => {
-        window.location.href = `#product/${this.#key}`;
+        window.location.href = `#product/${this.lineItem.productKey}`;
       })
     );
+    this.windowCallback = this.updateLineItem.bind(this);
+    window.addEventListener('updateTotalCost', this.windowCallback);
   }
 
   protected insertImages(images?: Image[]): void {
@@ -84,18 +89,32 @@ export default class CartCard extends BaseComponent {
     priceContainer?.replaceChildren(priceBox);
   }
 
-  protected attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
-    if (name === 'key') {
-      this.#key = newValue;
-      this.render();
-    }
+  protected setTotalPrice(totalPrice: number): void {
+    const priceContainer = this.$(classSelector(CssClasses.TOTAL));
+    const priceBox = new PriceBox();
+    priceBox.setPrice(totalPrice);
+
+    priceContainer?.replaceChildren(priceBox);
   }
 
-  protected static get observedAttributes(): string[] {
-    return ['key'];
+  protected addItemCounter(): void {
+    const counterContainer = this.$(classSelector(CssClasses.AMOUNT));
+    const itemCounter = new ItemCounter(this.lineItem.id, this.lineItem.quantity);
+    counterContainer?.replaceChildren(itemCounter);
+  }
+
+  protected updateLineItem(): void {
+    const { customerCart } = Store;
+    const lineItem = <LineItem>customerCart?.lineItems.find((line) => line.id === this.lineItem.id);
+    this.lineItem = lineItem;
+    this.setTotalPrice(this.lineItem.totalPrice.centAmount);
   }
 
   protected showError(): void {
     this.replaceChildren('Loading...');
+  }
+
+  private disconnectedCallback(): void {
+    window.removeEventListener('updateTotalCost', this.windowCallback as () => void);
   }
 }
