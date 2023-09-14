@@ -32,6 +32,7 @@ import {
   API_REGION,
   AUTH_HOST,
   CATEGORIES_LIMIT,
+  PRODUCTS_PER_PAGE,
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
@@ -146,25 +147,23 @@ const logout = (): void => {
   Store.cart = [];
 };
 
-const getInfoOfFilteredProducts = async ({
+async function getInfoOfFilteredProducts({
   filterQuery,
   sortingQuery,
   searchQuery,
-}: FilterSortingSearchQueries): Promise<ClientResponse<ProductProjectionPagedSearchResponse>> => {
+  limit = PRODUCTS_PER_PAGE,
+  offset = 0,
+}: FilterSortingSearchQueries): Promise<ProductProjectionPagedSearchResponse> {
   const apiRoot = getApiRoot(getAnonymousFlowClient());
-  return apiRoot
-    .productProjections()
-    .search()
-    .get({
-      queryArgs: {
-        limit: 500,
-        filter: filterQuery,
-        sort: sortingQuery,
-        [searchFilter]: searchQuery,
-      },
-    })
-    .execute();
-};
+  const queryArgs = {
+    offset,
+    limit,
+    filter: filterQuery,
+    sort: sortingQuery,
+    [searchFilter]: searchQuery,
+  };
+  return (await apiRoot.productProjections().search().get({ queryArgs }).execute()).body;
+}
 
 async function getProductProjectionByKey(key: string): Promise<ProductProjection> {
   const apiRoot = getApiRoot(getClientCredentialsFlowClient());

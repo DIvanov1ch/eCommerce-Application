@@ -1,6 +1,5 @@
-import { ProductProjection } from '@commercetools/platform-sdk';
 import './index.scss';
-import CssClasses from './css-classes';
+import { ProductProjection, ProductProjectionPagedSearchResponse } from '@commercetools/platform-sdk';
 import html from './catalog.html';
 import filterBarsHtml from './filter-bars.html';
 import sortBarsHtml from './sort-bars.html';
@@ -12,9 +11,26 @@ import highlightSearchingElement from '../../utils/highlight-search-el';
 import Store from '../../services/Store';
 import { loadProductCategories } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
-import { LANG } from '../../config';
+import { INFINITE_SCROLL, LANG, PRODUCTS_PER_PAGE, SKELETON_CLASS } from '../../config';
 import ProductCard from '../../components/ProductCard';
-import { createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
+
+enum CssClasses {
+  PRODUCTS = 'catalog__products',
+  ITEMS = 'catalog__items',
+  MORE = 'catalog__more',
+  MORE_HIDDEN = 'catalog__more--hidden',
+  FORMS = 'catalog__forms',
+  FORMS_OPEN = 'catalog__forms--open',
+  FILTERS = 'filter__container',
+  RESET_FILTERS_BUTTON = 'filter__button-reset',
+  SORT = 'sort__container',
+  SEARCH_TEXT = 'search__text',
+  SEARCH = 'search__container',
+  SELECT = 'select',
+  TOGGLE = 'filters__toggle',
+  NOTHING = 'catalog__nothing',
+}
 
 const defaultFilterSortingValues = {
   price: 'any',
@@ -41,7 +57,15 @@ const SORT_OPTIONS = {
   'name.en desc': 'Title (Z-A)',
 };
 
+const DEFAULT_SORT = 'id asc';
+
 const QUERY_PARAMETERS = ['color', 'brand', 'material', 'size', 'price'];
+
+const SKELETON_CARDS = 4;
+
+const NOTHING_FOUND_TEXT = 'Nothing is found. Try to change your request';
+
+const SCROLL_DELAY = 200;
 
 async function getCategoryIdBySlug(categorySlug: string): Promise<string> {
   if (!Store.categories) {
@@ -71,6 +95,12 @@ export default class CatalogPage extends Page {
 
   #prevParams = '';
 
+  #currentPage = 1;
+
+  #perPage = PRODUCTS_PER_PAGE;
+
+  #btnMore: HTMLElement | null = null;
+
   constructor() {
     super(html);
   }
@@ -79,21 +109,29 @@ export default class CatalogPage extends Page {
     super.connectedCallback();
     this.classList.add('page--catalog');
 
+    this.#btnMore = this.$<'a'>(classSelector(CssClasses.MORE));
+
     this.createSearching();
     this.createFilterBars();
     this.createSortingBars();
     this.handleFiltersToggle();
+    this.handleMoreButton();
+
+    if (INFINITE_SCROLL) {
+      this.handleScroll();
+    }
 
     await this.setCategory();
     this.loadProducts();
   }
 
-  private createFilteredProductCards(products: ProductProjection[]): void {
-    this.$(`.${CssClasses.PRODUCTS}`)?.replaceChildren(...products.map((product) => new ProductCard(product.key)));
+  private insertProductCards(products: ProductProjection[]): void {
+    const newCards = products.map((product) => new ProductCard(product.key));
+    this.setProductsContainer(newCards);
   }
 
   private resetFiltersIfButtonClicked(): void {
-    const buttonReset = this.$<'button'>(`.${CssClasses.RESETFILTERSBUTTON}`);
+    const buttonReset = this.$<'button'>(classSelector(CssClasses.RESET_FILTERS_BUTTON));
     if (!buttonReset) {
       return;
     }
@@ -101,6 +139,34 @@ export default class CatalogPage extends Page {
       buttonReset.form?.reset();
       this.loadProducts();
     });
+  }
+
+  private handleMoreButton(): void {
+    this.#btnMore?.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.loadMoreProducts();
+    });
+  }
+
+  private handleScroll(): void {
+    let loadProductsTimer: number;
+    window.addEventListener('scroll', () => {
+      window.clearTimeout(loadProductsTimer);
+      loadProductsTimer = window.setTimeout(this.checkScroll.bind(this), SCROLL_DELAY);
+    });
+  }
+
+  private checkScroll(): void {
+    const { height = 0 } = window.visualViewport || {};
+    const { top = 0 } = this.#btnMore?.getBoundingClientRect() || {};
+    if (top && top < height) {
+      this.loadMoreProducts();
+    }
+  }
+
+  private loadMoreProducts(): void {
+    this.#currentPage += 1;
+    this.loadProducts();
   }
 
   private static createFilterQuery(): string[] {
@@ -134,29 +200,45 @@ export default class CatalogPage extends Page {
     });
   }
 
-  private clearProductsContainer(innerHTML = ''): void {
-    this.insertHtml(`.${CssClasses.PRODUCTS}`, innerHTML);
-  }
+  private setProductsContainer(nodes: (Node | string)[], clear = false): void {
+    const container = this.$(classSelector(CssClasses.ITEMS));
+    container?.querySelectorAll(classSelector(SKELETON_CLASS)).forEach((el) => el.remove());
 
-  private createWaitingSymbol(): void {
-    const cardHtml = '<product-card class="skeleton"></product-card>';
-    this.clearProductsContainer(cardHtml.repeat(4));
-  }
-
-  private renderResults(body: ProductProjection[]): void {
-    if (body.length) {
-      this.createFilteredProductCards(body);
+    if (clear) {
+      container?.replaceChildren(...nodes);
     } else {
-      this.emptyResults();
+      container?.append(...nodes);
     }
   }
 
+  private createWaitingSymbol(reset: boolean): void {
+    const emptyCards = Array(SKELETON_CARDS)
+      .fill(0)
+      .map(() => createElement('product-card', { className: SKELETON_CLASS }));
+    this.#btnMore?.classList.toggle(CssClasses.MORE_HIDDEN, true);
+    this.setProductsContainer(emptyCards, reset);
+  }
+
+  private renderResults(response: ProductProjectionPagedSearchResponse): void {
+    const { results, total = 0, limit, count, offset } = response;
+    const hasMore = offset + limit < total;
+
+    if (count) {
+      this.insertProductCards(results);
+    } else {
+      this.emptyResults();
+    }
+
+    this.#btnMore?.classList.toggle(CssClasses.MORE_HIDDEN, !hasMore);
+  }
+
   private emptyResults(): void {
-    this.clearProductsContainer('<p>Nothing is found. Try to change your request</p>');
+    const message = createElement('p', { className: CssClasses.NOTHING }, NOTHING_FOUND_TEXT);
+    this.setProductsContainer([message], true);
   }
 
   private createFilterBars(): void {
-    const filterContainer = this.$<'form'>(`.${CssClasses.FILTERS}`);
+    const filterContainer = this.$<'form'>(classSelector(CssClasses.FILTERS));
     if (!filterContainer) {
       return;
     }
@@ -170,8 +252,8 @@ export default class CatalogPage extends Page {
   }
 
   private handleFiltersToggle(): void {
-    const filtersContainer = this.$<'div'>(`.${CssClasses.FORMS}`);
-    const filtersToggle = this.$<'button'>(`.${CssClasses.TOGGLE}`);
+    const filtersContainer = this.$<'div'>(classSelector(CssClasses.FORMS));
+    const filtersToggle = this.$<'button'>(classSelector(CssClasses.TOGGLE));
     if (!filtersContainer || !filtersToggle) {
       return;
     }
@@ -182,7 +264,7 @@ export default class CatalogPage extends Page {
   }
 
   private createSortingBars(): void {
-    const sortingContainer = this.$<'form'>(`.${CssClasses.SORT}`);
+    const sortingContainer = this.$<'form'>(classSelector(CssClasses.SORT));
     if (!sortingContainer) {
       return;
     }
@@ -199,11 +281,11 @@ export default class CatalogPage extends Page {
 
   private static createSortingQuery(): string[] {
     const { sort } = CatalogPage.filterSortingValues;
-    return [sort].filter((e) => e);
+    return [sort, DEFAULT_SORT].filter((e) => e);
   }
 
   private createSearching(): void {
-    const form = this.$<'form'>(`.${CssClasses.SEARCH}`);
+    const form = this.$<'form'>(classSelector(CssClasses.SEARCH));
     if (!form) {
       return;
     }
@@ -261,19 +343,28 @@ export default class CatalogPage extends Page {
     this.updateSearchParams();
     const params = CatalogPage.createFiltersSortingSearchQueries();
     const paramsString = JSON.stringify(params);
+    const newSearch = paramsString !== this.#prevParams;
 
-    if (onlyOnChanges && paramsString === this.#prevParams) {
+    if (onlyOnChanges && !newSearch) {
       return;
     }
 
+    if (newSearch) {
+      this.#currentPage = 1;
+    }
+
+    const limit = this.#perPage;
+    const offset = (this.#currentPage - 1) * limit;
+    Object.assign(params, { limit, offset });
+
     this.toggleLoading();
-    this.createWaitingSymbol();
+    this.createWaitingSymbol(newSearch);
     this.#prevParams = paramsString;
 
     getInfoOfFilteredProducts(params)
-      .then(({ body }) => {
+      .then((body) => {
         saveInStorage(body.results);
-        this.renderResults(body.results);
+        this.renderResults(body);
         this.toggleLoading(false);
       })
       .catch(throwError);
@@ -284,6 +375,6 @@ export default class CatalogPage extends Page {
       Object.assign(CatalogPage.filterSortingValues, { [name]: value });
     });
 
-    CatalogPage.searchingText = this.$<'input'>(`.${CssClasses.SEARCHTEXT}`)?.value || '';
+    CatalogPage.searchingText = this.$<'input'>(classSelector(CssClasses.SEARCH_TEXT))?.value || '';
   }
 }

@@ -27,6 +27,7 @@
 .nav__list {
   display: flex;
   list-style: none;
+  align-items: center;
   margin: 0;
   padding: 0;
   gap: 1em;
@@ -142,6 +143,7 @@
 
   .nav__list {
     flex-direction: column;
+    align-items: start;
     gap: 0.5em;
   }
 

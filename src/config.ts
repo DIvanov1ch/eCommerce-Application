@@ -42,3 +42,5 @@ export const LOADING_CLASS = 'loading';
 export const SKELETON_CLASS = 'skeleton';
 
 export const CATEGORIES_LIMIT = 100;
+export const PRODUCTS_PER_PAGE = 6;
+export const INFINITE_SCROLL = true;
