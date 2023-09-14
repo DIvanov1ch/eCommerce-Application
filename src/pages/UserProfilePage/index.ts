@@ -37,24 +37,30 @@ export default class UserProfile extends Page {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    this.checkIfUserLoggedIn();
-    this.checkIfTokenFresh();
+    if (!UserProfile.isLoggedIn()) {
+      this.goToLoginPage(HTML_NOT_LOGGED_IN).then().catch(console.error);
+      return;
+    }
+    if (!UserProfile.isTokenFresh()) {
+      this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
+      return;
+    }
+
     this.load();
     this.setCallback();
   }
 
-  private checkIfUserLoggedIn(): void {
-    if (!Store.customer) {
-      this.goToLoginPage(HTML_NOT_LOGGED_IN).then().catch(console.error);
-    }
+  private static isLoggedIn(): boolean {
+    return !!Store.customer;
   }
 
-  private checkIfTokenFresh(): void {
+  private static isTokenFresh(): boolean {
     if (!Store.token || Store.token.expirationTime <= Date.now()) {
       logout();
       Store.customer = undefined;
-      this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
+      return false;
     }
+    return true;
   }
 
   private load(): void {

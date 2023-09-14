@@ -6,9 +6,9 @@ import Store from '../../services/Store';
 import { LANG } from '../../config';
 import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
-import { putProductIntoCart } from '../../services/API';
 import throwError from '../../utils/throw-error';
 import { createLoader, deleteLoader } from '../../utils/loader';
+import putProductIntoCart from '../../utils/put-product-into-cart';
 
 const CssClasses = {
   COMPONENT: 'product-card',

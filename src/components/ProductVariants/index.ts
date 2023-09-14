@@ -7,7 +7,7 @@ import { loadProductTypes } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { createElement } from '../../utils/create-element';
 import { LANG } from '../../config';
-import { putProductIntoCart } from '../../services/API';
+import putProductIntoCart from '../../utils/put-product-into-cart';
 
 const CssClasses = {
   COMPONENT: 'product-variants',
@@ -200,7 +200,7 @@ export default class ProductVariants extends BaseComponent {
     this.#btnCart.disabled = true;
     const { key } = this.#product;
 
-    await putProductIntoCart(String(key), false, this.#selectedVariantId);
+    await putProductIntoCart(String(key), this.#selectedVariantId);
     this.#btnCart.disabled = false;
   }
 }

@@ -8,6 +8,5 @@ export interface MerchStore {
   types: ProductType[];
   products: Record<string, ProductProjection>;
   cart: string[];
-  cartiSMerged: boolean;
   customerCart?: Cart;
 }
