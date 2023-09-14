@@ -17,7 +17,9 @@ Router.registerRoute('cart', 'cart-page');
 export default class CartPage extends Page {
   private cart: Cart = new CustomerCart();
 
-  private windowCallback: (() => void) | undefined;
+  private updateCallback: (() => void) | undefined;
+
+  private removeCallback: (() => void) | undefined;
 
   constructor() {
     super(html);
@@ -42,8 +44,10 @@ export default class CartPage extends Page {
   }
 
   protected setCallback(): void {
-    this.windowCallback = this.updateCart.bind(this);
-    window.addEventListener('updateTotalCost', this.windowCallback);
+    this.updateCallback = this.updateCart.bind(this);
+    this.removeCallback = this.loadCart.bind(this);
+    window.addEventListener('updateTotalCost', this.updateCallback);
+    window.addEventListener('removeLineItem', this.removeCallback);
   }
 
   private saveCart(cart: Cart): void {
@@ -91,6 +95,7 @@ export default class CartPage extends Page {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('updateTotalCost', this.windowCallback as () => void);
+    window.removeEventListener('updateTotalCost', this.updateCallback as () => void);
+    window.removeEventListener('removeLineItem', this.removeCallback as () => void);
   }
 }

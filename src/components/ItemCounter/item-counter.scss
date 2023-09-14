@@ -64,3 +64,9 @@ input::-webkit-inner-spin-button {
   background-repeat: no-repeat;
   background-size: 24px;
 }
+
+@media (max-width: 440px) {
+  .item-counter {
+    margin: 10px auto;
+  }
+}
