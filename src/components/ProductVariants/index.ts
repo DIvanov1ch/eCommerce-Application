@@ -200,7 +200,7 @@ export default class ProductVariants extends BaseComponent {
     this.#btnCart.disabled = true;
     const { key } = this.#product;
 
-    await putProductIntoCart(String(key));
+    await putProductIntoCart(String(key), this.#selectedVariantId);
     this.#btnCart.disabled = false;
   }
 }
