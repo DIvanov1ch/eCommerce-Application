@@ -8,6 +8,7 @@ import throwError from '../../utils/throw-error';
 import { createElement } from '../../utils/create-element';
 import { LANG } from '../../config';
 import putProductIntoCart from '../../utils/put-product-into-cart';
+import { getActiveCart } from '../../services/API';
 
 const CssClasses = {
   COMPONENT: 'product-variants',
@@ -94,9 +95,18 @@ export default class ProductVariants extends BaseComponent {
 
     this.#form = createElement('form', null);
     this.#btnCart = createElement('button', { type: 'submit', className: CssClasses.ADD_TO_CART }, ADD_TO_CART);
+    getActiveCart()
+      .then(({ lineItems }) => {
+        lineItems.forEach((el) => {
+          if (el.productSlug !== undefined && el.productSlug.en === this.#key) {
+            this.#btnCart.setAttribute('disabled', 'true');
+          }
+        });
+      })
+      .catch(throwError);
     this.#form.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.handleAddToCart().catch(throwError);
+      this.handleAddToCart();
     });
   }
 
@@ -196,11 +206,12 @@ export default class ProductVariants extends BaseComponent {
     }
   }
 
-  private async handleAddToCart(): Promise<void> {
-    this.#btnCart.disabled = true;
+  private handleAddToCart(): void {
     const { key } = this.#product;
-
-    await putProductIntoCart(String(key), this.#selectedVariantId);
-    this.#btnCart.disabled = false;
+    this.#btnCart.setAttribute('disabled', 'true');
+    if (key !== undefined) {
+      Store.cart.push(key);
+    }
+    putProductIntoCart(String(key), this.#selectedVariantId).catch(throwError);
   }
 }
