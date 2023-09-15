@@ -15,11 +15,11 @@ const CssClasses = {
 
 const MEMBERS: Member[] = [
   {
-    fullName: '',
-    location: '',
-    photoUrl: '',
+    fullName: 'Dzianis Trukhanovich',
+    location: 'Brest, Belarus',
+    photoUrl: 'https://i.ibb.co/khyPDVN/My-Image-2-1.png',
     roles: ['Front-end developer'],
-    bio: ``,
+    bio: `A detail-oriented Junior, who is eager to absorb information and advice from mentors as a sponge. Looking forward to joining a fast-paced company and use my creativity and experience to improve the overall quality of a product or service.`,
     githubName: 'DIvanov1ch',
   },
 
