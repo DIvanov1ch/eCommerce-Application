@@ -90,8 +90,9 @@ export default class ProductCard extends BaseComponent {
   }
 
   private setCartIcon(key: string): void {
-    Store.cart.forEach((el) => {
-      if (key === el) {
+    Store.customerCart?.lineItems.forEach((el) => {
+      const slug = el.productSlug?.en as string;
+      if (key === slug) {
         this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       }
     });
@@ -102,7 +103,6 @@ export default class ProductCard extends BaseComponent {
       createLoader(LOADER_TEXT);
       putProductIntoCart(productKey)
         .then(() => {
-          Store.cart.push(productKey);
           this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
           deleteLoader();
         })

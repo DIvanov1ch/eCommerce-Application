@@ -147,7 +147,6 @@ const logout = (): void => {
     Store.customerCart = undefined;
   }
   tokenClient.delete();
-  Store.cart = [];
 };
 
 async function getInfoOfFilteredProducts({

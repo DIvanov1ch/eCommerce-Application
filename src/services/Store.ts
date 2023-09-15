@@ -12,7 +12,6 @@ const Store: MerchStore = {
   categories: [],
   types: [],
   products: {},
-  cart: [],
   customerCart: undefined,
 };
 

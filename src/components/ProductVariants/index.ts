@@ -207,16 +207,13 @@ export default class ProductVariants extends BaseComponent {
     putProductIntoCart(String(key), this.#selectedVariantId)
       .then(() => {
         this.#btnCart.setAttribute('disabled', 'true');
-        if (key !== undefined) {
-          Store.cart.push(key);
-        }
         deleteLoader();
       })
       .catch(throwError);
   }
 
   private changeCartButtonToInactiveIfProductIsInCart(): void {
-    if (Store.cart.length > 0) {
+    if (Store.customerCart?.lineItems.length) {
       getActiveCart()
         .then(({ lineItems }) => {
           lineItems.forEach((el) => {

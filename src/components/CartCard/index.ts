@@ -133,8 +133,8 @@ export default class CartCard extends BaseComponent {
         .then(() => {
           if (this.lineItem.productSlug !== undefined) {
             const lineItemSlug = this.lineItem.productSlug.en;
-            Store.cart = Store.cart.filter((el) => {
-              return el !== lineItemSlug;
+            Store.customerCart?.lineItems.filter((el) => {
+              return el.productSlug?.en !== lineItemSlug;
             });
           }
           deleteLoader();
