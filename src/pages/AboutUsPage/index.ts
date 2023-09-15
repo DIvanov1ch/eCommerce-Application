@@ -24,11 +24,14 @@ const MEMBERS: Member[] = [
   },
 
   {
-    fullName: '',
-    location: '',
-    photoUrl: '',
+    fullName: 'Aliaksandr Ipatau',
+    location: 'Brest, Belarus',
+    photoUrl: 'https://avatars.githubusercontent.com/u/11777183',
     roles: ['Front-end developer'],
-    bio: ``,
+    bio: `I started to study coding last year and with the help of RSSchool\
+    I understood that it is very interesting activity.\
+    I hope that my diligence and assiduousness will help me to change my life\
+    and I'll become a professional programmer.`,
     githubName: 'beskibeski',
   },
   {
