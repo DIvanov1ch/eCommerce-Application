@@ -9,6 +9,7 @@ import { createElement } from '../../utils/create-element';
 import { LANG } from '../../config';
 import putProductIntoCart from '../../utils/put-product-into-cart';
 import { getActiveCart } from '../../services/API';
+import { createLoader, deleteLoader } from '../../utils/loader';
 
 const CssClasses = {
   COMPONENT: 'product-variants',
@@ -21,6 +22,8 @@ const CssClasses = {
   OPTION: 'attribute__option',
   ADD_TO_CART: 'button button--cart',
 };
+
+const LOADER_TEXT = 'Add';
 
 const MAX_LENGTH = 20;
 
@@ -95,15 +98,7 @@ export default class ProductVariants extends BaseComponent {
 
     this.#form = createElement('form', null);
     this.#btnCart = createElement('button', { type: 'submit', className: CssClasses.ADD_TO_CART }, ADD_TO_CART);
-    getActiveCart()
-      .then(({ lineItems }) => {
-        lineItems.forEach((el) => {
-          if (el.productSlug !== undefined && el.productSlug.en === this.#key) {
-            this.#btnCart.setAttribute('disabled', 'true');
-          }
-        });
-      })
-      .catch(throwError);
+    this.changeCartButtonToInactiveIfProductIsInCart();
     this.#form.addEventListener('submit', (event) => {
       event.preventDefault();
       this.handleAddToCart();
@@ -208,10 +203,29 @@ export default class ProductVariants extends BaseComponent {
 
   private handleAddToCart(): void {
     const { key } = this.#product;
-    this.#btnCart.setAttribute('disabled', 'true');
-    if (key !== undefined) {
-      Store.cart.push(key);
+    createLoader(LOADER_TEXT);
+    putProductIntoCart(String(key), this.#selectedVariantId)
+      .then(() => {
+        this.#btnCart.setAttribute('disabled', 'true');
+        if (key !== undefined) {
+          Store.cart.push(key);
+        }
+        deleteLoader();
+      })
+      .catch(throwError);
+  }
+
+  private changeCartButtonToInactiveIfProductIsInCart(): void {
+    if (Store.cart.length > 0) {
+      getActiveCart()
+        .then(({ lineItems }) => {
+          lineItems.forEach((el) => {
+            if (el.productSlug !== undefined && el.productSlug.en === this.#key) {
+              this.#btnCart.setAttribute('disabled', 'true');
+            }
+          });
+        })
+        .catch(throwError);
     }
-    putProductIntoCart(String(key), this.#selectedVariantId).catch(throwError);
   }
 }

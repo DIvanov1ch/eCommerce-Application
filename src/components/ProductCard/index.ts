@@ -10,6 +10,8 @@ import throwError from '../../utils/throw-error';
 import { createLoader, deleteLoader } from '../../utils/loader';
 import putProductIntoCart from '../../utils/put-product-into-cart';
 
+const LOADER_TEXT = 'Add';
+
 const CssClasses = {
   COMPONENT: 'product-card',
   NAME: 'product-card__name',
@@ -97,7 +99,7 @@ export default class ProductCard extends BaseComponent {
 
   private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      createLoader();
+      createLoader(LOADER_TEXT);
       putProductIntoCart(productKey)
         .then(() => {
           Store.cart.push(productKey);
