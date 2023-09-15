@@ -45,6 +45,11 @@ const proxiedStore = new Proxy(Store, {
     if (property === 'customer') {
       dispatch('userchange');
     }
+
+    if (property === 'customerCart') {
+      dispatch('cartchange');
+    }
+
     return true;
   },
 });

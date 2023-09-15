@@ -34,15 +34,16 @@
 }
 
 .nav__list {
-  a {
-    text-decoration: none;
-    display: flex;
-    gap: 0.2em;
-    align-items: center;
-  }
   .icon {
     font-size: 1.2em;
   }
+}
+
+.nav__link {
+  text-decoration: none;
+  display: flex;
+  gap: 0.2em;
+  align-items: center;
 }
 
 .logo {
@@ -129,6 +130,9 @@
     justify-content: start;
     padding-top: 3em;
   }
+  .nav {
+    display: block;
+  }
 
   .nav--main:after {
     content: '';
@@ -142,9 +146,18 @@
   }
 
   .nav__list {
-    flex-direction: column;
-    align-items: start;
-    gap: 0.5em;
+    display: block;
+  }
+
+  .nav__item {
+    margin-bottom: 0.5em;
+    &:last-child {
+      margin: 0;
+    }
+  }
+
+  .nav__link {
+    padding: 0.3em 0;
   }
 
   .nav--open {
