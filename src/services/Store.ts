@@ -12,7 +12,6 @@ const Store: MerchStore = {
   categories: [],
   types: [],
   products: {},
-  cart: [],
   customerCart: undefined,
 };
 
@@ -45,6 +44,11 @@ const proxiedStore = new Proxy(Store, {
     if (property === 'customer') {
       dispatch('userchange');
     }
+
+    if (property === 'customerCart') {
+      dispatch('cartchange');
+    }
+
     return true;
   },
 });

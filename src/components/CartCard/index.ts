@@ -8,6 +8,12 @@ import BaseComponent from '../BaseComponent';
 import PriceBox from '../PriceBox';
 import ItemCounter from '../ItemCounter';
 import { getActiveCart, updateCart } from '../../services/API';
+import { createLoader, deleteLoader } from '../../utils/loader';
+import UpdateActions from '../../enums/update-actions';
+
+const TIMEOUT = 300;
+
+const LOADER_TEXT = 'Delete';
 
 const CssClasses = {
   CART: 'cart-card',
@@ -70,7 +76,7 @@ export default class CartCard extends BaseComponent {
     );
     remove.addEventListener('click', this.setUpdateAction.bind(this));
     this.windowCallback = this.updateLineItem.bind(this);
-    window.addEventListener('updateTotalCost', this.windowCallback);
+    window.addEventListener('quantitychange', this.windowCallback);
   }
 
   protected insertImages(images?: Image[]): void {
@@ -117,11 +123,24 @@ export default class CartCard extends BaseComponent {
   protected setUpdateAction(): void {
     const lineItemId = this.lineItem.id;
     const updateAction: MyCartUpdateAction = {
-      action: 'changeLineItemQuantity',
+      action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
       lineItemId,
       quantity: 0,
     };
-    CartCard.removeLineItem(updateAction).then().catch(console.error);
+    createLoader(LOADER_TEXT);
+    setTimeout(() => {
+      CartCard.removeLineItem(updateAction)
+        .then(() => {
+          if (this.lineItem.productSlug !== undefined) {
+            const lineItemSlug = this.lineItem.productSlug.en;
+            Store.customerCart?.lineItems.filter((el) => {
+              return el.productSlug?.en !== lineItemSlug;
+            });
+          }
+          deleteLoader();
+        })
+        .catch(console.error);
+    }, TIMEOUT);
   }
 
   protected static async removeLineItem(updateAction: MyCartUpdateAction): Promise<void> {
@@ -134,7 +153,7 @@ export default class CartCard extends BaseComponent {
     try {
       const newCart = await updateCart(id, body);
       Store.customerCart = newCart;
-      dispatch('removeLineItem');
+      dispatch('itemdelete');
     } catch (error) {
       const activeCart = await getActiveCart();
       Store.customerCart = activeCart;
@@ -146,6 +165,6 @@ export default class CartCard extends BaseComponent {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('updateTotalCost', this.windowCallback as () => void);
+    window.removeEventListener('quantitychange', this.windowCallback as () => void);
   }
 }

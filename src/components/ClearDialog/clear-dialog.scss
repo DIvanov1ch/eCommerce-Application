@@ -1,0 +1,42 @@
+.clear-cart {
+  .modal__content {
+    padding: 15px;
+  }
+
+  .modal__dialog {
+    max-width: 370px;
+  }
+}
+
+.clear-cart__title,
+.clear-cart__question {
+  text-align: center;
+}
+
+.clear-cart__actions {
+  margin: 20px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 80%;
+
+  .button-container {
+    min-width: 50px;
+    max-width: 120px;
+    margin: 0 auto;
+  }
+
+  .submit-button_cancel {
+    text-align: center;
+    display: table;
+    vertical-align: middle;
+    padding: 7px;
+    background-color: #ffffff;
+    border: 1px solid rgba(166, 166, 166, 0.5);
+  }
+
+  .submit-button_cancel:hover {
+    background-color: rgb(236, 236, 236);
+    border: 1px solid rgba(166, 166, 166, 0.5);
+  }
+}

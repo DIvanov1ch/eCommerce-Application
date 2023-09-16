@@ -143,8 +143,10 @@ const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<Cus
 };
 
 const logout = (): void => {
+  if (Store.customerCart) {
+    Store.customerCart = undefined;
+  }
   tokenClient.delete();
-  Store.cart = [];
 };
 
 async function getInfoOfFilteredProducts({

@@ -10,6 +10,8 @@ import throwError from '../../utils/throw-error';
 import { createLoader, deleteLoader } from '../../utils/loader';
 import putProductIntoCart from '../../utils/put-product-into-cart';
 
+const LOADER_TEXT = 'Add';
+
 const CssClasses = {
   COMPONENT: 'product-card',
   NAME: 'product-card__name',
@@ -88,8 +90,9 @@ export default class ProductCard extends BaseComponent {
   }
 
   private setCartIcon(key: string): void {
-    Store.cart.forEach((el) => {
-      if (key === el) {
+    Store.customerCart?.lineItems.forEach((el) => {
+      const slug = el.productSlug?.en as string;
+      if (key === slug) {
         this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
       }
     });
@@ -97,10 +100,9 @@ export default class ProductCard extends BaseComponent {
 
   private CartIconClickHandling(productKey: string): void {
     this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      createLoader();
+      createLoader(LOADER_TEXT);
       putProductIntoCart(productKey)
         .then(() => {
-          Store.cart.push(productKey);
           this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
           deleteLoader();
         })

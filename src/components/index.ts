@@ -19,6 +19,7 @@ import TimeOut from './TimeOut';
 import CartCard from './CartCard';
 import TeamMember from './TeamMember';
 import ItemCounter from './ItemCounter';
+import ClearDialog from './ClearDialog';
 
 const Components = {
   'page-header': PageHeader,
@@ -42,6 +43,7 @@ const Components = {
   'cart-card': CartCard,
   'team-member': TeamMember,
   'item-counter': ItemCounter,
+  'clear-dialog': ClearDialog,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
