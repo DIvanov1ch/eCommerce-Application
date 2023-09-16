@@ -76,3 +76,20 @@
 .notallowed {
   cursor: not-allowed;
 }
+
+.cart__carts_empty {
+  background-image: url('../../assets/img/empty-cart.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+
+  text-align: center;
+
+  p {
+    margin: 0 auto;
+  }
+}

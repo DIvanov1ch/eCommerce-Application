@@ -11,6 +11,7 @@ import CartCard from '../../components/CartCard';
 import Store from '../../services/Store';
 import { setElementTextContent } from '../../utils/service-functions';
 import PriceBox from '../../components/PriceBox';
+import ClearDialog from '../../components/ClearDialog';
 
 Router.registerRoute('cart', 'cart-page');
 
@@ -49,6 +50,7 @@ export default class CartPage extends Page {
   }
 
   protected setCallback(): void {
+    this.$(classSelector(CssClasses.CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
     this.updateCallback = this.updateCart.bind(this);
     this.removeCallback = this.loadCart.bind(this);
     window.addEventListener('quantitychange', this.updateCallback);
@@ -67,20 +69,33 @@ export default class CartPage extends Page {
   }
 
   private render(): void {
-    this.renderLineItems(this.cart.lineItems);
+    if (!this.cart.totalLineItemQuantity) {
+      this.renderEmptyCart();
+    } else {
+      this.renderLineItems(this.cart.lineItems);
+    }
     this.setTotalPrice();
   }
 
   private renderLineItems(lineItems: LineItem[]): void {
-    this.$(classSelector(CssClasses.CARTS))?.replaceChildren(
-      ...lineItems.map((lineItem: LineItem) => new CartCard(lineItem))
-    );
-    if (!this.cart.totalLineItemQuantity) {
-      this.displayMessageForEmptyCart();
-      this.disableButtons();
-      return;
-    }
+    const { CARTS, EMPTY_CART } = CssClasses;
+    const carts = this.$(classSelector(CARTS));
+    carts?.replaceChildren(...lineItems.map((lineItem: LineItem) => new CartCard(lineItem)));
+    carts?.classList.remove(EMPTY_CART);
+
     this.enableButtons();
+  }
+
+  private renderEmptyCart(): void {
+    const { CARTS, EMPTY_CART } = CssClasses;
+    const carts = this.$(classSelector(CARTS));
+    while (carts?.firstElementChild) {
+      carts.firstElementChild.remove();
+    }
+    carts?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
+    carts?.classList.add(EMPTY_CART);
+
+    this.disableButtons();
   }
 
   private createCart(): void {
@@ -90,6 +105,11 @@ export default class CartPage extends Page {
         this.render();
       })
       .catch(console.error);
+  }
+
+  private static clearCart(): void {
+    const modal = new ClearDialog();
+    modal.show();
   }
 
   private setTotalPrice(): void {
@@ -103,10 +123,6 @@ export default class CartPage extends Page {
     priceBox.setPrice(totalPrice);
     priceContainer?.replaceChildren(priceBox);
     setElementTextContent(classSelector(SUMMARY), this, (totalLineItemQuantity || 0).toString());
-  }
-
-  private displayMessageForEmptyCart(): void {
-    this.$(classSelector(CssClasses.CARTS))?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
   }
 
   private disableButtons(): void {
