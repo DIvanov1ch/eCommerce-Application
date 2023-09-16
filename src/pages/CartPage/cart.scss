@@ -42,9 +42,54 @@
   align-self: self-end;
 }
 
-.submit-button.checkout {
+.submit-button_checkout,
+.submit-button_clear {
   text-align: center;
   display: table;
   vertical-align: middle;
   padding: 7px;
+}
+
+.link:hover {
+  color: rgb(32, 119, 68);
+}
+
+.submit-button_clear {
+  border: 1px solid #b62958;
+  background-color: #e52e6b;
+  color: #ffffff;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.submit-button_clear:hover {
+  border: 1px solid #b62958;
+  background-color: #b62958;
+  color: #ffffff;
+}
+
+.disabledbutton {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.notallowed {
+  cursor: not-allowed;
+}
+
+.cart__carts_empty {
+  background-image: url('../../assets/img/empty-cart.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+
+  text-align: center;
+
+  p {
+    margin: 0 auto;
+  }
 }

@@ -6,12 +6,21 @@ import Pattern from '../../constants/pattern';
 import { errorAlert, errorMessages } from '../../types/errors';
 import Store from '../../services/Store';
 import Router from '../../services/Router';
-import { pause } from '../../utils/create-element';
+import { classSelector, pause } from '../../utils/create-element';
 import loginUser from '../../utils/login';
 
 Router.registerRoute('login', 'login-page');
 
 const LOGIN_DELAY = 3000;
+const TIMER_HTML = `<time-out time="${LOGIN_DELAY / 1000}"></time-out>`;
+const HTML = {
+  ALREADY: `<p>Looks like you are already logged in. You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
+  SUCCESS: `<p>Login successful. You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
+};
+
+enum CssClasses {
+  LOGIN_BUTTON = 'login__button',
+}
 
 export default class LoginPage extends Page {
   constructor() {
@@ -19,14 +28,17 @@ export default class LoginPage extends Page {
   }
 
   protected connectedCallback(): void {
-    LoginPage.checkIfUserLoggedIn();
+    if (Store.customer) {
+      this.goToMainPage(HTML.ALREADY).then().catch(console.error);
+      return;
+    }
 
     super.connectedCallback();
     LoginPage.checkPasswordValidation();
     LoginPage.checkEmailValidation();
     LoginPage.showOrHidePassword();
     LoginPage.activateOrDeactivateSubmit();
-    LoginPage.submitAction();
+    this.submitAction();
     LoginPage.goToRegistrationPage();
   }
 
@@ -55,12 +67,6 @@ export default class LoginPage extends Page {
   public static setLoginToDefault = (): void => {
     this.userPassword = '';
     this.userEmail = '';
-  };
-
-  private static checkIfUserLoggedIn = (): void => {
-    if (Store.customer) {
-      this.goToMainPage();
-    }
   };
 
   private static checkPasswordLength = (element: HTMLInputElement): void => {
@@ -286,15 +292,14 @@ export default class LoginPage extends Page {
     this.hasSubmitErrorMessage = true;
   };
 
-  private static submitAction(): void {
-    const inputLoginFormSubmit = document.querySelector('.login__button') as HTMLInputElement;
+  private submitAction(): void {
+    const inputLoginFormSubmit = this.$(classSelector(CssClasses.LOGIN_BUTTON)) as HTMLInputElement;
     inputLoginFormSubmit.addEventListener('click', (): void => {
-      loginUser(this.getEmail(), this.getPassword())
-        .then(() => LoginPage.createWaitingText())
-        .catch(() => {})
+      loginUser(LoginPage.getEmail(), LoginPage.getPassword())
+        .then(() => this.goToMainPage(HTML.SUCCESS))
         .catch((error: Error) => {
           if (error.message === errorMessages.loginEmailError || error.message === errorMessages.loginPasswordError) {
-            this.showErrorOnLogin(error.message);
+            LoginPage.showErrorOnLogin(error.message);
           }
         });
     });
@@ -307,18 +312,12 @@ export default class LoginPage extends Page {
     });
   };
 
-  private static goToMainPage = (): void => {
-    window.location.href = '#';
-  };
+  private async goToMainPage(htmlText: string): Promise<void> {
+    this.innerHTML = htmlText;
 
-  private static createWaitingText(): void {
-    const page = document.querySelector('.page') as HTMLElement;
-    page.innerHTML = 'LOGIN SUCCESSFUL. PLEASE WAIT!!!';
-    page.style.textAlign = 'center';
-    pause(LOGIN_DELAY)
-      .then(() => {
-        this.goToMainPage();
-      })
-      .catch(() => {});
+    await pause(LOGIN_DELAY);
+    if (this.isConnected) {
+      window.location.assign('#');
+    }
   }
 }
