@@ -14,6 +14,11 @@ import PriceBox from '../../components/PriceBox';
 
 Router.registerRoute('cart', 'cart-page');
 
+const HTML = {
+  EMPTY: `<h3>Your Shopping Cart is empty</h3>
+  <p>Looks like you have not added anything to your cart. You will find a lot of interesting products on our <a class="link" href="#catalog">Catalog</a> page.</p>`,
+};
+
 export default class CartPage extends Page {
   private cart: Cart = new CustomerCart();
 
@@ -39,7 +44,7 @@ export default class CartPage extends Page {
         this.render();
       })
       .catch(() => {
-        this.createNewCart();
+        this.createCart();
       });
   }
 
@@ -70,9 +75,12 @@ export default class CartPage extends Page {
     this.$(classSelector(CssClasses.CARTS))?.replaceChildren(
       ...lineItems.map((lineItem: LineItem) => new CartCard(lineItem))
     );
+    if (!this.cart.totalLineItemQuantity) {
+      this.displayMessageForEmptyCart();
+    }
   }
 
-  private createNewCart(): void {
+  private createCart(): void {
     createNewCart()
       .then((body) => {
         this.saveCart(body);
@@ -92,6 +100,10 @@ export default class CartPage extends Page {
     priceBox.setPrice(totalPrice);
     priceContainer?.replaceChildren(priceBox);
     setElementTextContent(classSelector(SUMMARY), this, (totalLineItemQuantity || 0).toString());
+  }
+
+  private displayMessageForEmptyCart(): void {
+    this.$(classSelector(CssClasses.CARTS))?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
   }
 
   private disconnectedCallback(): void {
