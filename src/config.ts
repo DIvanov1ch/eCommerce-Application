@@ -40,6 +40,7 @@ export const STORAGE_NAME = 'sd-merch';
 export const LANG = 'en';
 export const LOADING_CLASS = 'loading';
 export const SKELETON_CLASS = 'skeleton';
+export const ICON_CLASS = 'icon';
 
 export const CATEGORIES_LIMIT = 100;
 export const PRODUCTS_PER_PAGE = 6;
