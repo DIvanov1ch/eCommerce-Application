@@ -54,9 +54,22 @@
   }
 }
 
-.button--cart {
-  cursor: pointer;
-  &:disabled {
-    pointer-events: none;
+.product-variants {
+  .button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    border: 1px solid var(--border-color);
+    padding: 0.2em 1em;
+
+    .icon {
+      font-size: 1.5em;
+    }
+
+    &:disabled {
+      pointer-events: none;
+    }
   }
 }

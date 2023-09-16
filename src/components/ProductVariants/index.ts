@@ -7,9 +7,9 @@ import { loadProductTypes } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
 import { createElement } from '../../utils/create-element';
 import { LANG } from '../../config';
-import putProductIntoCart from '../../utils/put-product-into-cart';
-import { getActiveCart } from '../../services/API';
 import { createLoader, deleteLoader } from '../../utils/loader';
+import { addLineItem, lineItemInCart, removeLineItem } from '../../utils/cart-actions';
+import icon from '../../utils/icon';
 
 const CssClasses = {
   COMPONENT: 'product-variants',
@@ -20,10 +20,9 @@ const CssClasses = {
   VALUES: 'attribute__values',
   OPTIONS: 'attribute__options',
   OPTION: 'attribute__option',
-  ADD_TO_CART: 'button button--cart',
+  ADD_TO_CART: 'button button--cart-add',
+  REMOVE_FROM_CART: 'button button--cart-remove',
 };
-
-const LOADER_TEXT = 'Add';
 
 const MAX_LENGTH = 20;
 
@@ -36,7 +35,8 @@ const CONSTRAINT = {
   COMBINATION_UNIQUE: 'CombinationUnique',
 };
 
-const ADD_TO_CART = 'Add to cart';
+const ADD_TO_CART = icon('add_shopping_cart', 'Add to cart');
+const REMOVE_FROM_CART = icon('remove_shopping_cart', 'Remove from cart');
 
 type Attribute = {
   order: number;
@@ -98,10 +98,9 @@ export default class ProductVariants extends BaseComponent {
 
     this.#form = createElement('form', null);
     this.#btnCart = createElement('button', { type: 'submit', className: CssClasses.ADD_TO_CART }, ADD_TO_CART);
-    this.changeCartButtonToInactiveIfProductIsInCart();
     this.#form.addEventListener('submit', (event) => {
       event.preventDefault();
-      this.handleAddToCart();
+      this.handleCartButtonClick().catch(throwError);
     });
   }
 
@@ -177,6 +176,7 @@ export default class ProductVariants extends BaseComponent {
     this.#form.append(list, this.#btnCart);
 
     this.replaceChildren(this.#form);
+    this.updateCartButton();
   }
 
   private showError(text: string): void {
@@ -198,31 +198,25 @@ export default class ProductVariants extends BaseComponent {
 
     if (selectedVariant) {
       this.#selectedVariantId = selectedVariant.id;
+      this.updateCartButton();
     }
   }
 
-  private handleAddToCart(): void {
-    const { key } = this.#product;
-    createLoader(LOADER_TEXT);
-    putProductIntoCart(String(key), this.#selectedVariantId)
-      .then(() => {
-        this.#btnCart.setAttribute('disabled', 'true');
-        deleteLoader();
-      })
-      .catch(throwError);
+  private updateCartButton(): void {
+    const inCart = lineItemInCart(this.#key, this.#selectedVariantId);
+    this.#btnCart.innerHTML = inCart ? REMOVE_FROM_CART : ADD_TO_CART;
+    this.#btnCart.className = inCart ? CssClasses.REMOVE_FROM_CART : CssClasses.ADD_TO_CART;
   }
 
-  private changeCartButtonToInactiveIfProductIsInCart(): void {
-    if (Store.customerCart?.lineItems.length) {
-      getActiveCart()
-        .then(({ lineItems }) => {
-          lineItems.forEach((el) => {
-            if (el.productSlug !== undefined && el.productSlug.en === this.#key) {
-              this.#btnCart.setAttribute('disabled', 'true');
-            }
-          });
-        })
-        .catch(throwError);
+  private async handleCartButtonClick(): Promise<void> {
+    const inCart = lineItemInCart(this.#key, this.#selectedVariantId);
+    createLoader();
+    if (inCart) {
+      await removeLineItem(inCart.id);
+    } else {
+      await addLineItem(this.#product.id, this.#selectedVariantId);
     }
+    deleteLoader();
+    this.updateCartButton();
   }
 }
