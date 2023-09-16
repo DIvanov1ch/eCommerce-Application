@@ -77,7 +77,10 @@ export default class CartPage extends Page {
     );
     if (!this.cart.totalLineItemQuantity) {
       this.displayMessageForEmptyCart();
+      this.disableButtons();
+      return;
     }
+    this.enableButtons();
   }
 
   private createCart(): void {
@@ -104,6 +107,18 @@ export default class CartPage extends Page {
 
   private displayMessageForEmptyCart(): void {
     this.$(classSelector(CssClasses.CARTS))?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
+  }
+
+  private disableButtons(): void {
+    const { SUBMIT_BTN, BUTTON_CONTAINER } = CssClasses;
+    this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList.add('disabledbutton'));
+    this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.add('notallowed'));
+  }
+
+  private enableButtons(): void {
+    const { SUBMIT_BTN, BUTTON_CONTAINER } = CssClasses;
+    this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList.remove('disabledbutton'));
+    this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.remove('notallowed'));
   }
 
   private disconnectedCallback(): void {
