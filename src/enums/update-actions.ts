@@ -12,6 +12,8 @@ enum UpdateActions {
   ADD_BILLING_ADDRESS_ID = 'addBillingAddressId',
   REMOVE_BILLING_ADDRESS_ID = 'removeBillingAddressId',
   SET_DATE_OF_BIRTH = 'setDateOfBirth',
+  CHANGE_LINE_ITEM_QUANTITY = 'changeLineItemQuantity',
+  ADD_LINE_ITEM = 'addLineItem',
 }
 
 export default UpdateActions;

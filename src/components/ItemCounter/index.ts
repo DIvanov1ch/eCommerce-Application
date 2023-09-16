@@ -5,6 +5,7 @@ import './item-counter.scss';
 import html from './template.html';
 import Store from '../../services/Store';
 import { getActiveCart, updateCart } from '../../services/API';
+import UpdateActions from '../../enums/update-actions';
 
 enum CssClasses {
   COMPONENT = 'item-counter',
@@ -115,7 +116,7 @@ export default class ItemCounter extends BaseComponent {
   protected setUpdateAction(quantity = 1): void {
     const { lineItemId } = this;
     const updateAction: MyCartUpdateAction = {
-      action: 'changeLineItemQuantity',
+      action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
       lineItemId,
       quantity,
     };

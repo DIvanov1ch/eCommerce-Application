@@ -9,7 +9,7 @@ import PriceBox from '../PriceBox';
 import ItemCounter from '../ItemCounter';
 import { getActiveCart, updateCart } from '../../services/API';
 import { createLoader, deleteLoader } from '../../utils/loader';
-import throwError from '../../utils/throw-error';
+import UpdateActions from '../../enums/update-actions';
 
 const TIMEOUT = 300;
 
@@ -123,7 +123,7 @@ export default class CartCard extends BaseComponent {
   protected setUpdateAction(): void {
     const lineItemId = this.lineItem.id;
     const updateAction: MyCartUpdateAction = {
-      action: 'changeLineItemQuantity',
+      action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
       lineItemId,
       quantity: 0,
     };
@@ -139,7 +139,7 @@ export default class CartCard extends BaseComponent {
           }
           deleteLoader();
         })
-        .catch(throwError);
+        .catch(console.error);
     }, TIMEOUT);
   }
 
