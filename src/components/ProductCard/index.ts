@@ -6,9 +6,8 @@ import Store from '../../services/Store';
 import { LANG } from '../../config';
 import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
-import throwError from '../../utils/throw-error';
 import { createLoader, deleteLoader } from '../../utils/loader';
-import putProductIntoCart from '../../utils/put-product-into-cart';
+import { addLineItem } from '../../utils/cart-actions';
 
 const LOADER_TEXT = 'Add';
 
@@ -39,6 +38,10 @@ export default class ProductCard extends BaseComponent {
     this.addEventListener('click', () => {
       window.location.href = `#product/${this.#key}`;
     });
+    this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
+      this.handleCartIconClick().catch(console.error);
+      event.stopPropagation();
+    });
   }
 
   protected render(): void {
@@ -66,7 +69,6 @@ export default class ProductCard extends BaseComponent {
     this.insertImages(images);
     this.setPrice(price, discounted);
     this.setCartIcon(this.#key);
-    this.CartIconClickHandling(this.#key);
   }
 
   protected setPrice(price: number, discounted: number): void {
@@ -98,17 +100,12 @@ export default class ProductCard extends BaseComponent {
     });
   }
 
-  private CartIconClickHandling(productKey: string): void {
-    this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
-      createLoader(LOADER_TEXT);
-      putProductIntoCart(productKey)
-        .then(() => {
-          this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
-          deleteLoader();
-        })
-        .catch(() => throwError);
-      event.stopPropagation();
-    });
+  private async handleCartIconClick(): Promise<void> {
+    const product = Store.products[this.#key];
+    createLoader(LOADER_TEXT);
+    await addLineItem(product.id);
+    this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+    deleteLoader();
   }
 
   protected attributeChangedCallback(name: string, oldValue: string, newValue: string): void {

@@ -11,8 +11,6 @@ import { getActiveCart, updateCart } from '../../services/API';
 import { createLoader, deleteLoader } from '../../utils/loader';
 import UpdateActions from '../../enums/update-actions';
 
-const TIMEOUT = 300;
-
 const LOADER_TEXT = 'Delete';
 
 const CssClasses = {
@@ -128,19 +126,11 @@ export default class CartCard extends BaseComponent {
       quantity: 0,
     };
     createLoader(LOADER_TEXT);
-    setTimeout(() => {
-      CartCard.removeLineItem(updateAction)
-        .then(() => {
-          if (this.lineItem.productSlug !== undefined) {
-            const lineItemSlug = this.lineItem.productSlug.en;
-            Store.customerCart?.lineItems.filter((el) => {
-              return el.productSlug?.en !== lineItemSlug;
-            });
-          }
-          deleteLoader();
-        })
-        .catch(console.error);
-    }, TIMEOUT);
+    CartCard.removeLineItem(updateAction)
+      .then(() => {
+        deleteLoader();
+      })
+      .catch(console.error);
   }
 
   protected static async removeLineItem(updateAction: MyCartUpdateAction): Promise<void> {
