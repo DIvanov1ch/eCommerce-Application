@@ -53,3 +53,10 @@
     background: #eee;
   }
 }
+
+.button--cart {
+  cursor: pointer;
+  &:disabled {
+    pointer-events: none;
+  }
+}

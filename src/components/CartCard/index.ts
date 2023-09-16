@@ -8,6 +8,12 @@ import BaseComponent from '../BaseComponent';
 import PriceBox from '../PriceBox';
 import ItemCounter from '../ItemCounter';
 import { getActiveCart, updateCart } from '../../services/API';
+import { createLoader, deleteLoader } from '../../utils/loader';
+import throwError from '../../utils/throw-error';
+
+const TIMEOUT = 300;
+
+const LOADER_TEXT = 'Delete';
 
 const CssClasses = {
   CART: 'cart-card',
@@ -121,7 +127,20 @@ export default class CartCard extends BaseComponent {
       lineItemId,
       quantity: 0,
     };
-    CartCard.removeLineItem(updateAction).then().catch(console.error);
+    createLoader(LOADER_TEXT);
+    setTimeout(() => {
+      CartCard.removeLineItem(updateAction)
+        .then(() => {
+          if (this.lineItem.productSlug !== undefined) {
+            const lineItemSlug = this.lineItem.productSlug.en;
+            Store.customerCart?.lineItems.filter((el) => {
+              return el.productSlug?.en !== lineItemSlug;
+            });
+          }
+          deleteLoader();
+        })
+        .catch(throwError);
+    }, TIMEOUT);
   }
 
   protected static async removeLineItem(updateAction: MyCartUpdateAction): Promise<void> {

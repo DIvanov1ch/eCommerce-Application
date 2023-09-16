@@ -7,6 +7,5 @@ export interface MerchStore {
   categories: Category[];
   types: ProductType[];
   products: Record<string, ProductProjection>;
-  cart: string[];
   customerCart?: Cart;
 }

@@ -5,8 +5,9 @@ enum CssClasses {
   PARENT_ELEMENT = 'page-main',
 }
 
-const createLoader = (): void => {
+const createLoader = (text: string = ''): void => {
   const cartLoader = createElement('div', { className: CssClasses.LOADER });
+  cartLoader.innerText = text;
   const parent = document.getElementsByTagName(CssClasses.PARENT_ELEMENT)[0] as HTMLElement;
   parent.append(cartLoader);
   parent.style.opacity = '0.7';
