@@ -1,3 +1,6 @@
+@use 'sass:color';
+$primary-color: #146ff5;
+
 :root {
   --page-bg: #f6f6f6;
   --text-color: #111111;
@@ -26,4 +29,9 @@
   --swiper-navigation-color: #333333;
 
   --border-color: #aaa;
+
+  --primary-color: #{$primary-color};
+  --primary-gray-color: #{color.grayscale($primary-color)};
+  --primary-lighter-color: #{color.adjust($primary-color, $lightness: 30%)};
+  --complement-color: #{color.complement($primary-color)};
 }

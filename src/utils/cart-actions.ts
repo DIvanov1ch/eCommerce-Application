@@ -9,8 +9,10 @@ function lineItemInCart(productKey: string, variantId = 1, cart = Store.customer
 }
 
 async function updateActiveCart(actions: MyCartUpdateAction[] = []): Promise<void> {
-  let cart = await getActiveCart();
-  if (!cart) {
+  let cart;
+  try {
+    cart = await getActiveCart();
+  } catch (e) {
     cart = await createNewCart();
   }
 
