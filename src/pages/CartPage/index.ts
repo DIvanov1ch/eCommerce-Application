@@ -1,5 +1,5 @@
 import { Cart, LineItem } from '@commercetools/platform-sdk';
-import { createNewCart, getActiveCart /* , getCartByCustomerId */ } from '../../services/API';
+import { createNewCart, getActiveCart } from '../../services/API';
 import Router from '../../services/Router';
 import Page from '../Page';
 import html from './cart.html';
@@ -39,15 +39,15 @@ export default class CartPage extends Page {
         this.render();
       })
       .catch(() => {
-        this.showResponseError();
+        this.createNewCart();
       });
   }
 
   protected setCallback(): void {
     this.updateCallback = this.updateCart.bind(this);
     this.removeCallback = this.loadCart.bind(this);
-    window.addEventListener('updateTotalCost', this.updateCallback);
-    window.addEventListener('removeLineItem', this.removeCallback);
+    window.addEventListener('quantitychange', this.updateCallback);
+    window.addEventListener('itemdelete', this.removeCallback);
   }
 
   private saveCart(cart: Cart): void {
@@ -72,7 +72,7 @@ export default class CartPage extends Page {
     );
   }
 
-  private showResponseError(): void {
+  private createNewCart(): void {
     createNewCart()
       .then((body) => {
         this.saveCart(body);
@@ -95,7 +95,7 @@ export default class CartPage extends Page {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('updateTotalCost', this.updateCallback as () => void);
-    window.removeEventListener('removeLineItem', this.removeCallback as () => void);
+    window.removeEventListener('quantitychange', this.updateCallback as () => void);
+    window.removeEventListener('itemdelete', this.removeCallback as () => void);
   }
 }

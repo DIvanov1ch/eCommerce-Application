@@ -133,7 +133,7 @@ export default class ItemCounter extends BaseComponent {
     try {
       const newCart = await updateCart(id, body);
       Store.customerCart = newCart;
-      dispatch('updateTotalCost');
+      dispatch('quantitychange');
     } catch (error) {
       const activeCart = await getActiveCart();
       Store.customerCart = activeCart;
