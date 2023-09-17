@@ -7,6 +7,8 @@ enum CssClasses {
   BUTTON_CONTAINER = 'button-container',
   EMPTY_CART = 'cart__carts_empty',
   CLEAR_BTN = 'submit-button_clear',
+  PROMO_INPUT = 'input-module__input-field',
+  APPLY_BTN = 'submit-button_apply',
 }
 
 export default CssClasses;

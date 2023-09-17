@@ -22,9 +22,11 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
     code: 'Postal code must be 5 numerical digits long and be in range from 00501 to 99950',
     country: 'Must be United States',
     current: 'Your password may be incorrect',
+    promocode: 'Your promo code may be incorrect',
   },
   PASSWORD_MISMATCH: { password: 'Password mismatch' },
   INVALID_CURRENT_PASSWORD: { password: 'The given current password does not match' },
+  INVALID_PROMO_CODE: { promocode: 'The promocode you entered is invalid' },
 };
 
 export default ErrorMessages;

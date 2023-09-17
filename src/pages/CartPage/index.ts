@@ -1,5 +1,5 @@
-import { Cart, LineItem } from '@commercetools/platform-sdk';
-import { createNewCart, getActiveCart } from '../../services/API';
+import { Cart, LineItem, MyCartUpdateAction } from '@commercetools/platform-sdk';
+import { createNewCart, getActiveCart, updateCart } from '../../services/API';
 import Router from '../../services/Router';
 import Page from '../Page';
 import html from './cart.html';
@@ -12,6 +12,10 @@ import Store from '../../services/Store';
 import { setElementTextContent } from '../../utils/service-functions';
 import PriceBox from '../../components/PriceBox';
 import ClearDialog from '../../components/ClearDialog';
+import Validator from '../../services/Validator';
+import UpdateActions from '../../enums/update-actions';
+import showToastMessage from '../../utils/show-toast-message';
+import ErrorMessages from '../../constants';
 
 Router.registerRoute('cart', 'cart-page');
 
@@ -20,8 +24,20 @@ const HTML = {
   <p>Looks like you have not added anything to your cart. You will find a lot of interesting products on our <a class="link" href="#catalog">Catalog</a> page.</p>`,
 };
 
+const ToastMessage = {
+  CODE_APPLIED: 'Your Promo Code is applied',
+  ERROR: 'Something went wrong',
+};
+
+const PromoCodes = {
+  AUTUMN: 'AUTUMN',
+  WINTER_IS_COMING: 'WINTERISCOMING',
+};
+
 export default class CartPage extends Page {
   private cart: Cart = new CustomerCart();
+
+  private promoValidator: Validator | undefined;
 
   private updateCallback: (() => void) | undefined;
 
@@ -34,6 +50,9 @@ export default class CartPage extends Page {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.classList.add(CssClasses.PAGE);
+    const promoInput = this.$(classSelector(CssClasses.PROMO_INPUT)) as HTMLInputElement;
+    const applyButton = this.$(classSelector(CssClasses.APPLY_BTN)) as HTMLInputElement;
+    this.promoValidator = new Validator([promoInput], applyButton);
     this.loadCart();
     this.setCallback();
   }
@@ -50,7 +69,9 @@ export default class CartPage extends Page {
   }
 
   protected setCallback(): void {
-    this.$(classSelector(CssClasses.CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
+    const { CLEAR_BTN, APPLY_BTN } = CssClasses;
+    this.$(classSelector(CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
+    this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.checkPromeCode.bind(this));
     this.updateCallback = this.updateCart.bind(this);
     this.removeCallback = this.loadCart.bind(this);
     window.addEventListener('quantitychange', this.updateCallback);
@@ -110,6 +131,37 @@ export default class CartPage extends Page {
   private static clearCart(): void {
     const modal = new ClearDialog();
     modal.show();
+  }
+
+  private checkPromeCode(): void {
+    const promoInput = this.$(classSelector(CssClasses.PROMO_INPUT)) as HTMLInputElement;
+    const promoCode = promoInput.value;
+    if (promoCode !== PromoCodes.AUTUMN) {
+      this.promoValidator?.setErrorMessage(promoInput.id, ErrorMessages.INVALID_PROMO_CODE.promocode);
+      this.promoValidator?.showErrorMessage(promoInput.id);
+      return;
+    }
+    CartPage.applyPromoCode()
+      .then(() => {
+        promoInput.value = '';
+        this.loadCart();
+      })
+      .catch(console.error);
+  }
+
+  private static async applyPromoCode(): Promise<void> {
+    if (!Store.customerCart) {
+      showToastMessage(ToastMessage.ERROR, false);
+      return;
+    }
+
+    const { ADD_DISCOUNT_CODE } = UpdateActions;
+    const code = PromoCodes.AUTUMN;
+    const { id, version } = Store.customerCart;
+    const actions: MyCartUpdateAction[] = [{ action: ADD_DISCOUNT_CODE, code }];
+    const updatedCart = await updateCart(id, { version, actions });
+    Store.customerCart = updatedCart;
+    showToastMessage(ToastMessage.CODE_APPLIED, true);
   }
 
   private setTotalPrice(): void {

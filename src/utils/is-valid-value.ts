@@ -37,6 +37,8 @@ export default function isValidValue(id: string, value: string): boolean {
     case InputID.BILLING_COUNTRY:
     case InputID.COUNTRY:
       return Pattern.country.test(value);
+    case InputID.PROMO_CODE:
+      return Pattern.promocode.test(value);
     default:
       return false;
   }

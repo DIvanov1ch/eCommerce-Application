@@ -21,6 +21,7 @@ enum InputID {
   OLD_PASSWORD = 'old-password',
   NEW_PASSWORD = 'new-password',
   RE_ENTERED_PASSWORD = 're-entered-password',
+  PROMO_CODE = 'promo-code',
 }
 
 export default InputID;

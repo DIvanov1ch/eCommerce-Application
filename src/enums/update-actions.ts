@@ -14,6 +14,7 @@ enum UpdateActions {
   SET_DATE_OF_BIRTH = 'setDateOfBirth',
   CHANGE_LINE_ITEM_QUANTITY = 'changeLineItemQuantity',
   ADD_LINE_ITEM = 'addLineItem',
+  ADD_DISCOUNT_CODE = 'addDiscountCode',
 }
 
 export default UpdateActions;
