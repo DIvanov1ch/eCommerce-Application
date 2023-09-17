@@ -12,6 +12,7 @@ enum CssClasses {
   PROMO_TICKET = 'cart__promo-ticket',
   HIDDEN = 'hidden',
   REMOVE_PROMO = 'promo-tickect__remove',
+  TICKET = 'promo-tickect__content',
 }
 
 export default CssClasses;
