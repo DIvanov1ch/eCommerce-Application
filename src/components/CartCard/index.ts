@@ -1,4 +1,4 @@
-import { LineItem, Image, MyCartUpdateAction } from '@commercetools/platform-sdk';
+import { LineItem, Image, MyCartUpdateAction, DiscountedLineItemPrice } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
@@ -18,10 +18,14 @@ const CssClasses = {
   CART: 'cart-card',
   NAME: 'cart-card__name',
   IMAGE: 'cart-card__image',
-  PRICE: 'cart-card__price',
+  PRICE: 'price__main',
   AMOUNT: 'cart-card__amount',
   TOTAL: 'cart-card__total-price',
   REMOVE: 'cart-card__remove',
+  PROMO: 'price__promo',
+  DISCOUNTED_RPICE: 'price__discounted',
+  HIDDEN: 'hidden',
+  NOT_ACTUAL: 'not-actual',
 };
 
 const ToastMessage = {
@@ -49,8 +53,12 @@ export default class CartCard extends BaseComponent {
       name: { [LANG]: name },
       variant: { images, prices = [] },
       totalPrice: { centAmount },
+      discountedPricePerQuantity,
     } = this.lineItem;
 
+    if (discountedPricePerQuantity.length) {
+      this.setDiscountedPrice(discountedPricePerQuantity[0].discountedPrice);
+    }
     const {
       value: { centAmount: price = 0 },
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
@@ -106,6 +114,21 @@ export default class CartCard extends BaseComponent {
     priceBox.setPrice(totalPrice);
 
     priceContainer?.replaceChildren(priceBox);
+  }
+
+  protected setDiscountedPrice(discountedPrice: DiscountedLineItemPrice): void {
+    const promoContainer = this.$(classSelector(CssClasses.PROMO));
+    const discountContainer = this.$(classSelector(CssClasses.DISCOUNTED_RPICE));
+    const priceContainer = this.$(classSelector(CssClasses.PRICE));
+    const {
+      value: { centAmount: price },
+    } = discountedPrice;
+    const priceBox = new PriceBox();
+    priceBox.setPrice(price);
+
+    discountContainer?.replaceChildren(priceBox);
+    promoContainer?.classList.remove(CssClasses.HIDDEN);
+    priceContainer?.classList.add(CssClasses.NOT_ACTUAL);
   }
 
   protected addItemCounter(): void {

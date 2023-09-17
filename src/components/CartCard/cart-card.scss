@@ -108,3 +108,33 @@
     bottom: 50px;
   }
 }
+
+.price__promo {
+  display: flex;
+  position: absolute;
+  left: 7px;
+  top: -2px;
+
+  .price__promo_cross {
+    color: #b62958;
+    font-size: 40px;
+    font-weight: 700;
+    margin-right: 30px;
+  }
+
+  .price__discounted {
+    padding: 2px;
+  }
+
+  .price__promo_ticket {
+    padding: 7px 2px;
+  }
+
+  .price__promo_ticket {
+    color: rgb(49, 189, 107);
+  }
+}
+
+.not-actual {
+  color: rgb(170, 170, 170);
+}
