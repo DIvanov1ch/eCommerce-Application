@@ -1,10 +1,11 @@
-import { Cart, MyCartUpdate, MyCartUpdateAction } from '@commercetools/platform-sdk';
+import { MyCartUpdateAction } from '@commercetools/platform-sdk';
 import { classSelector, dispatch } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import './item-counter.scss';
 import html from './template.html';
 import Store from '../../services/Store';
-import { getActiveCart, updateCart } from '../../services/API';
+import { updateCart } from '../../services/API';
+import showToastMessage from '../../utils/show-toast-message';
 import UpdateActions from '../../enums/update-actions';
 
 enum CssClasses {
@@ -14,7 +15,11 @@ enum CssClasses {
   COUNTER = 'item-counter__counter',
 }
 
-const Value = {
+const ToastMessage = {
+  ERROR: 'Something went wrong',
+};
+
+const Quantity = {
   MIN: 1,
   MAX: 9999,
 };
@@ -30,7 +35,7 @@ export default class ItemCounter extends BaseComponent {
   protected connectedCallback(): void {
     super.connectedCallback();
     this.classList.add(CssClasses.COMPONENT);
-    this.setCounterValue(this.quantity);
+    this.setCounterValue();
     this.setCallback();
   }
 
@@ -45,42 +50,38 @@ export default class ItemCounter extends BaseComponent {
   }
 
   protected handleInputValue(): void {
-    const currentValue = +this.getCounterValue();
-    const newValue = ItemCounter.getValidValue(currentValue);
-    this.setCounterValue(newValue);
-    this.setUpdateAction(newValue);
+    this.quantity = +this.getCounterValue();
+    this.setValidQuantity();
+    this.setCounterValue();
+    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
   }
 
-  protected static getValidValue(value: number): number {
-    let validValue = value;
-    if (value < Value.MIN) {
-      validValue = Value.MIN;
+  protected setValidQuantity(): void {
+    if (this.quantity < Quantity.MIN) {
+      this.quantity = Quantity.MIN;
     }
-    if (value > Value.MAX) {
-      validValue = Value.MAX;
+    if (this.quantity > Quantity.MAX) {
+      this.quantity = Quantity.MAX;
     }
-    return validValue;
   }
 
   protected upValue(): void {
-    const currentValue = parseInt(this.getCounterValue(), 10);
-    const newValue = currentValue + 1;
-    const correctValue = ItemCounter.getValidValue(newValue);
-    this.setCounterValue(correctValue);
-    this.setUpdateAction(correctValue);
+    this.quantity += 1;
+    this.setValidQuantity();
+    this.setCounterValue();
+    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
   }
 
   protected downValue(): void {
-    const currentValue = parseInt(this.getCounterValue(), 10);
-    const newValue = currentValue - 1;
-    const correctValue = ItemCounter.getValidValue(newValue);
-    this.setCounterValue(correctValue);
-    this.setUpdateAction(correctValue);
+    this.quantity -= 1;
+    this.setValidQuantity();
+    this.setCounterValue();
+    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
   }
 
-  private setCounterValue(value: number): void {
+  private setCounterValue(): void {
     const counter = <HTMLInputElement>this.$(classSelector(CssClasses.COUNTER));
-    counter.value = value.toString();
+    counter.value = this.quantity.toString();
     this.updateButtonState();
   }
 
@@ -90,13 +91,12 @@ export default class ItemCounter extends BaseComponent {
   }
 
   protected updateButtonState(): void {
-    const value = parseInt(this.getCounterValue(), 10);
-    if (value === Value.MIN) {
+    if (this.quantity === Quantity.MIN) {
       this.disableButton(CssClasses.DECREASE);
     } else {
       this.enableButton(CssClasses.DECREASE);
     }
-    if (value === Value.MAX) {
+    if (this.quantity === Quantity.MAX) {
       this.disableButton(CssClasses.INCREASE);
     } else {
       this.enableButton(CssClasses.INCREASE);
@@ -113,30 +113,16 @@ export default class ItemCounter extends BaseComponent {
     button.disabled = false;
   }
 
-  protected setUpdateAction(quantity = 1): void {
-    const { lineItemId } = this;
-    const updateAction: MyCartUpdateAction = {
-      action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
-      lineItemId,
-      quantity,
-    };
-    ItemCounter.updateLineItem(updateAction).then().catch(console.error);
-  }
-
-  protected static async updateLineItem(updateAction: MyCartUpdateAction): Promise<void> {
-    const cart = Store.customerCart as Cart;
-    const { version, id } = cart;
-    const body: MyCartUpdate = {
-      version,
-      actions: [updateAction],
-    };
-    try {
-      const newCart = await updateCart(id, body);
-      Store.customerCart = newCart;
-      dispatch('quantitychange');
-    } catch (error) {
-      const activeCart = await getActiveCart();
-      Store.customerCart = activeCart;
+  protected static async changeLineItemQuantity(lineItemId: string, quantity = 1): Promise<void> {
+    if (!Store.customerCart) {
+      showToastMessage(ToastMessage.ERROR, false);
+      return;
     }
+    const { CHANGE_LINE_ITEM_QUANTITY } = UpdateActions;
+    const { version, id } = Store.customerCart;
+    const actions: MyCartUpdateAction[] = [{ action: CHANGE_LINE_ITEM_QUANTITY, lineItemId, quantity }];
+    const updatedCart = await updateCart(id, { version, actions });
+    Store.customerCart = updatedCart;
+    dispatch('quantitychange');
   }
 }

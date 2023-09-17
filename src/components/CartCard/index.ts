@@ -1,4 +1,4 @@
-import { LineItem, Image, MyCartUpdate, MyCartUpdateAction, Cart } from '@commercetools/platform-sdk';
+import { LineItem, Image, MyCartUpdateAction } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
@@ -7,8 +7,9 @@ import { classSelector, createElement, dispatch } from '../../utils/create-eleme
 import BaseComponent from '../BaseComponent';
 import PriceBox from '../PriceBox';
 import ItemCounter from '../ItemCounter';
-import { getActiveCart, updateCart } from '../../services/API';
+import { updateCart } from '../../services/API';
 import { createLoader, deleteLoader } from '../../utils/loader';
+import showToastMessage from '../../utils/show-toast-message';
 import UpdateActions from '../../enums/update-actions';
 
 const LOADER_TEXT = 'Delete';
@@ -21,6 +22,10 @@ const CssClasses = {
   AMOUNT: 'cart-card__amount',
   TOTAL: 'cart-card__total-price',
   REMOVE: 'cart-card__remove',
+};
+
+const ToastMessage = {
+  ERROR: 'Something went wrong',
 };
 
 export default class CartCard extends BaseComponent {
@@ -39,11 +44,6 @@ export default class CartCard extends BaseComponent {
 
   protected render(): void {
     const { NAME } = CssClasses;
-
-    if (!Store.customerCart) {
-      this.showError();
-      return;
-    }
 
     const {
       name: { [LANG]: name },
@@ -72,7 +72,10 @@ export default class CartCard extends BaseComponent {
         window.location.href = `#product/${this.lineItem.productKey}`;
       })
     );
-    remove.addEventListener('click', this.setUpdateAction.bind(this));
+    remove.addEventListener('click', () => {
+      CartCard.removeLineItem(this.lineItem).then().catch(console.error);
+    });
+
     this.windowCallback = this.updateLineItem.bind(this);
     window.addEventListener('quantitychange', this.windowCallback);
   }
@@ -118,40 +121,20 @@ export default class CartCard extends BaseComponent {
     this.setTotalPrice(this.lineItem.totalPrice.centAmount);
   }
 
-  protected setUpdateAction(): void {
-    const lineItemId = this.lineItem.id;
-    const updateAction: MyCartUpdateAction = {
-      action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
-      lineItemId,
-      quantity: 0,
-    };
-    createLoader(LOADER_TEXT);
-    CartCard.removeLineItem(updateAction)
-      .then(() => {
-        deleteLoader();
-      })
-      .catch(console.error);
-  }
-
-  protected static async removeLineItem(updateAction: MyCartUpdateAction): Promise<void> {
-    const cart = Store.customerCart as Cart;
-    const { version, id } = cart;
-    const body: MyCartUpdate = {
-      version,
-      actions: [updateAction],
-    };
-    try {
-      const newCart = await updateCart(id, body);
-      Store.customerCart = newCart;
-      dispatch('itemdelete');
-    } catch (error) {
-      const activeCart = await getActiveCart();
-      Store.customerCart = activeCart;
+  protected static async removeLineItem(lineItem: LineItem): Promise<void> {
+    if (!Store.customerCart) {
+      showToastMessage(ToastMessage.ERROR, false);
+      return;
     }
-  }
-
-  protected showError(): void {
-    this.replaceChildren('Loading...');
+    createLoader(LOADER_TEXT);
+    const { CHANGE_LINE_ITEM_QUANTITY } = UpdateActions;
+    const { version, id } = Store.customerCart;
+    const lineItemId = lineItem.id;
+    const actions: MyCartUpdateAction[] = [{ action: CHANGE_LINE_ITEM_QUANTITY, lineItemId, quantity: 0 }];
+    const updatedCart = await updateCart(id, { version, actions });
+    Store.customerCart = updatedCart;
+    dispatch('itemdelete');
+    deleteLoader();
   }
 
   private disconnectedCallback(): void {
