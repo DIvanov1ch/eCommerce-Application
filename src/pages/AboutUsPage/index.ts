@@ -39,11 +39,10 @@ const MEMBERS: Member[] = [
     location: 'Kaliningrad, Russia',
     photoUrl: 'https://avatars.githubusercontent.com/u/1216630',
     roles: ['Front-end developer', 'Content Manager'],
-    bio: `I've been learning web development on my own from the times immemorial.\
-    I've been crafting html files with div's by hands when tables dominated the web.\
-    I've seen libraries, you gen-z would not believe existed.
-    Luckily The Force lead me to the RSSchool and now I am learning the true Path...
-    Blah-blah-blah...`,
+    bio: `I've been self-teaching web development for quite some time. I remember crafting \
+    HTML files with divs by hand back in the days when tables dominated the web.\
+    I've witnessed the existence of libraries that Gen Z wouldn't believe were once prevalent.
+    Fortunately, fate guided me to RSSchool, where I am now learning the true path of web development.`,
     githubName: 'phoinixru',
   },
 ];
