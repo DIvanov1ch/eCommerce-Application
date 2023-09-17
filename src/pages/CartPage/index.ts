@@ -22,6 +22,8 @@ Router.registerRoute('cart', 'cart-page');
 const HTML = {
   EMPTY: `<h3>Your Shopping Cart is empty</h3>
   <p>Looks like you have not added anything to your cart. You will find a lot of interesting products on our <a class="link" href="#catalog">Catalog</a> page.</p>`,
+  AUTUMN: `<strong>AUTUMN</strong> <span>applied</span> <span class="small">(10% off)</span>`,
+  SAVE15: `<strong>SAVE15</strong> <span>applied</span> <span class="small">(15% off)</span>`,
 };
 
 const ToastMessage = {
@@ -31,8 +33,8 @@ const ToastMessage = {
 };
 
 const PromoCodes = {
-  AUTUMN: 'AUTUMN',
-  WINTER_IS_COMING: 'WINTERISCOMING',
+  AUTUMN: { code: 'AUTUMN', id: 'e9f25a0e-1cc3-4793-bf45-6b255feb4af8' },
+  SAVE15: { code: 'SAVE15', id: '79b55291-5407-4ea7-b5c0-276a0d1cc826' },
 };
 
 export default class CartPage extends Page {
@@ -145,12 +147,12 @@ export default class CartPage extends Page {
   private checkPromeCode(): void {
     const promoInput = this.$(classSelector(CssClasses.PROMO_INPUT)) as HTMLInputElement;
     const promoCode = promoInput.value;
-    if (promoCode !== PromoCodes.AUTUMN) {
+    if (promoCode !== PromoCodes.AUTUMN.code && promoCode !== PromoCodes.SAVE15.code) {
       this.promoValidator?.setErrorMessage(promoInput.id, ErrorMessages.INVALID_PROMO_CODE.promocode);
       this.promoValidator?.showErrorMessage(promoInput.id);
       return;
     }
-    CartPage.addDiscountCode()
+    CartPage.addDiscountCode(promoCode)
       .then(() => {
         promoInput.value = '';
         this.loadCart();
@@ -158,13 +160,12 @@ export default class CartPage extends Page {
       .catch(console.error);
   }
 
-  private static async addDiscountCode(): Promise<void> {
+  private static async addDiscountCode(code: string): Promise<void> {
     if (!Store.customerCart) {
       showToastMessage(ToastMessage.ERROR, false);
       return;
     }
     const { ADD_DISCOUNT_CODE } = UpdateActions;
-    const code = PromoCodes.AUTUMN;
     const { id, version } = Store.customerCart;
     const actions: MyCartUpdateAction[] = [{ action: ADD_DISCOUNT_CODE, code }];
     const updatedCart = await updateCart(id, { version, actions });
@@ -180,7 +181,8 @@ export default class CartPage extends Page {
     const { REMOVE_DISCOUNT_CODE } = UpdateActions;
     const action = REMOVE_DISCOUNT_CODE;
     const { id, discountCodes, version } = Store.customerCart;
-    const discountCodeId = <string>discountCodes.pop()?.discountCode.id;
+    const discountObject = discountCodes.find((code) => code.state === 'MatchesCart');
+    const discountCodeId = discountObject?.discountCode.id as string;
     const actions: MyCartUpdateAction[] = [{ action, discountCode: { typeId: 'discount-code', id: discountCodeId } }];
     const updatedCart = await updateCart(id, { version, actions });
     Store.customerCart = updatedCart;
@@ -196,7 +198,8 @@ export default class CartPage extends Page {
     } = this.cart;
     const priceBox = new PriceBox();
     if (discountCodes.length) {
-      this.showPromoCodeTicket();
+      const discountObject = discountCodes.find((code) => code.state === 'MatchesCart');
+      this.showPromoCodeTicket(discountObject?.discountCode.id as string);
       const discountPrice = this.getDiscountPrice();
       priceBox.setPrice(discountPrice);
       priceBox.setDiscounted(totalPrice);
@@ -232,8 +235,14 @@ export default class CartPage extends Page {
     this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.remove('notallowed'));
   }
 
-  private showPromoCodeTicket(): void {
+  private showPromoCodeTicket(discountCodeId: string): void {
     this.$(classSelector(CssClasses.PROMO_TICKET))?.classList.remove(CssClasses.HIDDEN);
+    const htmlText = discountCodeId === PromoCodes.AUTUMN.id ? HTML.AUTUMN : HTML.SAVE15;
+    const ticket = this.$(classSelector(CssClasses.TICKET));
+    while (ticket?.firstElementChild) {
+      ticket.firstElementChild.remove();
+    }
+    this.$(classSelector(CssClasses.TICKET))?.insertAdjacentHTML('afterbegin', htmlText);
   }
 
   private hidePromoCodeTicket(): void {
