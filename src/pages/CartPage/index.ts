@@ -26,6 +26,7 @@ const HTML = {
 
 const ToastMessage = {
   CODE_APPLIED: 'Your Promo Code is applied',
+  CODE_REMOVED: 'Your Promo Code is removed',
   ERROR: 'Something went wrong',
 };
 
@@ -69,9 +70,17 @@ export default class CartPage extends Page {
   }
 
   protected setCallback(): void {
-    const { CLEAR_BTN, APPLY_BTN } = CssClasses;
+    const { CLEAR_BTN, APPLY_BTN, REMOVE_PROMO } = CssClasses;
     this.$(classSelector(CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
     this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.checkPromeCode.bind(this));
+    this.$(classSelector(REMOVE_PROMO))?.addEventListener('click', () => {
+      CartPage.removeDiscountCode()
+        .then(() => {
+          this.hidePromoCodeTicket();
+          this.loadCart();
+        })
+        .catch(console.error);
+    });
     this.updateCallback = this.updateCart.bind(this);
     this.removeCallback = this.loadCart.bind(this);
     window.addEventListener('quantitychange', this.updateCallback);
@@ -141,7 +150,7 @@ export default class CartPage extends Page {
       this.promoValidator?.showErrorMessage(promoInput.id);
       return;
     }
-    CartPage.applyPromoCode()
+    CartPage.addDiscountCode()
       .then(() => {
         promoInput.value = '';
         this.loadCart();
@@ -149,12 +158,11 @@ export default class CartPage extends Page {
       .catch(console.error);
   }
 
-  private static async applyPromoCode(): Promise<void> {
+  private static async addDiscountCode(): Promise<void> {
     if (!Store.customerCart) {
       showToastMessage(ToastMessage.ERROR, false);
       return;
     }
-
     const { ADD_DISCOUNT_CODE } = UpdateActions;
     const code = PromoCodes.AUTUMN;
     const { id, version } = Store.customerCart;
@@ -164,17 +172,52 @@ export default class CartPage extends Page {
     showToastMessage(ToastMessage.CODE_APPLIED, true);
   }
 
+  private static async removeDiscountCode(): Promise<void> {
+    if (!Store.customerCart) {
+      showToastMessage(ToastMessage.ERROR, false);
+      return;
+    }
+    const { REMOVE_DISCOUNT_CODE } = UpdateActions;
+    const action = REMOVE_DISCOUNT_CODE;
+    const { id, discountCodes, version } = Store.customerCart;
+    const discountCodeId = <string>discountCodes.pop()?.discountCode.id;
+    const actions: MyCartUpdateAction[] = [{ action, discountCode: { typeId: 'discount-code', id: discountCodeId } }];
+    const updatedCart = await updateCart(id, { version, actions });
+    Store.customerCart = updatedCart;
+    showToastMessage(ToastMessage.CODE_REMOVED, true);
+  }
+
   private setTotalPrice(): void {
     const { PRICE, SUMMARY } = CssClasses;
     const {
       totalPrice: { centAmount: totalPrice },
       totalLineItemQuantity,
+      discountCodes,
     } = this.cart;
-    const priceContainer = this.$(classSelector(PRICE));
     const priceBox = new PriceBox();
-    priceBox.setPrice(totalPrice);
+    if (discountCodes.length) {
+      this.showPromoCodeTicket();
+      const discountPrice = this.getDiscountPrice();
+      priceBox.setPrice(discountPrice);
+      priceBox.setDiscounted(totalPrice);
+    } else {
+      priceBox.setPrice(totalPrice);
+    }
+    const priceContainer = this.$(classSelector(PRICE));
     priceContainer?.replaceChildren(priceBox);
     setElementTextContent(classSelector(SUMMARY), this, (totalLineItemQuantity || 0).toString());
+  }
+
+  private getDiscountPrice(): number {
+    const { lineItems } = this.cart;
+    const priceBeforeDiscount = lineItems.reduce((total, current) => {
+      const value = current.price.discounted
+        ? current.price.discounted.value.centAmount
+        : current.price.value.centAmount;
+      const { quantity } = current;
+      return total + value * quantity;
+    }, 0);
+    return priceBeforeDiscount;
   }
 
   private disableButtons(): void {
@@ -187,6 +230,14 @@ export default class CartPage extends Page {
     const { SUBMIT_BTN, BUTTON_CONTAINER } = CssClasses;
     this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList.remove('disabledbutton'));
     this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.remove('notallowed'));
+  }
+
+  private showPromoCodeTicket(): void {
+    this.$(classSelector(CssClasses.PROMO_TICKET))?.classList.remove(CssClasses.HIDDEN);
+  }
+
+  private hidePromoCodeTicket(): void {
+    this.$(classSelector(CssClasses.PROMO_TICKET))?.classList.add(CssClasses.HIDDEN);
   }
 
   private disconnectedCallback(): void {

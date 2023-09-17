@@ -15,6 +15,7 @@ enum UpdateActions {
   CHANGE_LINE_ITEM_QUANTITY = 'changeLineItemQuantity',
   ADD_LINE_ITEM = 'addLineItem',
   ADD_DISCOUNT_CODE = 'addDiscountCode',
+  REMOVE_DISCOUNT_CODE = 'removeDiscountCode',
 }
 
 export default UpdateActions;

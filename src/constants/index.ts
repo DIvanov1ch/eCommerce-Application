@@ -26,7 +26,7 @@ const ErrorMessages: { [key: string]: { [key: string]: string } } = {
   },
   PASSWORD_MISMATCH: { password: 'Password mismatch' },
   INVALID_CURRENT_PASSWORD: { password: 'The given current password does not match' },
-  INVALID_PROMO_CODE: { promocode: 'The promocode you entered is invalid' },
+  INVALID_PROMO_CODE: { promocode: 'The promo code you entered is invalid' },
 };
 
 export default ErrorMessages;

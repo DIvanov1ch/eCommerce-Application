@@ -48,6 +48,10 @@
 .cart__input {
   flex-grow: 1;
   margin-right: 5px;
+
+  .input-module {
+    margin-bottom: 5px;
+  }
 }
 
 .input-module__input-field::placeholder {
@@ -80,6 +84,10 @@
   .submit-button_content {
     display: block;
   }
+
+  .cart__input {
+    margin-right: 0;
+  }
 }
 
 .cart__total {
@@ -106,6 +114,26 @@
   font-weight: bold;
   display: flex;
   align-self: self-end;
+}
+
+.total-price__price {
+  .price-box__discount,
+  .price-box__price--old:before {
+    display: none;
+  }
+
+  .price-box__price--old {
+    order: 1;
+    justify-content: end;
+  }
+
+  .price-box__price--discounted {
+    order: 2;
+  }
+
+  .price-box {
+    flex-direction: column;
+  }
 }
 
 .submit-button_checkout,
@@ -153,5 +181,43 @@
   justify-content: space-between;
   flex-direction: column;
 
+  text-align: center;
+}
+
+.promo-ticket__wrapper {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid rgb(49, 189, 107);
+  border-radius: 10px;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(250, 255, 255);
+  opacity: 0.7;
+  &:hover {
+    opacity: 1;
+  }
+
+  .small {
+    font-size: 0.8rem;
+  }
+}
+
+.promo-tickect__icon {
+  color: rgb(49, 189, 107);
+}
+
+.promo-tickect__remove {
+  color: #b62958;
+  cursor: pointer;
+
+  &:hover {
+    color: #e52e6b;
+  }
+}
+
+.promo-ticket {
+  margin: 5px;
   text-align: center;
 }

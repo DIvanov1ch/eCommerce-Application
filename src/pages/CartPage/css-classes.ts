@@ -9,6 +9,9 @@ enum CssClasses {
   CLEAR_BTN = 'submit-button_clear',
   PROMO_INPUT = 'input-module__input-field',
   APPLY_BTN = 'submit-button_apply',
+  PROMO_TICKET = 'cart__promo-ticket',
+  HIDDEN = 'hidden',
+  REMOVE_PROMO = 'promo-tickect__remove',
 }
 
 export default CssClasses;
