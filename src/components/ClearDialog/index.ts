@@ -37,11 +37,12 @@ export default class ClearDialog extends ModalDialog {
     this.$(classSelector(CANCEL_BUTTON))?.addEventListener('click', this.close.bind(this));
     this.$(classSelector(CLEAR_BUTTON))?.addEventListener('click', () => {
       ClearDialog.clearShoppingCart()
-        .then()
+        .then(() => {
+          this.close();
+        })
         .catch(() => {
           showToastMessage(ToastMessage.ERROR, false);
         });
-      this.close.bind(this);
     });
   }
 
