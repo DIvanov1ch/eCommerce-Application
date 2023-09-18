@@ -6,6 +6,7 @@ const Pattern = {
   city: /^(?!.*[0-9])(?=.*[a-zA-Z])(?!.*\W\s).{1,}$/,
   zip: /\d{5,5}/,
   country: /United States/,
+  promocode: /^[A-Z0-9]{0,}$/,
 };
 
 export default Pattern;

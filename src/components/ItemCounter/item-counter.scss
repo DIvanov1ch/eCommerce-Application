@@ -1,0 +1,73 @@
+.item-counter fieldset {
+  display: flex;
+  height: 42px;
+  justify-content: space-between;
+  width: 145px;
+  margin: 10px;
+  background-color: aliceblue;
+  align-items: center;
+  padding: 5px;
+  border-radius: 5px;
+  margin-right: 0;
+  margin-left: auto;
+  border: 0;
+}
+
+.item-counter__counter {
+  border: none;
+  height: 32px;
+  text-align: center;
+  margin: 0 5px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-counter__button {
+  width: 32px;
+  height: 32px;
+  padding: 3px;
+  border-radius: 50%;
+  border: 1px solid rgba(161, 161, 161, 0.322);
+  background-color: #ffffff;
+}
+
+.item-counter__button_decrease:hover:not([disabled]),
+.item-counter__button_increase:hover:not([disabled]) {
+  background-color: rgb(218, 218, 218);
+  cursor: pointer;
+}
+
+.item-counter__button_decrease:active:not([disabled]),
+.item-counter__button_increase:active:not([disabled]) {
+  background-color: rgb(199, 199, 199);
+  cursor: pointer;
+}
+
+.item-counter__button_decrease:disabled,
+.item-counter__button_increase:disabled {
+  cursor: not-allowed;
+}
+
+.item-counter__button_decrease {
+  background: no-repeat center url('../../assets/icons/minus.svg');
+}
+
+.item-counter__button_increase {
+  background: no-repeat center url('../../assets/icons/plus.svg');
+}
+
+.item-counter__button_decrease,
+.item-counter__button_increase {
+  background-repeat: no-repeat;
+  background-size: 24px;
+}
+
+@media (max-width: 440px) {
+  .item-counter {
+    margin: 10px auto;
+  }
+}

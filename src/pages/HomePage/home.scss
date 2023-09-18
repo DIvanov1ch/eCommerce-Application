@@ -18,3 +18,11 @@
     margin-top: 0;
   }
 }
+
+.sale code {
+  border: 1px solid var(--border-color);
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border-radius: 4px;
+  padding: 0.1em 0.5em;
+}

@@ -1,0 +1,140 @@
+.cart-card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(166, 166, 166, 0.3215686275);
+}
+
+.cart-card__name,
+.cart-card__image {
+  cursor: pointer;
+}
+
+.cart-card__image img {
+  max-width: 200px;
+}
+
+.cart-card__content {
+  width: 50%;
+  position: relative;
+}
+
+.cart-card__price {
+  display: flex;
+  align-items: start;
+  position: relative;
+  width: 100px;
+
+  .price-box__discount,
+  .price-box__price--old:before {
+    display: none;
+  }
+
+  .price-box__price {
+    font-size: 1.8rem;
+  }
+
+  .price-box__price--old {
+    width: 100%;
+    font-size: 1rem;
+  }
+}
+
+.cart-card__quantity {
+  display: flex;
+  flex-direction: column;
+  text-align: end;
+
+  .price-box__price {
+    font-size: 1.8rem;
+  }
+}
+
+.cart-card__total-price {
+  align-self: flex-end;
+}
+
+.cart-card__remove {
+  display: flex;
+  align-items: end;
+  padding: 10px;
+  position: absolute;
+  bottom: 5px;
+}
+
+.cart-card__remove:hover {
+  color: #e52e6b;
+  cursor: pointer;
+}
+
+.cart-card__remove:active {
+  color: #b62958;
+  cursor: pointer;
+}
+
+@media (max-width: 695px) {
+  .cart-card__content {
+    width: 100%;
+  }
+
+  .cart-card__image {
+    margin: 0 auto;
+  }
+
+  .total-price__price {
+    .price-box__price {
+      font-size: 1.6rem;
+    }
+  }
+}
+
+@media (max-width: 790px) {
+  .cart-card__remove {
+    left: -25px;
+  }
+}
+
+@media (max-width: 695px) {
+  .cart-card__remove {
+    left: 0;
+  }
+}
+
+@media (max-width: 440px) {
+  .cart-card__remove {
+    left: 0;
+    bottom: 50px;
+  }
+}
+
+.price__promo {
+  display: flex;
+  position: absolute;
+  left: 7px;
+  top: -2px;
+
+  .price__promo_cross {
+    color: #b62958;
+    font-size: 40px;
+    font-weight: 700;
+    margin-right: 30px;
+  }
+
+  .price__discounted {
+    padding: 2px;
+  }
+
+  .price__promo_ticket {
+    padding: 7px 2px;
+  }
+
+  .price__promo_ticket {
+    color: rgb(49, 189, 107);
+  }
+}
+
+.not-actual {
+  color: rgb(170, 170, 170);
+}

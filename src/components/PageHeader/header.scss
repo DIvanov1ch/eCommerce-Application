@@ -2,13 +2,13 @@
   background: var(--header-bg);
   color: var(--header-text-color);
 
-  height: 3em;
-
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-container {
@@ -20,14 +20,30 @@
 .nav {
   padding: 1em;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .nav__list {
   display: flex;
   list-style: none;
+  align-items: center;
   margin: 0;
   padding: 0;
   gap: 1em;
+}
+
+.nav__list {
+  .icon {
+    font-size: 1.2em;
+  }
+}
+
+.nav__link {
+  text-decoration: none;
+  display: flex;
+  gap: 0.2em;
+  align-items: center;
 }
 
 .logo {
@@ -37,6 +53,7 @@
   font-weight: 700;
   margin-left: 1em;
   align-items: center;
+  height: 3em;
 
   &:before {
     width: 2em;
@@ -50,9 +67,9 @@
 
 .nav-toggle {
   position: absolute;
-  width: 1.5em;
+  width: 2em;
   height: 1.5em;
-  right: 0.75em;
+  right: 1em;
   top: 0.75em;
   flex-direction: column;
   justify-content: space-between;
@@ -99,7 +116,7 @@
   }
 
   .nav-container {
-    min-width: 10em;
+    min-width: 12em;
     background-color: var(--header-bg);
     position: fixed;
     height: 100%;
@@ -112,6 +129,9 @@
     flex-direction: column;
     justify-content: start;
     padding-top: 3em;
+  }
+  .nav {
+    display: block;
   }
 
   .nav--main:after {
@@ -126,8 +146,18 @@
   }
 
   .nav__list {
-    flex-direction: column;
-    gap: 0.5em;
+    display: block;
+  }
+
+  .nav__item {
+    margin-bottom: 0.5em;
+    &:last-child {
+      margin: 0;
+    }
+  }
+
+  .nav__link {
+    padding: 0.3em 0;
   }
 
   .nav--open {
@@ -141,7 +171,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.3);
-      z-index: 2;
+      z-index: 100;
     }
 
     .nav-container {

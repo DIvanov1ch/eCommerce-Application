@@ -7,6 +7,8 @@ import UserProfile from './UserProfilePage';
 import CatalogPage from './CatalogPage';
 import ProductPage from './ProductPage';
 import ComponentsPage from './ComponentsPage';
+import CartPage from './CartPage';
+import AboutUsPage from './AboutUsPage';
 
 const Pages = {
   'home-page': HomePage,
@@ -18,6 +20,8 @@ const Pages = {
   'catalog-page': CatalogPage,
   'product-page': ProductPage,
   'components-page': ComponentsPage,
+  'cart-page': CartPage,
+  'about_us-page': AboutUsPage,
 };
 
 Object.entries(Pages).forEach(([elementName, elementClass]) => {

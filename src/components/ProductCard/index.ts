@@ -4,8 +4,12 @@ import html from './template.html';
 import BaseComponent from '../BaseComponent';
 import Store from '../../services/Store';
 import { LANG } from '../../config';
-import { className, createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
 import PriceBox from '../PriceBox';
+import { createLoader, deleteLoader } from '../../utils/loader';
+import { addLineItem } from '../../utils/cart-actions';
+
+const LOADER_TEXT = 'Add';
 
 const CssClasses = {
   COMPONENT: 'product-card',
@@ -13,6 +17,10 @@ const CssClasses = {
   DESCRIPTION: 'product-card__description',
   IMAGE: 'product-card__image',
   PRICE: 'product-card__price',
+  VARIANTS: 'product-card__variants',
+  CART: 'product-card__cart',
+  CARTICON: 'product-card__cart-svg-icon',
+  CARTICONINACTIVE: 'product-card__cart-svg-icon--inactive',
 };
 
 export default class ProductCard extends BaseComponent {
@@ -30,9 +38,13 @@ export default class ProductCard extends BaseComponent {
     this.addEventListener('click', () => {
       window.location.href = `#product/${this.#key}`;
     });
+    this.$(classSelector(CssClasses.CARTICON))?.addEventListener('click', (event) => {
+      this.handleCartIconClick().catch(console.error);
+      event.stopPropagation();
+    });
   }
 
-  private render(): void {
+  protected render(): void {
     const { NAME, DESCRIPTION } = CssClasses;
 
     if (!(this.#key in Store.products)) {
@@ -52,14 +64,15 @@ export default class ProductCard extends BaseComponent {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    this.insertHtml(className(NAME), name);
-    this.insertHtml(className(DESCRIPTION), description.split('\n')[0]);
+    this.insertHtml(classSelector(NAME), name);
+    this.insertHtml(classSelector(DESCRIPTION), description.split('\n')[0]);
     this.insertImages(images);
     this.setPrice(price, discounted);
+    this.setCartIcon(this.#key);
   }
 
-  private setPrice(price: number, discounted: number): void {
-    const priceContainer = this.$(className(CssClasses.PRICE));
+  protected setPrice(price: number, discounted: number): void {
+    const priceContainer = this.$(classSelector(CssClasses.PRICE));
     const priceBox = new PriceBox();
     priceBox.setPrice(price);
     priceBox.setDiscounted(discounted);
@@ -67,7 +80,7 @@ export default class ProductCard extends BaseComponent {
     priceContainer?.replaceChildren(priceBox);
   }
 
-  private insertImages(images?: Image[]): void {
+  protected insertImages(images?: Image[]): void {
     if (!images || !images.length) {
       return;
     }
@@ -75,21 +88,38 @@ export default class ProductCard extends BaseComponent {
     const [{ url }] = images;
     const image = createElement('img', { src: url });
 
-    this.$(className(CssClasses.IMAGE))?.replaceChildren(image);
+    this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
-  private attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+  private setCartIcon(key: string): void {
+    Store.customerCart?.lineItems.forEach((el) => {
+      const slug = el.productSlug?.en as string;
+      if (key === slug) {
+        this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+      }
+    });
+  }
+
+  private async handleCartIconClick(): Promise<void> {
+    const product = Store.products[this.#key];
+    createLoader(LOADER_TEXT);
+    await addLineItem(product.id);
+    this.$(classSelector(CssClasses.CARTICON))?.classList.add(`${CssClasses.CARTICONINACTIVE}`);
+    deleteLoader();
+  }
+
+  protected attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     if (name === 'key') {
       this.#key = newValue;
       this.render();
     }
   }
 
-  private static get observedAttributes(): string[] {
+  protected static get observedAttributes(): string[] {
     return ['key'];
   }
 
-  private showError(): void {
+  protected showError(): void {
     this.replaceChildren('Loading...');
   }
 }

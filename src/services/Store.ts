@@ -1,21 +1,21 @@
 import { STORAGE_NAME } from '../config';
 import { dispatch } from '../utils/create-element';
 import { MerchStore } from '../types/MerchStore';
-import LoggedInUser from './LoggedInUser';
 
 const Store: MerchStore = {
-  user: {
-    loggedIn: false,
-  },
-  customer: new LoggedInUser(),
+  customer: undefined,
   token: {
     token: '',
     expirationTime: 0,
     refreshToken: undefined,
   },
   categories: [],
+  types: [],
   products: {},
+  customerCart: undefined,
 };
+
+const SKIP = ['products'];
 
 type Keys = keyof typeof Store;
 type Values = (typeof Store)[Keys];
@@ -29,8 +29,7 @@ function loadFromStorage(): void {
 }
 
 function saveToStorage(): void {
-  const { user, customer, token, categories } = Store;
-  const toSave = { user, customer, token, categories };
+  const toSave = Object.fromEntries(Object.entries(Store).filter(([key]) => !SKIP.includes(key)));
   localStorage.setItem(STORAGE_NAME, JSON.stringify(toSave));
 }
 
@@ -42,9 +41,14 @@ const proxiedStore = new Proxy(Store, {
   set(target, property: Keys, value: Values): boolean {
     Reflect.set(target, property, value);
 
-    if (property === 'user') {
+    if (property === 'customer') {
       dispatch('userchange');
     }
+
+    if (property === 'customerCart') {
+      dispatch('cartchange');
+    }
+
     return true;
   },
 });

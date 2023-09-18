@@ -1,0 +1,21 @@
+.login-box__cart {
+  a[data-badge] {
+    position: relative;
+
+    &:after {
+      content: '(' attr(data-badge) ')';
+
+      @media (min-width: 601px) {
+        content: attr(data-badge);
+        position: absolute;
+        top: -0.3em;
+        right: -1.2em;
+        background: var(--badge-bg);
+        border: 1px solid #aaa;
+        border-radius: 50%;
+        font-size: 0.5em;
+        padding: 0.1em 0.5em;
+      }
+    }
+  }
+}

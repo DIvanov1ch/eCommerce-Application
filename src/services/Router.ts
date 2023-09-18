@@ -39,6 +39,7 @@ class Router {
       pageElement.setAttribute('params', params);
     }
     this.#main?.append(pageElement);
+    window.scroll({ top: 0, left: 0, behavior: 'smooth' });
   }
 
   private clear(): void {

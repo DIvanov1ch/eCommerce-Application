@@ -31,7 +31,7 @@ export default class LogoutPage extends Page {
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    if (!Store.user.loggedIn) {
+    if (!Store.customer) {
       redirectToMain();
     }
 
@@ -52,7 +52,7 @@ export default class LogoutPage extends Page {
     this.button.innerText = LOGGING_OUT_TEXT;
 
     await pause(1000);
-    Store.user = { loggedIn: false };
+    Store.customer = undefined;
     this.innerHTML = SUCCESS_HTML;
 
     await pause(REDIRECT_DELAY);

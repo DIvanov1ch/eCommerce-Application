@@ -1,6 +1,5 @@
-import { ProductProjection } from '@commercetools/platform-sdk';
 import './index.scss';
-import CssClasses from './css-classes';
+import { ProductProjection, ProductProjectionPagedSearchResponse } from '@commercetools/platform-sdk';
 import html from './catalog.html';
 import filterBarsHtml from './filter-bars.html';
 import sortBarsHtml from './sort-bars.html';
@@ -10,11 +9,28 @@ import { filterBrands, filterColors, filterMaterials, filterPrices, filterSizes 
 import { FilterSortingSearchQueries, FiltersType } from '../../types/Catalog';
 import highlightSearchingElement from '../../utils/highlight-search-el';
 import Store from '../../services/Store';
-import loadProductCategories from '../../utils/load-data';
+import { loadProductCategories } from '../../utils/load-data';
 import throwError from '../../utils/throw-error';
-import { LANG } from '../../config';
+import { INFINITE_SCROLL, LANG, PRODUCTS_PER_PAGE, SKELETON_CLASS } from '../../config';
 import ProductCard from '../../components/ProductCard';
-import { createElement } from '../../utils/create-element';
+import { classSelector, createElement } from '../../utils/create-element';
+
+enum CssClasses {
+  PRODUCTS = 'catalog__products',
+  ITEMS = 'catalog__items',
+  MORE = 'catalog__more',
+  MORE_HIDDEN = 'catalog__more--hidden',
+  FORMS = 'catalog__forms',
+  FORMS_OPEN = 'catalog__forms--open',
+  FILTERS = 'filter__container',
+  RESET_FILTERS_BUTTON = 'filter__button-reset',
+  SORT = 'sort__container',
+  SEARCH_TEXT = 'search__text',
+  SEARCH = 'search__container',
+  SELECT = 'select',
+  TOGGLE = 'filters__toggle',
+  NOTHING = 'catalog__nothing',
+}
 
 const defaultFilterSortingValues = {
   price: 'any',
@@ -25,6 +41,14 @@ const defaultFilterSortingValues = {
   sort: '',
 };
 
+const FILTERS = {
+  price: filterPrices,
+  color: filterColors,
+  brand: filterBrands,
+  material: filterMaterials,
+  size: filterSizes,
+};
+
 const SORT_OPTIONS = {
   '': 'Featured',
   'price asc': '↗ Price',
@@ -33,7 +57,15 @@ const SORT_OPTIONS = {
   'name.en desc': 'Title (Z-A)',
 };
 
+const DEFAULT_SORT = 'id asc';
+
 const QUERY_PARAMETERS = ['color', 'brand', 'material', 'size', 'price'];
+
+const SKELETON_CARDS = 4;
+
+const NOTHING_FOUND_TEXT = 'Nothing is found. Try to change your request';
+
+const SCROLL_DELAY = 200;
 
 async function getCategoryIdBySlug(categorySlug: string): Promise<string> {
   if (!Store.categories) {
@@ -55,41 +87,87 @@ function saveInStorage(products: ProductProjection[]): void {
 }
 
 export default class CatalogPage extends Page {
-  private static filterSortingValues: FiltersType;
+  private static filterSortingValues: FiltersType = { ...defaultFilterSortingValues };
 
-  private static searchingText: string;
+  private static searchingText = '';
 
   private static categoryId = '';
 
+  #prevParams = '';
+
+  #currentPage = 1;
+
+  #perPage = PRODUCTS_PER_PAGE;
+
+  #btnMore: HTMLElement | null = null;
+
   constructor() {
     super(html);
-    CatalogPage.filterSortingValues = structuredClone(defaultFilterSortingValues);
-    CatalogPage.searchingText = '';
   }
 
   protected async connectedCallback(): Promise<void> {
     super.connectedCallback();
+    this.classList.add('page--catalog');
 
+    this.#btnMore = this.$<'a'>(classSelector(CssClasses.MORE));
+
+    this.createSearching();
     this.createFilterBars();
     this.createSortingBars();
-    this.createSearching();
+    this.handleFiltersToggle();
+    this.handleMoreButton();
+
+    if (INFINITE_SCROLL) {
+      this.handleScroll();
+    }
 
     await this.setCategory();
     this.loadProducts();
   }
 
-  private createFilteredProductCards = (products: ProductProjection[]): void => {
-    this.$(`.${CssClasses.PRODUCTS}`)?.replaceChildren(...products.map((product) => new ProductCard(product.key)));
-  };
+  private insertProductCards(products: ProductProjection[]): void {
+    const newCards = products.map((product) => new ProductCard(product.key));
+    this.setProductsContainer(newCards);
+  }
 
-  private resetFiltersIfButtonClicked = (): void => {
-    const buttonReset = this.querySelector(`.${CssClasses.RESETFILTERSBUTTON}`) as HTMLElement;
-    const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
+  private resetFiltersIfButtonClicked(): void {
+    const buttonReset = this.$<'button'>(classSelector(CssClasses.RESET_FILTERS_BUTTON));
+    if (!buttonReset) {
+      return;
+    }
     buttonReset.addEventListener('click', (): void => {
-      filterContainer.reset();
+      buttonReset.form?.reset();
       this.loadProducts();
     });
-  };
+  }
+
+  private handleMoreButton(): void {
+    this.#btnMore?.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.loadMoreProducts();
+    });
+  }
+
+  private handleScroll(): void {
+    let loadProductsTimer: number;
+    window.addEventListener('scroll', () => {
+      window.clearTimeout(loadProductsTimer);
+      loadProductsTimer = window.setTimeout(this.checkScroll.bind(this), SCROLL_DELAY);
+    });
+  }
+
+  private checkScroll(): void {
+    const { height = 0 } = window.visualViewport || {};
+    const { top = 0 } = this.#btnMore?.getBoundingClientRect() || {};
+    if (top && top < height) {
+      this.loadMoreProducts();
+    }
+  }
+
+  private loadMoreProducts(): void {
+    this.#currentPage += 1;
+    this.loadProducts();
+  }
 
   private static createFilterQuery(): string[] {
     const queryParams = Object.entries(CatalogPage.filterSortingValues)
@@ -114,124 +192,119 @@ export default class CatalogPage extends Page {
     return queryParams;
   }
 
-  private createFilterBarsOptions = (arrayOfValuesForOption: string[], cssClass: string): void => {
-    const select = this.$<'select'>(`.${cssClass}`);
+  private createFilterBarsOptions(arrayOfValuesForOption: string[], name: string): void {
+    const select = this.$<'select'>(`[name="${name}"]`);
     select?.append(...arrayOfValuesForOption.map((value) => new Option(value)));
     select?.addEventListener('change', (): void => {
       this.loadProducts();
     });
-  };
-
-  private clearProductsContainer(innerHTML = ''): void {
-    this.insertHtml(`.${CssClasses.PRODUCTS}`, innerHTML);
   }
 
-  private createWaitingSymbol = (): void => {
-    const cardHtml = '<product-card class="skeleton"></product-card>';
-    this.clearProductsContainer(cardHtml.repeat(4));
-  };
+  private setProductsContainer(nodes: (Node | string)[], clear = false): void {
+    const container = this.$(classSelector(CssClasses.ITEMS));
+    container?.querySelectorAll(classSelector(SKELETON_CLASS)).forEach((el) => el.remove());
 
-  private renderResults(body: ProductProjection[]): void {
-    if (body.length) {
-      this.createFilteredProductCards(body);
+    if (clear) {
+      container?.replaceChildren(...nodes);
     } else {
-      this.emptyResults();
+      container?.append(...nodes);
     }
   }
 
-  private emptyResults(): void {
-    this.clearProductsContainer('<p>Nothing is found. Try to change your request</p>');
+  private createWaitingSymbol(reset: boolean): void {
+    const emptyCards = Array(SKELETON_CARDS)
+      .fill(0)
+      .map(() => createElement('product-card', { className: SKELETON_CLASS }));
+    this.#btnMore?.classList.toggle(CssClasses.MORE_HIDDEN, true);
+    this.setProductsContainer(emptyCards, reset);
   }
 
-  private createFilterBars = (): void => {
-    const filterContainer = this.querySelector(`.${CssClasses.FILTERS}`) as HTMLFormElement;
-    filterContainer.innerHTML = filterBarsHtml;
-    this.createFilterBarsOptions(filterPrices, CssClasses.FILTERPRICE);
-    this.createFilterBarsOptions(filterColors, CssClasses.FILTERCOLOR);
-    this.createFilterBarsOptions(filterSizes, CssClasses.FILTERSIZE);
-    this.createFilterBarsOptions(filterBrands, CssClasses.FILTERBRAND);
-    this.createFilterBarsOptions(filterMaterials, CssClasses.FILTERMATERIAL);
-    this.resetFiltersIfButtonClicked();
-  };
+  private renderResults(response: ProductProjectionPagedSearchResponse): void {
+    const { results, total = 0, limit, count, offset } = response;
+    const hasMore = offset + limit < total;
 
-  private createSortingBars = (): void => {
-    const sortingContainer = this.$<'form'>(`.${CssClasses.SORT}`);
+    if (count) {
+      this.insertProductCards(results);
+    } else {
+      this.emptyResults();
+    }
+
+    this.#btnMore?.classList.toggle(CssClasses.MORE_HIDDEN, !hasMore);
+  }
+
+  private emptyResults(): void {
+    const message = createElement('p', { className: CssClasses.NOTHING }, NOTHING_FOUND_TEXT);
+    this.setProductsContainer([message], true);
+  }
+
+  private createFilterBars(): void {
+    const filterContainer = this.$<'form'>(classSelector(CssClasses.FILTERS));
+    if (!filterContainer) {
+      return;
+    }
+    filterContainer.innerHTML = filterBarsHtml;
+
+    Object.entries(FILTERS).forEach(([name, list]) => {
+      this.createFilterBarsOptions(list, name);
+    });
+
+    this.resetFiltersIfButtonClicked();
+  }
+
+  private handleFiltersToggle(): void {
+    const filtersContainer = this.$<'div'>(classSelector(CssClasses.FORMS));
+    const filtersToggle = this.$<'button'>(classSelector(CssClasses.TOGGLE));
+    if (!filtersContainer || !filtersToggle) {
+      return;
+    }
+
+    filtersToggle.addEventListener('click', () => {
+      filtersContainer.classList.toggle(CssClasses.FORMS_OPEN);
+    });
+  }
+
+  private createSortingBars(): void {
+    const sortingContainer = this.$<'form'>(classSelector(CssClasses.SORT));
     if (!sortingContainer) {
       return;
     }
 
     sortingContainer.innerHTML = sortBarsHtml;
-    const select = createElement('select', { name: 'sort' });
+    const select = createElement('select', { name: 'sort', className: CssClasses.SELECT });
     select.append(...Object.entries(SORT_OPTIONS).map(([value, label]) => new Option(label, value)));
     sortingContainer.append(select);
 
     select.addEventListener('change', () => {
       this.loadProducts();
     });
-  };
+  }
 
-  private static createSortingQuery = (): string[] => {
+  private static createSortingQuery(): string[] {
     const { sort } = CatalogPage.filterSortingValues;
-    return [sort].filter((e) => e);
-  };
+    return [sort, DEFAULT_SORT].filter((e) => e);
+  }
 
-  private createSearching = (): void => {
-    this.resetSearchingTextIfButtonClicked();
-    this.searchTextIfButtonClicked();
-    this.searchTextIfEntered();
-    this.searchTextIfUnfocused();
-  };
+  private createSearching(): void {
+    const form = this.$<'form'>(classSelector(CssClasses.SEARCH));
+    if (!form) {
+      return;
+    }
 
-  private resetSearchingTextIfButtonClicked = (): void => {
-    const resetSearchingButton = this.querySelector(`.${CssClasses.RESETSEARCHBUTTON}`) as HTMLElement;
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    resetSearchingButton.addEventListener('click', () => {
-      if (CatalogPage.searchingText === '') {
-        searchingText.value = '';
-      }
-      if (CatalogPage.searchingText !== '') {
-        searchingText.value = '';
-        CatalogPage.searchingText = '';
-        this.loadProducts();
-      }
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.loadProducts(true);
     });
-  };
 
-  private searchTextIfButtonClicked = (): void => {
-    const searchingButton = this.querySelector(`.${CssClasses.SEARCHBUTTON}`) as HTMLElement;
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingButton.addEventListener('click', () => {
-      CatalogPage.searchingText = searchingText.value;
-      this.loadProducts();
+    form.addEventListener('reset', () => {
+      setTimeout(() => this.loadProducts(true), 0);
     });
-  };
+  }
 
-  private searchTextIfEntered = (): void => {
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingText.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') {
-        CatalogPage.searchingText = searchingText.value;
-        this.loadProducts();
-      }
-    });
-  };
+  private static createSearchingQuery(): string {
+    return CatalogPage.searchingText;
+  }
 
-  private searchTextIfUnfocused = (): void => {
-    const searchingText = this.querySelector(`.${CssClasses.SEARCHTEXT}`) as HTMLInputElement;
-    searchingText.addEventListener('blur', () => {
-      if (searchingText.value !== CatalogPage.searchingText) {
-        CatalogPage.searchingText = searchingText.value;
-        this.loadProducts();
-      }
-    });
-  };
-
-  private static createSearchingQuery = (): string => {
-    const queryParams = CatalogPage.searchingText;
-    return queryParams;
-  };
-
-  private static highLightFoundText = (element: HTMLElement, textArray: string[]): string => {
+  private static highLightFoundText(element: HTMLElement, textArray: string[]): string {
     const newElement = element;
     textArray.forEach((text) => {
       if (text.length > 1) {
@@ -239,24 +312,24 @@ export default class CatalogPage extends Page {
       }
     });
     return newElement.innerHTML;
-  };
+  }
 
-  private static findAndHighLightText = (element: HTMLElement, text: string): string => {
+  private static findAndHighLightText(element: HTMLElement, text: string): string {
     const str = element.innerHTML;
     const parts = str.split(' ').map((el) => {
       return highlightSearchingElement(el, text);
     });
     const newTextForElement = parts.join(' ');
     return newTextForElement;
-  };
+  }
 
-  private static createFiltersSortingSearchQueries = (): FilterSortingSearchQueries => {
+  private static createFiltersSortingSearchQueries(): FilterSortingSearchQueries {
     return {
-      filterQuery: CatalogPage.createFilterQuery() || [],
-      sortingQuery: CatalogPage.createSortingQuery() || [],
-      searchQuery: CatalogPage.createSearchingQuery() || '',
+      filterQuery: CatalogPage.createFilterQuery(),
+      sortingQuery: CatalogPage.createSortingQuery(),
+      searchQuery: CatalogPage.createSearchingQuery(),
     };
-  };
+  }
 
   private async setCategory(): Promise<void> {
     const slug = this.getAttribute('params') || '';
@@ -266,15 +339,32 @@ export default class CatalogPage extends Page {
     CatalogPage.categoryId = await getCategoryIdBySlug(categorySlug);
   }
 
-  private loadProducts(): void {
+  private loadProducts(onlyOnChanges = false): void {
     this.updateSearchParams();
-    this.toggleLoading();
-    this.createWaitingSymbol();
+    const params = CatalogPage.createFiltersSortingSearchQueries();
+    const paramsString = JSON.stringify(params);
+    const newSearch = paramsString !== this.#prevParams;
 
-    getInfoOfFilteredProducts(CatalogPage.createFiltersSortingSearchQueries())
-      .then(({ body }) => {
+    if (onlyOnChanges && !newSearch) {
+      return;
+    }
+
+    if (newSearch) {
+      this.#currentPage = 1;
+    }
+
+    const limit = this.#perPage;
+    const offset = (this.#currentPage - 1) * limit;
+    Object.assign(params, { limit, offset });
+
+    this.toggleLoading();
+    this.createWaitingSymbol(newSearch);
+    this.#prevParams = paramsString;
+
+    getInfoOfFilteredProducts(params)
+      .then((body) => {
         saveInStorage(body.results);
-        this.renderResults(body.results);
+        this.renderResults(body);
         this.toggleLoading(false);
       })
       .catch(throwError);
@@ -284,5 +374,7 @@ export default class CatalogPage extends Page {
     this.$$<'select'>('select').forEach(({ name, value }) => {
       Object.assign(CatalogPage.filterSortingValues, { [name]: value });
     });
+
+    CatalogPage.searchingText = this.$<'input'>(classSelector(CssClasses.SEARCH_TEXT))?.value || '';
   }
 }
