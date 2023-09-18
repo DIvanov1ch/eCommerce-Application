@@ -74,7 +74,7 @@ export default class CartPage extends Page {
   protected setCallback(): void {
     const { CLEAR_BTN, APPLY_BTN, REMOVE_PROMO } = CssClasses;
     this.$(classSelector(CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
-    this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.checkPromeCode.bind(this));
+    this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.checkPromoCode.bind(this));
     this.$(classSelector(REMOVE_PROMO))?.addEventListener('click', () => {
       CartPage.removeDiscountCode()
         .then(() => {
@@ -144,7 +144,7 @@ export default class CartPage extends Page {
     modal.show();
   }
 
-  private checkPromeCode(): void {
+  private checkPromoCode(): void {
     const promoInput = this.$(classSelector(CssClasses.PROMO_INPUT)) as HTMLInputElement;
     const promoCode = promoInput.value;
     if (promoCode !== PromoCodes.AUTUMN.code && promoCode !== PromoCodes.SAVE15.code) {

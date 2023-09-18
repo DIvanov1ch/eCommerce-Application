@@ -40,20 +40,13 @@ export default class ItemCounter extends BaseComponent {
   }
 
   protected setCallback(): void {
-    const counter = <HTMLInputElement>this.$(classSelector(CssClasses.COUNTER));
-    counter.addEventListener('change', this.handleInputValue.bind(this));
+    const counter = this.$<'input'>(classSelector(CssClasses.COUNTER));
+    counter?.addEventListener('change', () => this.changeValue());
 
-    const increaseBtn = <HTMLButtonElement>this.$(classSelector(CssClasses.INCREASE));
-    const decreaseBtn = <HTMLButtonElement>this.$(classSelector(CssClasses.DECREASE));
-    increaseBtn.addEventListener('click', this.upValue.bind(this));
-    decreaseBtn.addEventListener('click', this.downValue.bind(this));
-  }
-
-  protected handleInputValue(): void {
-    this.quantity = +this.getCounterValue();
-    this.setValidQuantity();
-    this.setCounterValue();
-    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
+    const increaseBtn = this.$<'button'>(classSelector(CssClasses.INCREASE));
+    const decreaseBtn = this.$<'button'>(classSelector(CssClasses.DECREASE));
+    increaseBtn?.addEventListener('click', () => this.changeValue(1));
+    decreaseBtn?.addEventListener('click', () => this.changeValue(-1));
   }
 
   protected setValidQuantity(): void {
@@ -65,18 +58,23 @@ export default class ItemCounter extends BaseComponent {
     }
   }
 
-  protected upValue(): void {
-    this.quantity += 1;
+  protected changeValue(delta = 0): void {
+    if (delta === 0) {
+      this.quantity = +this.getCounterValue();
+    } else {
+      this.quantity += delta;
+    }
+
     this.setValidQuantity();
     this.setCounterValue();
-    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
+    this.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
   }
 
-  protected downValue(): void {
-    this.quantity -= 1;
-    this.setValidQuantity();
-    this.setCounterValue();
-    ItemCounter.changeLineItemQuantity(this.lineItemId, this.quantity).then().catch(console.error);
+  private toggleForm(disabled = true): void {
+    const fieldset = this.$<'fieldset'>('fieldset');
+    if (fieldset) {
+      fieldset.disabled = disabled;
+    }
   }
 
   private setCounterValue(): void {
@@ -113,16 +111,20 @@ export default class ItemCounter extends BaseComponent {
     button.disabled = false;
   }
 
-  protected static async changeLineItemQuantity(lineItemId: string, quantity = 1): Promise<void> {
+  protected async changeLineItemQuantity(lineItemId: string, quantity = 1): Promise<void> {
     if (!Store.customerCart) {
       showToastMessage(ToastMessage.ERROR, false);
       return;
     }
-    const { CHANGE_LINE_ITEM_QUANTITY } = UpdateActions;
+
+    this.toggleForm();
+    const { CHANGE_LINE_ITEM_QUANTITY: action } = UpdateActions;
     const { version, id } = Store.customerCart;
-    const actions: MyCartUpdateAction[] = [{ action: CHANGE_LINE_ITEM_QUANTITY, lineItemId, quantity }];
+    const actions: MyCartUpdateAction[] = [{ action, lineItemId, quantity }];
     const updatedCart = await updateCart(id, { version, actions });
     Store.customerCart = updatedCart;
+
+    this.toggleForm(false);
     dispatch('quantitychange');
   }
 }

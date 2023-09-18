@@ -1,4 +1,4 @@
-.item-counter {
+.item-counter fieldset {
   display: flex;
   height: 42px;
   justify-content: space-between;
@@ -10,6 +10,7 @@
   border-radius: 5px;
   margin-right: 0;
   margin-left: auto;
+  border: 0;
 }
 
 .item-counter__counter {

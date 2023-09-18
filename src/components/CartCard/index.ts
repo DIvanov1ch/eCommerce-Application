@@ -1,4 +1,4 @@
-import { LineItem, Image, MyCartUpdateAction, DiscountedLineItemPrice } from '@commercetools/platform-sdk';
+import { LineItem, Image, MyCartUpdateAction, DiscountedLineItemPrice, Attribute } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
@@ -32,6 +32,16 @@ const ToastMessage = {
   ERROR: 'Something went wrong',
 };
 
+const nameFromAttributes = (attributes?: Attribute[]): string => {
+  if (!attributes) return '';
+
+  return attributes
+    .filter((attr) => ['color', 'size'].includes(attr.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((attr) => String(attr.value))
+    .join(', ');
+};
+
 export default class CartCard extends BaseComponent {
   private windowCallback: (() => void) | undefined;
 
@@ -51,10 +61,13 @@ export default class CartCard extends BaseComponent {
 
     const {
       name: { [LANG]: name },
-      variant: { images, prices = [] },
+      variant: { images, prices = [], attributes },
       totalPrice: { centAmount },
       discountedPricePerQuantity,
     } = this.lineItem;
+
+    const variantName = nameFromAttributes(attributes);
+    const itemName = name + (variantName ? ` (${variantName})` : '');
 
     if (discountedPricePerQuantity.length) {
       this.setDiscountedPrice(discountedPricePerQuantity[0].discountedPrice);
@@ -64,7 +77,7 @@ export default class CartCard extends BaseComponent {
       discounted: { value: { centAmount: discounted = 0 } = {} } = {},
     } = prices[0] || {};
 
-    this.insertHtml(classSelector(NAME), name);
+    this.insertHtml(classSelector(NAME), itemName);
     this.insertImages(images);
     this.setPrice(price, discounted);
     this.setTotalPrice(centAmount);
