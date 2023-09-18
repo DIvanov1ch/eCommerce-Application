@@ -5,6 +5,7 @@ import './about_us.scss';
 import { classSelector } from '../../utils/create-element';
 import TeamMember from '../../components/TeamMember';
 import { Member } from '../../types/Member';
+import phoinix from '../../assets/photo/phoinix.jpg';
 
 Router.registerRoute('about-us', 'about_us-page');
 
@@ -37,7 +38,7 @@ const MEMBERS: Member[] = [
   {
     fullName: 'Vitaly Kukushkin',
     location: 'Kaliningrad, Russia',
-    photoUrl: 'https://avatars.githubusercontent.com/u/1216630',
+    photoUrl: phoinix,
     roles: ['Front-end developer', 'Content Manager'],
     bio: `I've been self-teaching web development for quite some time. I remember crafting \
     HTML files with divs by hand back in the days when tables dominated the web.\
