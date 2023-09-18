@@ -1,19 +1,53 @@
 <h1 class="cart__title">Shopping Cart</h1>
 <div class="cart__carts"></div>
-<div class="cart__total">
-  <div class="total-price__container">
-    <div class="total-price__title">Total</div>
-    <div class="total-price__price"></div>
+<div class="cart__right-column">
+  <div class="cart__total">
+    <div class="total-price__container">
+      <div class="total-price__title">Total</div>
+      <div class="total-price__price"></div>
+    </div>
+    <div class="total-summary__container">
+      <div class="total-summary__title">Items:</div>
+      <div class="total-summary__summary"></div>
+    </div>
+    <div class="button-container">
+      <div class="submit-button submit-button_checkout">Proceed to checkout</div>
+    </div>
+    <div class="registration__divider"></div>
+    <div class="button-container">
+      <div class="submit-button submit-button_clear">Clear Shopping Cart</div>
+    </div>
   </div>
-  <div class="total-summary__container">
-    <div class="total-summary__title">Items:</div>
-    <div class="total-summary__summary"></div>
+  <div class="cart__promo-code">
+    <div class="cart__input">
+      <div class="input-module">
+        <input
+          type="text"
+          maxlength="25"
+          id="promo-code"
+          class="input-module__input-field"
+          placeholder="Promo Code"
+          name="promocode"
+          required
+        />
+        <div class="input-module__error-box hidden">
+          <img src="../../assets/icons/warning-icon.png" alt="Warning icon" class="error-box__icon first-name" />
+          <div class="error-box__content first-name"></div>
+        </div>
+      </div>
+    </div>
+    <div class="button-container">
+      <div class="submit-button submit-button_apply">
+        <span class="material-symbols-outlined"> arrow_forward </span>
+        <span class="submit-button_content">Apply</span>
+      </div>
+    </div>
   </div>
-  <div class="button-container">
-    <div class="submit-button submit-button_checkout">Proceed to checkout</div>
-  </div>
-  <div class="registration__divider"></div>
-  <div class="button-container">
-    <div class="submit-button submit-button_clear">Clear Shopping Cart</div>
+  <div class="cart__promo-ticket hidden">
+    <div class="promo-ticket__wrapper">
+      <span class="promo-ticket promo-tickect__icon material-symbols-outlined"> task_alt </span>
+      <span class="promo-ticket promo-tickect__content"></span>
+      <span class="promo-ticket promo-tickect__remove">Remove</span>
+    </div>
   </div>
 </div>

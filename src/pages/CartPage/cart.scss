@@ -15,8 +15,82 @@
   border-radius: 10px;
 }
 
-.cart__total {
+.cart__right-column {
   width: 30%;
+}
+
+.submit-button_content {
+  display: none;
+}
+
+.cart__promo-code {
+  margin-top: 25px;
+  justify-content: space-between;
+
+  .button-container {
+    width: 28px;
+    height: 28px;
+  }
+
+  .submit-button {
+    padding: 2px;
+  }
+
+  .input-module__input-field {
+    height: 30px;
+  }
+
+  .material-symbols-outlined {
+    vertical-align: bottom;
+  }
+}
+
+.cart__input {
+  flex-grow: 1;
+  margin-right: 5px;
+
+  .input-module {
+    margin-bottom: 5px;
+  }
+}
+
+.input-module__input-field::placeholder {
+  font-size: 0.9rem;
+}
+
+.cart__promo-code {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 450px) {
+  .cart__promo-code {
+    display: flex;
+    flex-wrap: wrap;
+
+    .material-symbols-outlined {
+      display: none;
+    }
+
+    .button-container {
+      width: 100%;
+    }
+
+    .submit-button_apply {
+      padding: 5px 5px 3px;
+    }
+  }
+
+  .submit-button_content {
+    display: block;
+  }
+
+  .cart__input {
+    margin-right: 0;
+  }
+}
+
+.cart__total {
   background-color: #ffffff;
   border-radius: 10px;
   height: fit-content;
@@ -42,11 +116,31 @@
   align-self: self-end;
 }
 
+.total-price__price {
+  .price-box__discount,
+  .price-box__price--old:before {
+    display: none;
+  }
+
+  .price-box__price--old {
+    order: 1;
+    justify-content: end;
+  }
+
+  .price-box__price--discounted {
+    order: 2;
+  }
+
+  .price-box {
+    flex-direction: column;
+  }
+}
+
 .submit-button_checkout,
-.submit-button_clear {
+.submit-button_clear,
+.submit-button_apply {
   text-align: center;
   display: table;
-  vertical-align: middle;
   padding: 7px;
 }
 
@@ -88,8 +182,42 @@
   flex-direction: column;
 
   text-align: center;
+}
 
-  p {
-    margin: 0 auto;
+.promo-ticket__wrapper {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  border: 2px solid rgb(49, 189, 107);
+  border-radius: 10px;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(250, 255, 255);
+  opacity: 0.7;
+  &:hover {
+    opacity: 1;
   }
+
+  .small {
+    font-size: 0.8rem;
+  }
+}
+
+.promo-tickect__icon {
+  color: rgb(49, 189, 107);
+}
+
+.promo-tickect__remove {
+  color: #b62958;
+  cursor: pointer;
+
+  &:hover {
+    color: #e52e6b;
+  }
+}
+
+.promo-ticket {
+  margin: 5px;
+  text-align: center;
 }

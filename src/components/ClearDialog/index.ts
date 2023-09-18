@@ -1,11 +1,12 @@
-import { Cart, LineItem, MyCartUpdate, MyCartUpdateAction } from '@commercetools/platform-sdk';
+import { MyCartUpdateAction } from '@commercetools/platform-sdk';
 import { classSelector, createTemplate, dispatch } from '../../utils/create-element';
 import ModalDialog from '../ModalDialog';
 import html from './template.html';
 import './clear-dialog.scss';
 import Store from '../../services/Store';
+import { updateCart } from '../../services/API';
+import showToastMessage from '../../utils/show-toast-message';
 import UpdateActions from '../../enums/update-actions';
-import { getActiveCart, updateCart } from '../../services/API';
 
 enum CssClasses {
   CONTENT = 'modal__content',
@@ -13,6 +14,11 @@ enum CssClasses {
   CLEAR_BUTTON = 'submit-button_clear',
   CANCEL_BUTTON = 'submit-button_cancel',
 }
+
+const ToastMessage = {
+  CART_CLEARED: 'Your shopping cart has been cleared',
+  ERROR: 'Something went wrong',
+};
 
 export default class ClearDialog extends ModalDialog {
   protected connectedCallback(): void {
@@ -29,38 +35,33 @@ export default class ClearDialog extends ModalDialog {
   private setCallback(): void {
     const { CANCEL_BUTTON, CLEAR_BUTTON } = CssClasses;
     this.$(classSelector(CANCEL_BUTTON))?.addEventListener('click', this.close.bind(this));
-    this.$(classSelector(CLEAR_BUTTON))?.addEventListener('click', this.setUpdateActions.bind(this));
+    this.$(classSelector(CLEAR_BUTTON))?.addEventListener('click', () => {
+      ClearDialog.clearShoppingCart()
+        .then(() => {
+          this.close();
+        })
+        .catch(() => {
+          showToastMessage(ToastMessage.ERROR, false);
+        });
+    });
   }
 
-  protected setUpdateActions(): void {
-    const lineItems = <LineItem[]>Store.customerCart?.lineItems;
-    const updateActions: MyCartUpdateAction[] = [];
+  protected static async clearShoppingCart(): Promise<void> {
+    if (!Store.customerCart) {
+      showToastMessage(ToastMessage.ERROR, false);
+      return;
+    }
+    const { CHANGE_LINE_ITEM_QUANTITY } = UpdateActions;
+    const { lineItems, id, version } = Store.customerCart;
+    const actions: MyCartUpdateAction[] = [];
     lineItems.forEach((lineItem) => {
       const lineItemId = lineItem.id;
-      updateActions.push({
-        action: UpdateActions.CHANGE_LINE_ITEM_QUANTITY,
-        lineItemId,
-        quantity: 0,
-      });
+      actions.push({ action: CHANGE_LINE_ITEM_QUANTITY, lineItemId, quantity: 0 });
     });
-    this.clearShoppingCart(updateActions).then().catch(console.error);
-  }
 
-  protected async clearShoppingCart(actions: MyCartUpdateAction[]): Promise<void> {
-    const cart = Store.customerCart as Cart;
-    const { version, id } = cart;
-    const body: MyCartUpdate = {
-      version,
-      actions,
-    };
-    try {
-      const newCart = await updateCart(id, body);
-      Store.customerCart = newCart;
-      dispatch('itemdelete');
-      this.close();
-    } catch (error) {
-      const activeCart = await getActiveCart();
-      Store.customerCart = activeCart;
-    }
+    const updatedCart = await updateCart(id, { version, actions });
+    Store.customerCart = updatedCart;
+    dispatch('itemdelete');
+    showToastMessage(ToastMessage.CART_CLEARED, true);
   }
 }
