@@ -27,7 +27,7 @@ const MEMBERS: Member[] = [
   {
     fullName: 'Aliaksandr Ipatau',
     location: 'Brest, Belarus',
-    photoUrl: 'https://avatars.githubusercontent.com/u/11777183',
+    photoUrl: 'https://i.ibb.co/s3D6b4f/photo.jpg',
     roles: ['Front-end developer'],
     bio: `I started to study coding last year and with the help of RSSchool\
     I understood that it is very interesting activity.\
