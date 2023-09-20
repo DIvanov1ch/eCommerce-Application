@@ -10,6 +10,8 @@ export type InputParams = {
   autocomplete?: string;
   name?: string;
   placeholder?: string;
+  minlength?: string;
+  maxlength?: string;
 };
 
 export type FieldParams = {
