@@ -28,7 +28,7 @@ export const API_SCOPES = [
 
 export const APP_NAME = 'eComm';
 export const AGE_LIMIT = 13;
-export const ZipCodes = {
+export const PostalCodes = {
   RANGE_START: 501,
   RANGE_END: 99950,
 };
