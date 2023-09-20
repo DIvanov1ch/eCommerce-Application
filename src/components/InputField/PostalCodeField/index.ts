@@ -17,7 +17,8 @@ const labelText = 'Postal code';
 const getInputParams = (typeOfAddress?: TypeOfAddress): InputParams => {
   const separator = '-';
   const partsOfId = [typeOfAddress, params.id];
-  return { id: partsOfId.join(separator), type: params.type };
+  params.id = partsOfId.join(separator);
+  return params;
 };
 
 const ErrorMessage: WarningMessage = {
