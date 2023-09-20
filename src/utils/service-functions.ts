@@ -1,3 +1,5 @@
+import { TextContentParams } from '../types';
+
 export function setInputValue(selector: string, value = ''): void {
   const input = <HTMLInputElement>document.querySelector(selector);
   input.value = value;
@@ -8,10 +10,11 @@ export function getInputValue(selector: string): string {
   return input.value;
 }
 
-export function setElementTextContent(selector: string, container: HTMLElement, textContent = ''): void {
+export function setElementTextContent(params: TextContentParams): void {
+  const { container, selector, content } = params;
   const element = container.querySelector(selector);
-  if (element) {
-    element.textContent = textContent;
+  if (element !== null) {
+    element.textContent = content;
   }
 }
 

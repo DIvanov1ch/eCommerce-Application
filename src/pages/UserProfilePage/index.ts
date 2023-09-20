@@ -111,18 +111,19 @@ export default class UserProfile extends Page {
   private setUserProfileInfo(): void {
     const { firstName, lastName, dateOfBirth, email } = this.customer;
     const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = CssClasses;
-
-    setElementTextContent(classSelector(FIRST_NAME), this, firstName);
-    setElementTextContent(classSelector(LAST_NAME), this, lastName);
-    setElementTextContent(classSelector(DATE_OF_BIRTH), this, dateOfBirth);
-    setElementTextContent(classSelector(EMAIL), this, email);
+    if (firstName && lastName && dateOfBirth) {
+      setElementTextContent({ container: this, selector: classSelector(FIRST_NAME), content: firstName });
+      setElementTextContent({ container: this, selector: classSelector(LAST_NAME), content: lastName });
+      setElementTextContent({ container: this, selector: classSelector(DATE_OF_BIRTH), content: dateOfBirth });
+    }
+    setElementTextContent({ container: this, selector: classSelector(EMAIL), content: email });
   }
 
   private setPasswordLengthDisplay(): void {
     const { password } = this.customer;
     const { PASSWORD } = CssClasses;
     const length = password?.length as number;
-    setElementTextContent(classSelector(PASSWORD), this, PASSWORD_DOT.repeat(length));
+    setElementTextContent({ container: this, selector: classSelector(PASSWORD), content: PASSWORD_DOT.repeat(length) });
   }
 
   private setAddressInfo(): void {
@@ -149,10 +150,12 @@ export default class UserProfile extends Page {
         addressTypes.push(CssClasses.BILLING);
       }
       addressContainer.setAttribute('id', id as string);
-      setElementTextContent(classSelector(STREET), line, streetName);
-      setElementTextContent(classSelector(CITY), line, city);
-      setElementTextContent(classSelector(POSTAL_CODE), line, postalCode);
-      setElementTextContent(classSelector(COUNTRY), line, country);
+      if (streetName && city && postalCode) {
+        setElementTextContent({ container: line, selector: classSelector(STREET), content: streetName });
+        setElementTextContent({ container: line, selector: classSelector(CITY), content: city });
+        setElementTextContent({ container: line, selector: classSelector(POSTAL_CODE), content: postalCode });
+      }
+      setElementTextContent({ container: line, selector: classSelector(COUNTRY), content: country });
       UserProfile.setAddressTypes(addressTypeContainer, addressTypes);
     });
   }

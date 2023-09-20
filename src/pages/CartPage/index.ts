@@ -208,7 +208,11 @@ export default class CartPage extends Page {
     }
     const priceContainer = this.$(classSelector(PRICE));
     priceContainer?.replaceChildren(priceBox);
-    setElementTextContent(classSelector(SUMMARY), this, (totalLineItemQuantity || 0).toString());
+    setElementTextContent({
+      selector: classSelector(SUMMARY),
+      container: this,
+      content: (totalLineItemQuantity || 0).toString(),
+    });
   }
 
   private getDiscountPrice(): number {

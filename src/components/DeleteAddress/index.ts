@@ -39,10 +39,12 @@ export default class DeleteAddress extends PopupMenu {
     const addressToDelete = addresses.find((address) => address.id === this.addressId) as Address;
     const { streetName, city, postalCode, country } = addressToDelete;
     const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
-    setElementTextContent(classSelector(STREET), this, streetName);
-    setElementTextContent(classSelector(CITY), this, city);
-    setElementTextContent(classSelector(POSTAL_CODE), this, postalCode);
-    setElementTextContent(classSelector(COUNTRY), this, country);
+    if (streetName && city && postalCode) {
+      setElementTextContent({ container: this, selector: classSelector(STREET), content: streetName });
+      setElementTextContent({ container: this, selector: classSelector(CITY), content: city });
+      setElementTextContent({ container: this, selector: classSelector(POSTAL_CODE), content: postalCode });
+    }
+    setElementTextContent({ container: this, selector: classSelector(COUNTRY), content: country });
   }
 
   private setRequestBody(): void {
