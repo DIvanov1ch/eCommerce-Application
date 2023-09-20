@@ -6,6 +6,7 @@ import { InputParams } from '../../../types';
 const inputParams: InputParams = {
   id: 'email',
   type: 'email',
+  maxlength: '64',
 };
 const labelText = 'Email';
 
