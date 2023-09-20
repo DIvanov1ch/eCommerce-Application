@@ -25,6 +25,7 @@ import CityField from './InputField/CityField';
 import NameField from './InputField/NameField';
 import EmailField from './InputField/EmailField';
 import PasswordField from './InputField/PasswordField';
+import DateOfBirthField from './InputField/DateOfBirthField';
 
 const Components = {
   'page-header': PageHeader,
@@ -54,6 +55,7 @@ const Components = {
   'name-field': NameField,
   'email-field': EmailField,
   'password-field': PasswordField,
+  'date-of-birth-field': DateOfBirthField,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
