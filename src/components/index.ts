@@ -20,6 +20,11 @@ import CartCard from './CartCard';
 import TeamMember from './TeamMember';
 import ItemCounter from './ItemCounter';
 import ClearDialog from './ClearDialog';
+import InputField from './InputField';
+import CityField from './InputField/CityField';
+import NameField from './InputField/NameField';
+import EmailField from './InputField/EmailField';
+import PasswordField from './InputField/PasswordField';
 
 const Components = {
   'page-header': PageHeader,
@@ -44,6 +49,11 @@ const Components = {
   'team-member': TeamMember,
   'item-counter': ItemCounter,
   'clear-dialog': ClearDialog,
+  'input-field': InputField,
+  'city-field': CityField,
+  'name-field': NameField,
+  'email-field': EmailField,
+  'password-field': PasswordField,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
