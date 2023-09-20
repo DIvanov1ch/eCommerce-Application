@@ -23,3 +23,5 @@ export type NameFieldParams = {
 };
 
 export type TypeOfName = 'firstName' | 'secondName';
+
+export type TypeOfAddress = 'billing' | 'shipping';
