@@ -21,9 +21,9 @@ export type FieldParams = {
 
 export type NameFieldParams = {
   firstName: FieldParams;
-  secondName: FieldParams;
+  lastName: FieldParams;
 };
 
-export type TypeOfName = 'firstName' | 'secondName';
+export type TypeOfName = 'firstName' | 'lastName';
 
 export type TypeOfAddress = 'billing' | 'shipping';
