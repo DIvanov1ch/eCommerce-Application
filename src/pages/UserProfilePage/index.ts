@@ -8,7 +8,6 @@ import { classSelector, pause } from '../../utils/create-element';
 import CssClasses from './css-classes';
 import { logout } from '../../services/API';
 import { loadCustomer } from '../../utils/load-data';
-import LoggedInUser from '../../services/LoggedInUser';
 import { setElementTextContent } from '../../utils/service-functions';
 import ChangePassword from '../../components/ChangePassword';
 import PopupMenu from '../../components/PopupMenu';
@@ -25,7 +24,7 @@ const HTML_SESSION_EXPIRED = `<h3>Your session has expired</h3>
 const PASSWORD_DOT = '•';
 
 export default class UserProfile extends Page {
-  private customer: Customer = new LoggedInUser();
+  private customer!: Customer;
 
   private popupMenu: PopupMenu | undefined;
 
