@@ -22,14 +22,6 @@
   margin: 0 0 15px 0;
 }
 
-.registration__address {
-  margin-bottom: 15px;
-}
-
-.hidden {
-  display: none;
-}
-
 .button-container {
   width: 100%;
 }
@@ -65,44 +57,13 @@
   opacity: 1;
 }
 
-.pop-up__container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 15px;
-}
-
-.pop-up__icon-box,
-.pop-up__message {
-  margin: 20px;
-  text-align: center;
-}
-
-.pop-up__icon {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-}
-
-.pop-up__message {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.pop-up__icon:hover {
-  opacity: 0.8;
-}
-
-.pop-up__icon:active {
-  opacity: 0.9;
-  transform: scale(0.9);
-}
-
 .registration__address-container {
   display: flex;
   flex-direction: column;
+}
+
+.registration__address {
+  margin-bottom: 15px;
 }
 
 .registration__address-title {
