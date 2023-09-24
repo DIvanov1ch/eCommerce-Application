@@ -174,6 +174,8 @@ export default class CartCard extends BaseComponent {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('quantitychange', this.windowCallback as () => void);
+    if (this.windowCallback) {
+      window.removeEventListener('quantitychange', this.windowCallback);
+    }
   }
 }

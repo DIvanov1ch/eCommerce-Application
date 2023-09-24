@@ -254,7 +254,11 @@ export default class CartPage extends Page {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('quantitychange', this.updateCallback as () => void);
-    window.removeEventListener('itemdelete', this.removeCallback as () => void);
+    if (this.updateCallback) {
+      window.removeEventListener('quantitychange', this.updateCallback);
+    }
+    if (this.removeCallback) {
+      window.removeEventListener('itemdelete', this.removeCallback);
+    }
   }
 }
