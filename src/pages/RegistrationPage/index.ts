@@ -147,10 +147,10 @@ export default class RegistrationPage extends Page {
       this.billingAddress.forEach((field, index) => {
         field.setInputValue(this.shippingAddress[index].getInputValue());
         field.disableInput();
-        field.checkValue();
       });
       this.shippingAddress.forEach((field, index) => {
         field.pipe(this.billingAddress[index]);
+        field.checkValue();
       });
     } else {
       this.isShippingAsBilling = false;

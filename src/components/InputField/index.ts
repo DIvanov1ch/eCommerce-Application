@@ -83,7 +83,6 @@ export default class InputField extends BaseComponent {
   public checkValue(): void {
     if (this.hasPipe) {
       this.writableField?.setInputValue(this.getInputValue());
-      this.writableField?.checkValue();
     }
     if (!this.isValidValue()) {
       this.setWarning();
@@ -105,7 +104,7 @@ export default class InputField extends BaseComponent {
     setElementTextContent({ container, selector, content });
   }
 
-  protected hideWarning(): void {
+  public hideWarning(): void {
     const { WARNING, WARNING_CONTAINER, HIDDEN } = CssClasses;
     const warningBox = this.$(classSelector(WARNING_CONTAINER));
     if (warningBox) {
