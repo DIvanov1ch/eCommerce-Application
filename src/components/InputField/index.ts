@@ -23,11 +23,15 @@ const ErrorMessage: WarningMessage = {
 };
 
 export default class InputField extends BaseComponent {
-  protected input!: HTMLInputElement;
+  public input!: HTMLInputElement;
 
   private inputParams: InputParams;
 
   private labelText: string;
+
+  protected hasPipe = false;
+
+  protected writableField: InputField | null = null;
 
   constructor(fieldParams: FieldParams) {
     super(html);
@@ -43,7 +47,7 @@ export default class InputField extends BaseComponent {
     const input = this.$<'input'>(classSelector(INPUT));
 
     if (input === null) {
-      throwError(new Error('Input is possibly "null"'));
+      throwError(new Error(`${INPUT} is 'null`));
       return;
     }
     this.input = input;
@@ -72,24 +76,28 @@ export default class InputField extends BaseComponent {
     this.input.addEventListener('input', this.checkValue.bind(this));
   }
 
-  protected hasValue(): boolean {
+  public hasValue(): boolean {
     return !!this.input.value;
   }
 
-  protected checkValue(): void {
-    if (this.isValidValue()) {
-      this.hideWarning();
+  public checkValue(): void {
+    if (this.hasPipe) {
+      this.writableField?.setInputValue(this.getInputValue());
+      this.writableField?.checkValue();
+    }
+    if (!this.isValidValue()) {
+      this.setWarning();
+      this.displayWarning();
       return;
     }
-    this.setWarning();
-    this.displayWarning();
+    this.hideWarning();
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return !!this.input.value.trim();
   }
 
-  protected setWarning(message: WarningMessage = ErrorMessage, container: HTMLElement = this): void {
+  public setWarning(message: WarningMessage = ErrorMessage, container: HTMLElement = this): void {
     const { emptyField, invalidValue } = message;
     const { WARNING_TEXT_BOX } = CssClasses;
     const content = !this.hasValue() ? emptyField : invalidValue;
@@ -106,7 +114,7 @@ export default class InputField extends BaseComponent {
     this.input.classList.remove(WARNING);
   }
 
-  protected displayWarning(): void {
+  public displayWarning(): void {
     const { WARNING, WARNING_CONTAINER, HIDDEN } = CssClasses;
     const warningBox = this.$(classSelector(WARNING_CONTAINER));
     if (warningBox) {
@@ -115,7 +123,29 @@ export default class InputField extends BaseComponent {
     this.input.classList.add(WARNING);
   }
 
-  protected getInputValue(): string {
+  public getInputValue(): string {
     return this.input.value;
+  }
+
+  public setInputValue(value: string): void {
+    this.input.value = value;
+  }
+
+  public disableInput(): void {
+    this.input.disabled = true;
+  }
+
+  public enableInput(): void {
+    this.input.disabled = false;
+  }
+
+  public pipe(writableField: InputField): void {
+    this.hasPipe = true;
+    this.writableField = writableField;
+  }
+
+  public unpipe(): void {
+    this.hasPipe = false;
+    this.writableField = null;
   }
 }
