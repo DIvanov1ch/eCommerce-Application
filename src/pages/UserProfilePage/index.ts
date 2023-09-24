@@ -36,29 +36,18 @@ export default class UserProfile extends Page {
 
   protected connectedCallback(): void {
     super.connectedCallback();
-    if (!UserProfile.isLoggedIn()) {
+    if (!Store.customer) {
       this.goToLoginPage(HTML_NOT_LOGGED_IN).then().catch(console.error);
       return;
     }
-    if (!UserProfile.isTokenFresh()) {
+    if (!Store.token || Store.token.expirationTime <= Date.now()) {
+      logout();
       this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
       return;
     }
 
     this.load();
     this.setCallback();
-  }
-
-  private static isLoggedIn(): boolean {
-    return !!Store.customer;
-  }
-
-  private static isTokenFresh(): boolean {
-    if (!Store.token || Store.token.expirationTime <= Date.now()) {
-      logout();
-      return false;
-    }
-    return true;
   }
 
   private load(): void {
