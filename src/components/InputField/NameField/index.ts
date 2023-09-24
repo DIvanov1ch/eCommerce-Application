@@ -11,12 +11,12 @@ const nameParams: NameFieldParams = {
     },
     labelText: 'First name',
   },
-  secondName: {
+  lastName: {
     inputParams: {
-      id: 'second-name',
+      id: 'last-name',
       type: 'text',
     },
-    labelText: 'Second name',
+    labelText: 'Last name',
   },
 };
 
@@ -30,15 +30,15 @@ const getErrorMessage = (typeOfName: TypeOfName): WarningMessage => {
 };
 
 export default class NameField extends InputField {
-  constructor(private typeOfName: TypeOfName) {
+  constructor(public typeOfName: TypeOfName) {
     super(nameParams[typeOfName]);
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return Pattern.name.test(this.getInputValue());
   }
 
-  protected setWarning(): void {
+  public setWarning(): void {
     const message = getErrorMessage(this.typeOfName);
     super.setWarning(message, this);
   }

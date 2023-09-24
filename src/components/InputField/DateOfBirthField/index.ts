@@ -20,11 +20,11 @@ export default class DateOfBirthField extends InputField {
     super({ inputParams, labelText });
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return findCurrentAge(this.getInputValue()) >= AGE_LIMIT;
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 }

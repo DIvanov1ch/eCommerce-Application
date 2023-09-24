@@ -15,10 +15,11 @@ const params: InputParams = {
 const labelText = 'Postal code';
 
 const getInputParams = (typeOfAddress?: TypeOfAddress): InputParams => {
+  const newParams = { ...params };
   const separator = '-';
-  const partsOfId = [typeOfAddress, params.id];
-  params.id = partsOfId.join(separator);
-  return params;
+  const partsOfId = [typeOfAddress, newParams.id];
+  newParams.id = partsOfId.join(separator);
+  return newParams;
 };
 
 const ErrorMessage: WarningMessage = {
@@ -27,12 +28,14 @@ const ErrorMessage: WarningMessage = {
 };
 
 export default class PostalCodeField extends InputField {
-  constructor(private typeOfAddress?: TypeOfAddress) {
+  protected writableField: PostalCodeField | null = null;
+
+  constructor(public typeOfAddress?: TypeOfAddress) {
     const inputParams = typeOfAddress ? getInputParams(typeOfAddress) : params;
     super({ inputParams, labelText });
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     const value = this.getInputValue();
     return (
       Pattern.postalcode.test(value) &&
@@ -41,7 +44,7 @@ export default class PostalCodeField extends InputField {
     );
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 }

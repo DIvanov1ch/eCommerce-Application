@@ -21,16 +21,18 @@ const ErrorMessage: WarningMessage = {
 };
 
 export default class CityField extends InputField {
-  constructor(private typeOfAddress?: TypeOfAddress) {
+  protected writableField: CityField | null = null;
+
+  constructor(public typeOfAddress?: TypeOfAddress) {
     const inputParams = typeOfAddress ? getInputParams(typeOfAddress) : params;
     super({ inputParams, labelText });
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return Pattern.city.test(this.getInputValue());
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 }

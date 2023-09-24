@@ -20,11 +20,11 @@ export default class EmailField extends InputField {
     super({ inputParams, labelText });
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return Pattern.email.test(this.getInputValue());
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 }

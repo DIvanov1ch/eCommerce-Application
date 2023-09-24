@@ -34,7 +34,9 @@ const listOfCountries = ['United States', 'Mexico'];
 export default class CountryField extends InputField {
   private documentCallback: ((event: Event) => void) | undefined;
 
-  constructor(private typeOfAddress?: TypeOfAddress) {
+  protected writableField: CountryField | null = null;
+
+  constructor(public typeOfAddress?: TypeOfAddress) {
     const inputParams = typeOfAddress ? getInputParams(typeOfAddress) : params;
     super({ inputParams, labelText });
   }
@@ -49,12 +51,12 @@ export default class CountryField extends InputField {
     document.addEventListener('click', this.documentCallback);
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return Pattern.country.test(this.getInputValue());
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 
   private renderCountryList(): void {

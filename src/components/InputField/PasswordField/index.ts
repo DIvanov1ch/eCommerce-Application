@@ -20,11 +20,11 @@ export default class PasswordField extends InputField {
     super({ inputParams, labelText });
   }
 
-  protected isValidValue(): boolean {
+  public isValidValue(): boolean {
     return Pattern.password.test(this.getInputValue());
   }
 
-  protected setWarning(message?: WarningMessage): void {
-    super.setWarning(ErrorMessage || message, this);
+  public setWarning(message?: WarningMessage): void {
+    super.setWarning(message || ErrorMessage, this);
   }
 }
