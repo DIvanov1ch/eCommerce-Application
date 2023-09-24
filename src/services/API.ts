@@ -33,11 +33,11 @@ import {
   AUTH_HOST,
   CATEGORIES_LIMIT,
   PRODUCTS_PER_PAGE,
+  Country,
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
 import Store from './Store';
-// import { errorsClient } from '../types/errors';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -143,9 +143,8 @@ const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<Cus
 };
 
 const logout = (): void => {
-  if (Store.customerCart) {
-    Store.customerCart = undefined;
-  }
+  Store.customerCart = undefined;
+  Store.customer = undefined;
   tokenClient.delete();
 };
 
@@ -224,7 +223,7 @@ const createNewCart = async (lineItems: LineItemDraft[] | undefined = undefined)
       .post({
         body: {
           currency: 'USD',
-          country: 'US',
+          country: Country.UnitedStates,
           lineItems,
         },
       })

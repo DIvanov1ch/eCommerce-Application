@@ -57,7 +57,6 @@ export default class UserProfile extends Page {
   private static isTokenFresh(): boolean {
     if (!Store.token || Store.token.expirationTime <= Date.now()) {
       logout();
-      Store.customer = undefined;
       return false;
     }
     return true;
@@ -68,7 +67,6 @@ export default class UserProfile extends Page {
       .then()
       .catch(() => {
         logout();
-        Store.customer = undefined;
         this.goToLoginPage(HTML_SESSION_EXPIRED).then().catch(console.error);
       });
   }

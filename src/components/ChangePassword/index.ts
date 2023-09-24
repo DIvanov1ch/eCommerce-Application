@@ -4,11 +4,12 @@ import { idSelector } from '../../utils/create-element';
 import { getInputValue } from '../../utils/service-functions';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
-import { changePassword, login, logout } from '../../services/API';
+import { changePassword } from '../../services/API';
 import Store from '../../services/Store';
 import showToastMessage from '../../utils/show-toast-message';
 import Validator from '../../services/Validator';
 import ErrorMessages from '../../constants';
+import loginUser from '../../utils/login';
 
 const SubmitBtnValue = {
   SAVE_CHANGES: 'Save changes',
@@ -63,7 +64,7 @@ export default class ChangePassword extends PopupMenu {
         this.isUpdateSuccessful = true;
         const { email } = Store.customer;
         const password = requestBody.newPassword;
-        ChangePassword.LogIn(email, password);
+        loginUser(email, password).then().catch(console.error);
         this.showMessage();
         this.close();
       })
@@ -72,11 +73,6 @@ export default class ChangePassword extends PopupMenu {
         this.showMessage();
         this.showInvalidCurrentPasswordError();
       });
-  }
-
-  private static LogIn(email: string, password: string): void {
-    logout();
-    login(email, password).then().catch(console.error);
   }
 
   public showMessage(): void {
