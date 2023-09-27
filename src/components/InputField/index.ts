@@ -126,7 +126,7 @@ export default class InputField extends BaseComponent {
     return this.input.value;
   }
 
-  public setInputValue(value: string): void {
+  public setInputValue(value = ''): void {
     this.input.value = value;
   }
 

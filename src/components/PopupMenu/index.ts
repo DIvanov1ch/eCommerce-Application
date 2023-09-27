@@ -59,6 +59,12 @@ export default class PopupMenu extends BaseComponent {
     this.addEventListener('click', this.closeModalWindow.bind(this));
   }
 
+  public insertElements(elements: Element[]): void {
+    const { MAIN } = CssClasses;
+    const main = this.$(classSelector(MAIN));
+    elements.forEach((element) => main?.insertAdjacentElement('beforeend', element));
+  }
+
   public show(): void {
     const { body } = document;
     body.append(this);
@@ -68,6 +74,12 @@ export default class PopupMenu extends BaseComponent {
   public close(): void {
     this.remove();
     document.body.classList.remove(CssClasses.HAS_MODAL);
+  }
+
+  public showMessage(): void {
+    const message = this.isUpdateSuccessful ? ToastMessage.INFO_UPDATED : ToastMessage.ERROR;
+    showToastMessage(message, this.isUpdateSuccessful);
+    this.close();
   }
 
   private closeModalWindow(event: Event): void {
@@ -84,7 +96,7 @@ export default class PopupMenu extends BaseComponent {
     this.close();
   }
 
-  public setSubmitButtonParams(): void {
+  private setSubmitButtonParams(): void {
     const { SUBMIT_BUTTON } = CssClasses;
     const button = this.$<'input'>(classSelector(SUBMIT_BUTTON));
     if (button === null) {
@@ -108,11 +120,5 @@ export default class PopupMenu extends BaseComponent {
         this.isUpdateSuccessful = false;
         this.showMessage();
       });
-  }
-
-  public showMessage(): void {
-    const message = this.isUpdateSuccessful ? ToastMessage.INFO_UPDATED : ToastMessage.ERROR;
-    showToastMessage(message, this.isUpdateSuccessful);
-    this.close();
   }
 }

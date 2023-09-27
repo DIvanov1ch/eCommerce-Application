@@ -66,9 +66,9 @@ export default class RegistrationPage extends Page {
       return;
     }
     super.connectedCallback();
-    this.renderPersonalDetailsFields();
-    this.renderAddressFields('shipping');
-    this.renderAddressFields('billing');
+    this.renderPersonalDetails();
+    this.renderAddress('shipping');
+    this.renderAddress('billing');
     this.setCallback();
     this.validator = new FormValidator(this.$(classSelector(CssClasses.FORM)) || this);
   }
@@ -82,7 +82,7 @@ export default class RegistrationPage extends Page {
     this.personalDetails.push(firstNameField, lastNameField, emailField, passwordField, dateOfBirthField);
   }
 
-  private renderPersonalDetailsFields(): void {
+  private renderPersonalDetails(): void {
     this.createPersonalDetails();
     const { PERSONAL_DETAILS } = CssClasses;
     const container = this.$(classSelector(PERSONAL_DETAILS));
@@ -103,7 +103,7 @@ export default class RegistrationPage extends Page {
     this[`${typeOfAddress}Address`].push(streetField, cityField, postalCodeField, countryField);
   }
 
-  private renderAddressFields(typeOfAddress: TypeOfAddress): void {
+  private renderAddress(typeOfAddress: TypeOfAddress): void {
     this.createAddress(typeOfAddress);
     const { SHIPPING_ADDRESS, BILLING_ADDRESS } = CssClasses;
     const selector = typeOfAddress === 'billing' ? BILLING_ADDRESS : SHIPPING_ADDRESS;
