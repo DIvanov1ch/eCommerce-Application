@@ -1,20 +1,17 @@
 import { Customer } from '@commercetools/platform-sdk';
 import Page from '../Page';
 import html from './user-profile.html';
-import addressLine from './address-line-template.html';
 import './user-profile.scss';
 import Store from '../../services/Store';
 import { classSelector, pause } from '../../utils/create-element';
 import CssClasses from './css-classes';
 import { logout } from '../../services/API';
 import { loadCustomer } from '../../utils/load-data';
-import { setElementTextContent } from '../../utils/service-functions';
 import ChangePassword from '../../components/ChangePassword';
 import PopupMenu from '../../components/PopupMenu';
 import AddAddress from '../../components/AddAddress';
-import EditAddress from '../../components/EditAddress';
 import EditProfile from '../../components/EditProfile';
-import DeleteAddress from '../../components/DeleteAddress';
+import AddressLine from '../../components/AddressLine';
 
 const REDIRECT_DELAY = 5000;
 const TIMER_HTML = `<time-out time="${REDIRECT_DELAY / 1000}"></time-out>`;
@@ -22,6 +19,7 @@ const HTML_NOT_LOGGED_IN = `<p>Looks like you are not logged into your account o
 const HTML_SESSION_EXPIRED = `<h3>Your session has expired</h3>
 <div>We're sorry, but we had to log you out and end your session. Please log in to your account <a href="#login">here</a>.</div><div>You will be redirected in ${TIMER_HTML} sec...</div>`;
 const PASSWORD_DOT = '•';
+const MinPasswordLength = 8;
 
 export default class UserProfile extends Page {
   private customer!: Customer;
@@ -47,7 +45,7 @@ export default class UserProfile extends Page {
     }
 
     this.load();
-    this.setCallback();
+    this.setCallbacks();
   }
 
   private load(): void {
@@ -60,20 +58,16 @@ export default class UserProfile extends Page {
   }
 
   private updateCustomer(): void {
-    this.customer = Store.customer as Customer;
+    if (Store.customer) {
+      this.customer = Store.customer;
+    }
     this.render();
   }
 
   private render(): void {
-    this.renderAddress();
-    this.setUserProfileInfo();
-    this.setPasswordLengthDisplay();
-  }
-
-  private renderAddress(): void {
     this.createAddressLines();
-    this.setAddressInfo();
-    this.setAddressIconsCallback();
+    this.setPersonalDetails();
+    this.displayPasswordLength();
   }
 
   private async goToLoginPage(htmlText: string): Promise<void> {
@@ -87,72 +81,30 @@ export default class UserProfile extends Page {
 
   private createAddressLines(): void {
     const { LINE_WRAPPER } = CssClasses;
-    this.clearContent(classSelector(LINE_WRAPPER));
+    this.removeContent(classSelector(LINE_WRAPPER));
     const container = this.$(classSelector(LINE_WRAPPER));
-    this.customer.addresses.forEach((): void => {
-      container?.insertAdjacentHTML('beforeend', addressLine);
+    this.customer.addresses.forEach((address): void => {
+      container?.insertAdjacentElement('beforeend', new AddressLine(address));
     });
   }
 
-  private setUserProfileInfo(): void {
+  private setPersonalDetails(): void {
     const { firstName, lastName, dateOfBirth, email } = this.customer;
     const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = CssClasses;
-    if (firstName && lastName && dateOfBirth) {
-      setElementTextContent({ container: this, selector: classSelector(FIRST_NAME), content: firstName });
-      setElementTextContent({ container: this, selector: classSelector(LAST_NAME), content: lastName });
-      setElementTextContent({ container: this, selector: classSelector(DATE_OF_BIRTH), content: dateOfBirth });
-    }
-    setElementTextContent({ container: this, selector: classSelector(EMAIL), content: email });
+    this.setTextContent(classSelector(FIRST_NAME), firstName);
+    this.setTextContent(classSelector(LAST_NAME), lastName);
+    this.setTextContent(classSelector(DATE_OF_BIRTH), dateOfBirth);
+    this.setTextContent(classSelector(EMAIL), email);
   }
 
-  private setPasswordLengthDisplay(): void {
+  private displayPasswordLength(): void {
     const { password } = this.customer;
     const { PASSWORD } = CssClasses;
-    const length = password?.length as number;
-    setElementTextContent({ container: this, selector: classSelector(PASSWORD), content: PASSWORD_DOT.repeat(length) });
+    const length = password?.length;
+    this.setTextContent(classSelector(PASSWORD), PASSWORD_DOT.repeat(length || MinPasswordLength));
   }
 
-  private setAddressInfo(): void {
-    const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
-      this.customer;
-    const lines = this.$$(classSelector(CssClasses.ADDRESS_LINE));
-    lines.forEach((line, rowIndex) => {
-      const address = addresses[rowIndex];
-      const { id, streetName, city, postalCode, country } = address;
-      const { STREET, CITY, POSTAL_CODE, COUNTRY, TYPE_OF_ADDRESS, ADDRESS_BOX } = CssClasses;
-      const addressTypeContainer = <HTMLDivElement>line.querySelector(classSelector(TYPE_OF_ADDRESS));
-      const addressContainer = <HTMLDivElement>line.querySelector(classSelector(ADDRESS_BOX));
-      const addressTypes: string[] = [];
-      if (id === defaultShippingAddressId) {
-        addressTypes.push(CssClasses.DEFAULT_SHIPPING);
-      }
-      if (id === defaultBillingAddressId) {
-        addressTypes.push(CssClasses.DEFAULT_BILLING);
-      }
-      if (shippingAddressIds?.includes(id as string)) {
-        addressTypes.push(CssClasses.SHIPPING);
-      }
-      if (billingAddressIds?.includes(id as string)) {
-        addressTypes.push(CssClasses.BILLING);
-      }
-      addressContainer.setAttribute('id', id as string);
-      if (streetName && city && postalCode) {
-        setElementTextContent({ container: line, selector: classSelector(STREET), content: streetName });
-        setElementTextContent({ container: line, selector: classSelector(CITY), content: city });
-        setElementTextContent({ container: line, selector: classSelector(POSTAL_CODE), content: postalCode });
-      }
-      setElementTextContent({ container: line, selector: classSelector(COUNTRY), content: country });
-      UserProfile.setAddressTypes(addressTypeContainer, addressTypes);
-    });
-  }
-
-  private static setAddressTypes(container: HTMLDivElement, addressTypes: string[]): void {
-    addressTypes.forEach((type) => {
-      [...container.children].find((child) => child.classList.contains(type))?.classList.remove(CssClasses.HIDDEN);
-    });
-  }
-
-  private setCallback(): void {
+  private setCallbacks(): void {
     const { NAME_BOX, WRAPPER_WRITE, PASSWORD_BOX, ADD_BUTTON_BOX } = CssClasses;
     const writeProfileInfoBox = this.$(`${classSelector(NAME_BOX)} ${classSelector(WRAPPER_WRITE)}`);
     const writePasswordBox = this.$(`${classSelector(PASSWORD_BOX)} ${classSelector(WRAPPER_WRITE)}`);
@@ -166,15 +118,6 @@ export default class UserProfile extends Page {
     window.addEventListener('userchange', this.windowCallback);
   }
 
-  private setAddressIconsCallback(): void {
-    const { ADDRESS_BOX, WRAPPER_WRITE, WRAPPER_DELETE } = CssClasses;
-    const writeAddressBoxes = this.$$(`${classSelector(ADDRESS_BOX)} ${classSelector(WRAPPER_WRITE)}`);
-    const deleteBoxes = this.$$(classSelector(WRAPPER_DELETE));
-
-    writeAddressBoxes.forEach((box) => box.addEventListener('click', this.editAddress.bind(this)));
-    deleteBoxes.forEach((box) => box.addEventListener('click', this.deleteAddress.bind(this)));
-  }
-
   private editProfile(): void {
     this.popupMenu = new EditProfile();
     this.popupMenu.show();
@@ -185,26 +128,12 @@ export default class UserProfile extends Page {
     this.popupMenu.show();
   }
 
-  private editAddress(event: Event): void {
-    const target = event.currentTarget as HTMLElement;
-    const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.popupMenu = new EditAddress(fieldContainer.id);
-    this.popupMenu.show();
-  }
-
-  private deleteAddress(event: Event): void {
-    const target = event.currentTarget as HTMLElement;
-    const fieldContainer = target.closest(classSelector(CssClasses.CONTAINER)) as HTMLDivElement;
-    this.popupMenu = new DeleteAddress(fieldContainer.id);
-    this.popupMenu.show();
-  }
-
   private addNewAddress(): void {
     this.popupMenu = new AddAddress();
     this.popupMenu.show();
   }
 
-  private clearContent(selector: string): void {
+  private removeContent(selector: string): void {
     const contentBox = this.$(selector);
     if (contentBox) {
       while (contentBox.firstElementChild) {
@@ -213,7 +142,16 @@ export default class UserProfile extends Page {
     }
   }
 
+  private setTextContent(selector: string, content = ''): void {
+    const infoElement = this.$(selector);
+    if (infoElement !== null) {
+      infoElement.textContent = content;
+    }
+  }
+
   protected disconnectedCallback(): void {
-    window.removeEventListener('userchange', this.windowCallback as () => void);
+    if (this.windowCallback) {
+      window.removeEventListener('userchange', this.windowCallback);
+    }
   }
 }

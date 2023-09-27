@@ -1,28 +1,15 @@
 enum CssClasses {
   LINE_WRAPPER = 'user-profile__line-wrapper',
-  ADDRESS_LINE = 'address-line',
-  TYPE_OF_ADDRESS = 'address-type',
-  SHIPPING = 'shipping',
-  BILLING = 'billing',
-  DEFAULT_SHIPPING = 'default-shipping',
-  DEFAULT_BILLING = 'default-billing',
-  HIDDEN = 'hidden',
-  CONTAINER = 'user-profile__container',
   WRAPPER_WRITE = 'image__wrapper_write',
   WRAPPER_DELETE = 'image__wrapper_delete',
   NAME_BOX = 'container_name',
   PASSWORD_BOX = 'container_password',
-  ADDRESS_BOX = 'container_addresses',
   ADD_BUTTON_BOX = 'user-profile__button-box',
   FIRST_NAME = 'first-name',
   LAST_NAME = 'last-name',
   EMAIL = 'email',
   PASSWORD = 'password',
   DATE_OF_BIRTH = 'date-of-birth',
-  STREET = 'street',
-  CITY = 'city',
-  POSTAL_CODE = 'postal-code',
-  COUNTRY = 'country',
 }
 
 export default CssClasses;
