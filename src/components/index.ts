@@ -29,6 +29,7 @@ import DateOfBirthField from './InputField/DateOfBirthField';
 import StreetField from './InputField/StreetField';
 import PostalCodeField from './InputField/PostalCodeField';
 import CountryField from './InputField/CountryField';
+import AddressLine from './AddressLine';
 
 const Components = {
   'page-header': PageHeader,
@@ -62,6 +63,7 @@ const Components = {
   'street-field': StreetField,
   'postal-code-field': PostalCodeField,
   'country-field': CountryField,
+  'address-line': AddressLine,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {
