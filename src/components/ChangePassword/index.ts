@@ -1,15 +1,14 @@
-import { Customer, MyCustomerChangePassword } from '@commercetools/platform-sdk';
-import InputID from '../../enums/input-id';
-import { idSelector } from '../../utils/create-element';
-import { getInputValue } from '../../utils/service-functions';
+import { MyCustomerChangePassword } from '@commercetools/platform-sdk';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
 import { changePassword } from '../../services/API';
 import Store from '../../services/Store';
 import showToastMessage from '../../utils/show-toast-message';
-import Validator from '../../services/Validator';
-import ErrorMessages from '../../constants';
 import loginUser from '../../utils/login';
+import PasswordField from '../InputField/PasswordField';
+import FormValidator from '../../services/FormValidator';
+import throwError from '../../utils/throw-error';
+import { WarningMessage } from '../../interfaces';
 
 const SubmitBtnValue = {
   SAVE_CHANGES: 'Save changes',
@@ -20,7 +19,42 @@ const ToastMessage = {
   ERROR: 'The given current password does not match',
 };
 
+const ErrorMessage: WarningMessage = {
+  emptyField: 'Put your current password',
+  invalidValue: 'Your password may be incorrect',
+};
+
+const PasswordFieldId = {
+  CURRENT: 'old-password',
+  NEW: 'new-password',
+  REENTERED: 're-entered-password',
+};
+
+const LabelText = {
+  CURRENT: 'Current password',
+  NEW: 'New password',
+  REENTERED: 'Re-enter new password',
+};
+
 export default class ChangePassword extends PopupMenu {
+  private currentPassword = new PasswordField(
+    {
+      inputParams: { id: PasswordFieldId.CURRENT, type: 'password' },
+      labelText: LabelText.CURRENT,
+    },
+    ErrorMessage
+  );
+
+  private newPassword = new PasswordField({
+    inputParams: { id: PasswordFieldId.NEW, type: 'password' },
+    labelText: LabelText.NEW,
+  });
+
+  private reenteredPassword = new PasswordField({
+    inputParams: { id: PasswordFieldId.REENTERED, type: 'password' },
+    labelText: LabelText.REENTERED,
+  });
+
   protected requestBody: MyCustomerChangePassword = {
     version: 0,
     currentPassword: '',
@@ -29,22 +63,25 @@ export default class ChangePassword extends PopupMenu {
 
   constructor() {
     super(html, SubmitBtnValue.SAVE_CHANGES, true);
+    if (!Store.customer) {
+      throwError(new Error('Customer does not exist'));
+      return;
+    }
+    this.version = Store.customer.version;
   }
 
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    const inputs = this.getAllInputs();
-    const submitButton = this.getSubmitButton();
-    this.validator = new Validator(inputs, submitButton);
+    this.insertElements([this.currentPassword, this.newPassword, this.reenteredPassword]);
+    this.validator = new FormValidator(this);
   }
 
   protected setRequestBody(): boolean {
-    const { NEW_PASSWORD, OLD_PASSWORD, RE_ENTERED_PASSWORD } = InputID;
-    const { version } = Store.customer as Customer;
-    const currentPassword = getInputValue(idSelector(OLD_PASSWORD));
-    const newPassword = getInputValue(idSelector(NEW_PASSWORD));
-    const reenteredPassword = getInputValue(idSelector(RE_ENTERED_PASSWORD));
+    const { version } = this;
+    const currentPassword = this.currentPassword.getInputValue();
+    const newPassword = this.newPassword.getInputValue();
+    const reenteredPassword = this.reenteredPassword.getInputValue();
     if (newPassword !== reenteredPassword) {
       this.showPasswordMismatchError();
       return false;
@@ -81,17 +118,14 @@ export default class ChangePassword extends PopupMenu {
   }
 
   private showPasswordMismatchError(): void {
-    const { RE_ENTERED_PASSWORD } = InputID;
-    const message = ErrorMessages.PASSWORD_MISMATCH.password;
-    this.validator?.setErrorMessage(RE_ENTERED_PASSWORD, message);
-    this.validator?.showErrorMessage(RE_ENTERED_PASSWORD);
-    this.validator?.setSubmitButtonState();
+    const message: WarningMessage = { emptyField: '', invalidValue: 'Password mismatch' };
+    this.reenteredPassword.setWarning(message);
+    this.reenteredPassword.displayWarning();
   }
 
   private showInvalidCurrentPasswordError(): void {
-    const message = ErrorMessages.INVALID_CURRENT_PASSWORD.password;
-    this.validator?.setErrorMessage(InputID.OLD_PASSWORD, message);
-    this.validator?.showErrorMessage(InputID.OLD_PASSWORD);
-    this.validator?.setSubmitButtonState();
+    const message: WarningMessage = { emptyField: '', invalidValue: 'The given current password does not match' };
+    this.currentPassword.setWarning(message);
+    this.currentPassword.displayWarning();
   }
 }
