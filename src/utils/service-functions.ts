@@ -1,24 +1,6 @@
 import { TextContentParams } from '../types';
 import throwError from './throw-error';
 
-export function setInputValue(selector: string, value = ''): void {
-  const input = document.querySelector<HTMLInputElement>(selector);
-  if (input === null) {
-    throwError(new Error(`${selector} is 'null'`));
-    return;
-  }
-  input.value = value;
-}
-
-export function getInputValue(selector: string): string {
-  const input = document.querySelector<HTMLInputElement>(selector);
-  if (input === null) {
-    throwError(new Error(`${selector} is 'null'`));
-    return 'null';
-  }
-  return input.value;
-}
-
 export function setElementTextContent(params: TextContentParams): void {
   const { container, selector, content } = params;
   const element = container.querySelector(selector);
