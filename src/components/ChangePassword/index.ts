@@ -54,13 +54,17 @@ export default class ChangePassword extends PopupMenu {
     };
     this.currentPassword = new PasswordField(params, ErrorMessage);
 
-    params.inputParams.id = PasswordFieldId.NEW;
-    params.labelText = LabelText.NEW;
-    this.newPassword = new PasswordField(params);
+    const newParams: FieldParams = {
+      inputParams: { id: PasswordFieldId.NEW, type: 'password' },
+      labelText: LabelText.NEW,
+    };
+    this.newPassword = new PasswordField(newParams);
 
-    params.inputParams.id = PasswordFieldId.REENTERED;
-    params.labelText = LabelText.REENTERED;
-    this.reenteredPassword = new PasswordField(params);
+    const reenteredParams: FieldParams = {
+      inputParams: { id: PasswordFieldId.REENTERED, type: 'password' },
+      labelText: LabelText.REENTERED,
+    };
+    this.reenteredPassword = new PasswordField(reenteredParams);
   }
 
   protected connectedCallback(): void {
