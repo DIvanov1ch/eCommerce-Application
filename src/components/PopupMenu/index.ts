@@ -1,4 +1,4 @@
-import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
+import { Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import { classSelector } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import html from './template.html';
@@ -27,7 +27,7 @@ const ToastMessage = {
 export default class PopupMenu extends BaseComponent {
   protected validator!: FormValidator;
 
-  protected version!: number;
+  protected customer!: Customer;
 
   protected actions: MyCustomerUpdateAction[] = [];
 
@@ -43,7 +43,7 @@ export default class PopupMenu extends BaseComponent {
       throwError(new Error('Customer does not exist'));
       return;
     }
-    this.version = Store.customer.version;
+    this.customer = Store.customer;
   }
 
   protected connectedCallback(): void {
@@ -59,10 +59,9 @@ export default class PopupMenu extends BaseComponent {
     this.addEventListener('click', this.closeModalWindow.bind(this));
   }
 
-  public insertElements(elements: Element[]): void {
-    const { MAIN } = CssClasses;
-    const main = this.$(classSelector(MAIN));
-    elements.forEach((element) => main?.insertAdjacentElement('beforeend', element));
+  public insertElements(elements: Element[], cssClass: string = CssClasses.MAIN): void {
+    const container = this.$(classSelector(cssClass));
+    elements.forEach((element) => container?.insertAdjacentElement('beforeend', element));
   }
 
   public show(): void {
@@ -109,7 +108,8 @@ export default class PopupMenu extends BaseComponent {
   }
 
   protected submit(): void {
-    const { version, actions } = this;
+    const { actions } = this;
+    const { version } = this.customer;
     updateCustomer({ version, actions })
       .then(({ body }) => {
         Store.customer = body;

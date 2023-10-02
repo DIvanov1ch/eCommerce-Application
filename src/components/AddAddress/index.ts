@@ -1,13 +1,16 @@
 import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
-import { Country } from '../../config';
 import InputID from '../../enums/input-id';
-import Validator from '../../services/Validator';
-import { idSelector } from '../../utils/create-element';
-import { getCheckboxState, getInputValue, makeCheckboxChecked } from '../../utils/service-functions';
+import { classSelector, idSelector } from '../../utils/create-element';
+import { getCheckboxState, makeCheckboxChecked, makeCheckboxUnchecked } from '../../utils/service-functions';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
 import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
+import FormValidator from '../../services/FormValidator';
+import StreetField from '../InputField/StreetField';
+import CityField from '../InputField/CityField';
+import CountryField from '../InputField/CountryField';
+import PostalCodeField from '../InputField/PostalCodeField';
 
 const SubmitBtnValue = {
   ADD: 'Add address',
@@ -18,9 +21,21 @@ const ToastMessage = {
   ERROR: 'The given current password does not match',
 };
 
+enum CssClasses {
+  FIELDS = 'adress__fields',
+}
+
 const getAddressKey = (): string => Date.now().toString();
 
 export default class AddAddress extends PopupMenu {
+  private street = new StreetField();
+
+  private city = new CityField();
+
+  private postalCode = new PostalCodeField();
+
+  private country = new CountryField();
+
   protected addressKey: string;
 
   constructor() {
@@ -31,33 +46,46 @@ export default class AddAddress extends PopupMenu {
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    const inputs = this.getAllInputs();
-    const submitButton = this.getSubmitButton();
-    this.validator = new Validator(inputs, submitButton);
+    this.render();
+    this.validator = new FormValidator(this);
 
     this.setCheckboxCallback();
   }
 
+  private render(): void {
+    this.insertElements([this.street, this.city, this.postalCode, this.country], CssClasses.FIELDS);
+  }
+
   private setCheckboxCallback(): void {
-    const { DEFAULT_BILLING, DEFAULT_SHIPPING } = InputID;
-    const defaultBillingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_BILLING));
-    const defaultShippingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_SHIPPING));
+    const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
+    const defaultBillingCheckbox = this.$<'input'>(idSelector(DEFAULT_BILLING));
+    const defaultShippingCheckbox = this.$<'input'>(idSelector(DEFAULT_SHIPPING));
     [defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
-      checkbox.addEventListener('change', (event) => {
-        const target = event.target as HTMLInputElement;
-        if (target.checked) {
+      checkbox?.addEventListener('change', (event) => {
+        const { target } = event;
+        if (target instanceof HTMLInputElement && target.checked) {
           makeCheckboxChecked(idSelector(target.className));
+        }
+      });
+    });
+
+    const billingCountryCheckbox = this.$<'input'>(idSelector(BILLING_COUNTRY));
+    const shippingCountryCheckbox = this.$<'input'>(idSelector(SHIPPING_COUNTRY));
+    [billingCountryCheckbox, shippingCountryCheckbox].forEach((checkbox) => {
+      checkbox?.addEventListener('change', (event) => {
+        const { target } = event;
+        if (target instanceof HTMLInputElement && !target.checked) {
+          makeCheckboxUnchecked(classSelector(target.id));
         }
       });
     });
   }
 
   private setRequestBody(): void {
-    const { STREET, CITY, POSTAL_CODE } = InputID;
-    const streetName = getInputValue(idSelector(STREET));
-    const city = getInputValue(idSelector(CITY));
-    const postalCode = getInputValue(idSelector(POSTAL_CODE));
-    const country = Country.UnitedStates;
+    const streetName = this.street.getInputValue();
+    const city = this.city.getInputValue();
+    const postalCode = this.postalCode.getInputValue();
+    const country = this.country.getInputValue().slice(-3, -1);
     const { addressKey } = this;
     const actions: MyCustomerUpdateAction[] = [
       {
