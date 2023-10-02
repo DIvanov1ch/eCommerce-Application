@@ -7,8 +7,8 @@ import showToastMessage from '../../utils/show-toast-message';
 import loginUser from '../../utils/login';
 import PasswordField from '../InputField/PasswordField';
 import FormValidator from '../../services/FormValidator';
-import throwError from '../../utils/throw-error';
 import { WarningMessage } from '../../interfaces';
+import { FieldParams } from '../../types';
 
 const SubmitBtnValue = {
   SAVE_CHANGES: 'Save changes',
@@ -37,37 +37,30 @@ const LabelText = {
 };
 
 export default class ChangePassword extends PopupMenu {
-  private currentPassword = new PasswordField(
-    {
-      inputParams: { id: PasswordFieldId.CURRENT, type: 'password' },
-      labelText: LabelText.CURRENT,
-    },
-    ErrorMessage
-  );
+  private currentPassword: PasswordField;
 
-  private newPassword = new PasswordField({
-    inputParams: { id: PasswordFieldId.NEW, type: 'password' },
-    labelText: LabelText.NEW,
-  });
+  private newPassword: PasswordField;
 
-  private reenteredPassword = new PasswordField({
-    inputParams: { id: PasswordFieldId.REENTERED, type: 'password' },
-    labelText: LabelText.REENTERED,
-  });
+  private reenteredPassword: PasswordField;
 
-  protected requestBody: MyCustomerChangePassword = {
-    version: 0,
-    currentPassword: '',
-    newPassword: '',
-  };
+  protected requestBody!: MyCustomerChangePassword;
 
   constructor() {
     super(html, SubmitBtnValue.SAVE_CHANGES, true);
-    if (!Store.customer) {
-      throwError(new Error('Customer does not exist'));
-      return;
-    }
-    this.version = Store.customer.version;
+
+    const params: FieldParams = {
+      inputParams: { id: PasswordFieldId.CURRENT, type: 'password' },
+      labelText: LabelText.CURRENT,
+    };
+    this.currentPassword = new PasswordField(params, ErrorMessage);
+
+    params.inputParams.id = PasswordFieldId.NEW;
+    params.labelText = LabelText.NEW;
+    this.newPassword = new PasswordField(params);
+
+    params.inputParams.id = PasswordFieldId.REENTERED;
+    params.labelText = LabelText.REENTERED;
+    this.reenteredPassword = new PasswordField(params);
   }
 
   protected connectedCallback(): void {
@@ -78,7 +71,7 @@ export default class ChangePassword extends PopupMenu {
   }
 
   protected setRequestBody(): boolean {
-    const { version } = this;
+    const { version } = this.customer;
     const currentPassword = this.currentPassword.getInputValue();
     const newPassword = this.newPassword.getInputValue();
     const reenteredPassword = this.reenteredPassword.getInputValue();

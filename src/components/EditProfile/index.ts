@@ -1,11 +1,9 @@
-import { Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
-import Store from '../../services/Store';
+import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
 import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
 import FormValidator from '../../services/FormValidator';
-import throwError from '../../utils/throw-error';
 import NameField from '../InputField/NameField';
 import EmailField from '../InputField/EmailField';
 import DateOfBirthField from '../InputField/DateOfBirthField';
@@ -28,15 +26,8 @@ export default class EditProfile extends PopupMenu {
 
   private dateOfBirth = new DateOfBirthField();
 
-  private customer!: Customer;
-
   constructor() {
     super(html, SubmitBtnValue.SAVE, true);
-    if (!Store.customer) {
-      throwError(new Error('Customer does not exist'));
-      return;
-    }
-    this.customer = Store.customer;
   }
 
   protected connectedCallback(): void {
