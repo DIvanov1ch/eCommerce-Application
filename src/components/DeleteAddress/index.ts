@@ -1,10 +1,8 @@
-import { Address, Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
+import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
 import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
-import Store from '../../services/Store';
-import { setElementTextContent } from '../../utils/service-functions';
 import { classSelector } from '../../utils/create-element';
 
 const SubmitBtnValue = {
@@ -25,26 +23,31 @@ enum CssClasses {
 
 export default class DeleteAddress extends PopupMenu {
   constructor(protected addressId: string) {
-    super(html, SubmitBtnValue.DELETE, false);
+    super(html, SubmitBtnValue.DELETE);
   }
 
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    this.fillTemplate();
+    this.render();
   }
 
-  private fillTemplate(): void {
-    const { addresses } = Store.customer as Customer;
-    const addressToDelete = addresses.find((address) => address.id === this.addressId) as Address;
-    const { streetName, city, postalCode, country } = addressToDelete;
+  private render(): void {
+    const { addresses } = this.customer;
+    const addressToDelete = addresses.find((address) => address.id === this.addressId);
+    const { streetName, city, postalCode, country } = addressToDelete || addresses[0];
     const { STREET, CITY, POSTAL_CODE, COUNTRY } = CssClasses;
-    if (streetName && city && postalCode) {
-      setElementTextContent({ container: this, selector: classSelector(STREET), content: streetName });
-      setElementTextContent({ container: this, selector: classSelector(CITY), content: city });
-      setElementTextContent({ container: this, selector: classSelector(POSTAL_CODE), content: postalCode });
+    this.setTextContent(classSelector(STREET), streetName);
+    this.setTextContent(classSelector(CITY), city);
+    this.setTextContent(classSelector(POSTAL_CODE), postalCode);
+    this.setTextContent(classSelector(COUNTRY), country);
+  }
+
+  private setTextContent(selector: string, content = ''): void {
+    const infoElement = this.$(selector);
+    if (infoElement !== null) {
+      infoElement.textContent = content;
     }
-    setElementTextContent({ container: this, selector: classSelector(COUNTRY), content: country });
   }
 
   private setRequestBody(): void {
