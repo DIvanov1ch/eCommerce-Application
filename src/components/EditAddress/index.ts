@@ -1,14 +1,17 @@
-import { Address, Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
+import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import InputID from '../../enums/input-id';
-import Validator from '../../services/Validator';
 import { classSelector, idSelector } from '../../utils/create-element';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
-import Store from '../../services/Store';
-import { getCheckboxState, getInputValue, makeCheckboxChecked, setInputValue } from '../../utils/service-functions';
+import { getCheckboxState, makeCheckboxChecked, makeCheckboxUnchecked } from '../../utils/service-functions';
 import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
-import { Country } from '../../config';
+import FormValidator from '../../services/FormValidator';
+import StreetField from '../InputField/StreetField';
+import CityField from '../InputField/CityField';
+import PostalCodeField from '../InputField/PostalCodeField';
+import CountryField from '../InputField/CountryField';
+import throwError from '../../utils/throw-error';
 
 const SubmitBtnValue = {
   SAVE: 'Save',
@@ -16,7 +19,13 @@ const SubmitBtnValue = {
 
 enum CssClasses {
   SUBMIT_BUTTON = 'submit-button',
+  FIELDS = 'adress__fields',
 }
+
+const CountryNames = new Map<string, string>([
+  ['US', 'United States (US)'],
+  ['MX', 'Mexico (MX)'],
+]);
 
 const ToastMessage = {
   ADDRESS_CHANGED: 'Address changed',
@@ -26,6 +35,14 @@ const ToastMessage = {
 };
 
 export default class EditAddress extends PopupMenu {
+  private street = new StreetField();
+
+  private city = new CityField();
+
+  private postalCode = new PostalCodeField();
+
+  private country = new CountryField();
+
   private checkboxState = {
     billing: false,
     shipping: false,
@@ -40,38 +57,24 @@ export default class EditAddress extends PopupMenu {
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    const inputs = this.getAllInputs();
-    const submitButton = this.getSubmitButton();
-    this.validator = new Validator(inputs, submitButton);
+    this.render();
+    this.validator = new FormValidator(this);
 
     this.setCheckboxCallback();
-    this.fillTemplate();
   }
 
-  private setCheckboxCallback(): void {
-    const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
-    const defaultBillingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_BILLING));
-    const defaultShippingCheckbox = <HTMLInputElement>this.$(idSelector(DEFAULT_SHIPPING));
-    const billingCheckbox = <HTMLInputElement>this.$(idSelector(BILLING_COUNTRY));
-    const shippingCheckbox = <HTMLInputElement>this.$(idSelector(SHIPPING_COUNTRY));
-    const submitButton = <HTMLInputElement>this.$(classSelector(CssClasses.SUBMIT_BUTTON));
-    [billingCheckbox, shippingCheckbox, defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        submitButton.disabled = false;
-      });
-    });
-  }
-
-  private fillTemplate(): void {
+  private render(): void {
+    this.insertElements([this.street, this.city, this.postalCode, this.country], CssClasses.FIELDS);
     const { addresses, defaultShippingAddressId, defaultBillingAddressId, shippingAddressIds, billingAddressIds } =
-      Store.customer as Customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
-    const { streetName, city, postalCode } = addressToChange;
-    const { STREET, CITY, POSTAL_CODE, SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+      this.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressId);
+    const { streetName, city, postalCode, country } = addressToChange || addresses[0];
+    const { SHIPPING_COUNTRY, BILLING_COUNTRY, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
 
-    setInputValue(idSelector(STREET), streetName);
-    setInputValue(idSelector(CITY), city);
-    setInputValue(idSelector(POSTAL_CODE), postalCode);
+    this.street.setInputValue(streetName);
+    this.city.setInputValue(city);
+    this.postalCode.setInputValue(postalCode);
+    this.country.setInputValue(CountryNames.get(country));
     if (this.addressId === defaultShippingAddressId) {
       makeCheckboxChecked(idSelector(DEFAULT_SHIPPING));
       this.checkboxState.defaultShipping = true;
@@ -90,15 +93,52 @@ export default class EditAddress extends PopupMenu {
     }
   }
 
+  private setCheckboxCallback(): void {
+    const { DEFAULT_BILLING, DEFAULT_SHIPPING, BILLING_COUNTRY, SHIPPING_COUNTRY } = InputID;
+    const { SUBMIT_BUTTON } = CssClasses;
+    const defaultBillingCheckbox = this.$<'input'>(idSelector(DEFAULT_BILLING));
+    const defaultShippingCheckbox = this.$<'input'>(idSelector(DEFAULT_SHIPPING));
+    const billingCheckbox = this.$<'input'>(idSelector(BILLING_COUNTRY));
+    const shippingCheckbox = this.$<'input'>(idSelector(SHIPPING_COUNTRY));
+    const submitButton = this.$<'input'>(classSelector(SUBMIT_BUTTON));
+    if (submitButton === null) {
+      throwError(new Error(`${SUBMIT_BUTTON} is 'null'`));
+      return;
+    }
+    [billingCheckbox, shippingCheckbox, defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
+      checkbox?.addEventListener('change', () => {
+        submitButton.disabled = false;
+      });
+    });
+
+    [defaultShippingCheckbox, defaultBillingCheckbox].forEach((checkbox) => {
+      checkbox?.addEventListener('change', (event) => {
+        const { target } = event;
+        if (target instanceof HTMLInputElement && target.checked) {
+          makeCheckboxChecked(idSelector(target.className));
+        }
+      });
+    });
+
+    [billingCheckbox, shippingCheckbox].forEach((checkbox) => {
+      checkbox?.addEventListener('change', (event) => {
+        const { target } = event;
+        if (target instanceof HTMLInputElement && !target.checked) {
+          makeCheckboxUnchecked(classSelector(target.id));
+        }
+      });
+    });
+  }
+
   private setRequestBody(): void {
-    const { STREET, CITY, POSTAL_CODE } = InputID;
-    const { addresses } = Store.customer as Customer;
-    const addressToChange = addresses.find((address) => address.id === this.addressId) as Address;
-    const { streetName, city, postalCode } = addressToChange;
-    const newStreetName = getInputValue(idSelector(STREET));
-    const newCity = getInputValue(idSelector(CITY));
-    const newPostalCode = getInputValue(idSelector(POSTAL_CODE));
-    const country = Country.UnitedStates;
+    const { addresses } = this.customer;
+    const addressToChange = addresses.find((address) => address.id === this.addressId);
+    const { streetName, city, postalCode } = addressToChange || addresses[0];
+    const newStreetName = this.street.getInputValue();
+    const newCity = this.city.getInputValue();
+    const newPostalCode = this.postalCode.getInputValue();
+    const country = this.country.getInputValue().slice(-3, -1);
+    console.log(country);
     const actions: MyCustomerUpdateAction[] = [];
     if (streetName !== newStreetName || city !== newCity || postalCode !== newPostalCode) {
       actions.push({
