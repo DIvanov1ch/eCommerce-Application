@@ -36,6 +36,15 @@ export function makeCheckboxChecked(selector: string): void {
   checkbox.checked = true;
 }
 
+export function makeCheckboxUnchecked(selector: string): void {
+  const checkbox = document.querySelector<HTMLInputElement>(selector);
+  if (checkbox === null) {
+    throwError(new Error(`${selector} is 'null'`));
+    return;
+  }
+  checkbox.checked = false;
+}
+
 export function getCheckboxState(selector: string): boolean {
   const checkbox = document.querySelector<HTMLInputElement>(selector);
   if (checkbox === null) {
