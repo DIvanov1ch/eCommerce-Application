@@ -10,7 +10,6 @@ import { classSelector, idSelector, pause } from '../../utils/create-element';
 import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
 import Router from '../../services/Router';
-import { Country } from '../../config';
 import { disableInput, enableInput, getCheckboxState } from '../../utils/service-functions';
 import loginUser from '../../utils/login';
 import NameField from '../../components/InputField/NameField';
@@ -194,8 +193,10 @@ export default class RegistrationPage extends Page {
   }
 
   private getAddress(typeOfAddress: TypeOfAddress): BaseAddress {
-    const [streetName, city, postalCode] = this[`${typeOfAddress}Address`].map((field) => field.getInputValue());
-    const country = Country.UnitedStates;
+    const [streetName, city, postalCode, countryValue] = this[`${typeOfAddress}Address`].map((field) =>
+      field.getInputValue()
+    );
+    const country = countryValue.slice(-3, -1);
     const address: BaseAddress = { streetName, city, postalCode, country };
     return address;
   }

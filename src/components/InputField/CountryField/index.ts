@@ -29,7 +29,7 @@ enum CssClasses {
   HIDDEN = 'hidden',
 }
 
-const listOfCountries = ['United States', 'Mexico'];
+const listOfCountries = ['United States (US)', 'Mexico (MX)'];
 
 export default class CountryField extends InputField {
   private documentCallback: ((event: Event) => void) | undefined;

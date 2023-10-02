@@ -5,7 +5,7 @@ const Pattern = {
   street: /\w{1,}/,
   city: /^(?!.*[0-9])(?=.*[a-zA-Z])(?!.*\W\s).{1,}$/,
   postalcode: /\d{5,5}/,
-  country: /^United States$/,
+  country: /^United States \(US\)$/,
   promocode: /^[A-Z0-9]{0,}$/,
 };
 
