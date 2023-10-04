@@ -30,6 +30,7 @@ import StreetField from './InputField/StreetField';
 import PostalCodeField from './InputField/PostalCodeField';
 import CountryField from './InputField/CountryField';
 import AddressLine from './AddressLine';
+import PromoCodeField from './InputField/PromoCodeField';
 
 const Components = {
   'page-header': PageHeader,
@@ -64,6 +65,7 @@ const Components = {
   'postal-code-field': PostalCodeField,
   'country-field': CountryField,
   'address-line': AddressLine,
+  'promo-code-field': PromoCodeField,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {

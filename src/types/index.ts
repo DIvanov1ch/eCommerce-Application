@@ -16,7 +16,7 @@ export type InputParams = {
 
 export type FieldParams = {
   inputParams: InputParams;
-  labelText: string;
+  labelText?: string;
 };
 
 export type NameFieldParams = {

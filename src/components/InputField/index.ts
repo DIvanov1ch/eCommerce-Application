@@ -27,7 +27,7 @@ export default class InputField extends BaseComponent {
 
   private inputParams: InputParams;
 
-  private labelText: string;
+  private labelText?: string;
 
   protected hasPipe = false;
 
@@ -64,6 +64,9 @@ export default class InputField extends BaseComponent {
   }
 
   private setLabelParams(): void {
+    if (!this.labelText) {
+      return;
+    }
     const { LABEL } = CssClasses;
     const label = this.$(classSelector(LABEL));
     if (label) {
