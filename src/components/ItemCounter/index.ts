@@ -126,6 +126,6 @@ export default class ItemCounter extends BaseComponent {
     Store.customerCart = updatedCart;
 
     this.toggleForm(false);
-    dispatch('quantitychange');
+    dispatch('quantitychange', lineItemId);
   }
 }
