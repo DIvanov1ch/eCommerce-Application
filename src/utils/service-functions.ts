@@ -30,8 +30,7 @@ export function makeCheckboxUnchecked(selector: string): void {
 export function getCheckboxState(selector: string): boolean {
   const checkbox = document.querySelector<HTMLInputElement>(selector);
   if (checkbox === null) {
-    throwError(new Error(`${selector} is 'null'`));
-    return false;
+    throw new Error(`${selector} is 'null'`);
   }
   return checkbox.checked;
 }
