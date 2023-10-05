@@ -244,13 +244,7 @@ const updateCart = async (id: string, body: MyCartUpdate): Promise<Cart> => {
 
 const getDiscountCode = async (id: string): Promise<DiscountCode> => {
   const apiRoot = getApiRoot(getAnonymousFlowClient());
-  return (
-    await apiRoot
-      .discountCodes()
-      .withId({ ID: id })
-      .get({ queryArgs: { expand: 'cartDiscount' } })
-      .execute()
-  ).body;
+  return (await apiRoot.discountCodes().withId({ ID: id }).get().execute()).body;
 };
 
 export {
