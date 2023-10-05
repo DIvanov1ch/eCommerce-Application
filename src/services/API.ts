@@ -21,6 +21,7 @@ import {
   Cart,
   MyCartUpdate,
   LineItemDraft,
+  DiscountCode,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -241,6 +242,17 @@ const updateCart = async (id: string, body: MyCartUpdate): Promise<Cart> => {
   return (await apiRoot.me().carts().withId({ ID: id }).post({ body }).execute()).body;
 };
 
+const getDiscountCode = async (id: string): Promise<DiscountCode> => {
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
+  return (
+    await apiRoot
+      .discountCodes()
+      .withId({ ID: id })
+      .get({ queryArgs: { expand: 'cartDiscount' } })
+      .execute()
+  ).body;
+};
+
 export {
   login,
   registerCustomer,
@@ -256,4 +268,5 @@ export {
   getCustomer,
   getCartByCustomerId,
   updateCart,
+  getDiscountCode,
 };
