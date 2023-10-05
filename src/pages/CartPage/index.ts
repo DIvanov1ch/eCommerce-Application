@@ -15,6 +15,7 @@ import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
 import PromoCodeField from '../../components/InputField/PromoCodeField';
 import { WarningMessage } from '../../interfaces';
+import { LANG } from '../../config';
 
 Router.registerRoute('cart', 'cart-page');
 
@@ -23,8 +24,8 @@ const HTML = {
   <p>Looks like you have not added anything to your cart. You will find a lot of interesting products on our <a class="link" href="#catalog">Catalog</a> page.</p>`,
 };
 
-const getPromoTicketHtml = (code: string, value: number): string => {
-  return `<strong>${code}</strong> <span>applied</span> <span class="small">(${value} off)</span>`;
+const getPromoTicketHtml = (code: string, codeName: string): string => {
+  return `<strong>${code}</strong> <span>applied</span> <span class="small">(${codeName})</span>`;
 };
 
 const ToastMessage = {
@@ -250,7 +251,14 @@ export default class CartPage extends Page {
     const { HIDDEN, PROMO_TICKET, TICKET } = CssClasses;
     this.$(classSelector(PROMO_TICKET))?.classList.remove(HIDDEN);
     const promoCode = await getDiscountCode(discountCodeId);
-    const htmlText = getPromoTicketHtml(promoCode.code, 10);
+    if (!promoCode.name) {
+      return;
+    }
+    const {
+      name: { [LANG]: name },
+      code,
+    } = promoCode;
+    const htmlText = getPromoTicketHtml(code, name);
     const ticket = this.$(classSelector(TICKET));
     while (ticket?.firstElementChild) {
       ticket.firstElementChild.remove();
