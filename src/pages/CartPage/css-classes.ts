@@ -1,11 +1,11 @@
 enum CssClasses {
   PAGE = 'page--cart',
-  CARTS = 'cart__carts',
+  CARDS = 'cart__cards',
   PRICE = 'total-price__price',
   SUMMARY = 'total-summary__summary',
   SUBMIT_BTN = 'submit-button',
   BUTTON_CONTAINER = 'button-container',
-  EMPTY_CART = 'cart__carts_empty',
+  EMPTY_CART = 'cart__cards_empty',
   CLEAR_BTN = 'submit-button_clear',
   APPLY_BTN = 'submit-button_apply',
   PROMO_TICKET = 'cart__promo-ticket',
