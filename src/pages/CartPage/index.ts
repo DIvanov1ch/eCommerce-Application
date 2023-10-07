@@ -1,4 +1,4 @@
-import { Cart, LineItem, MyCartUpdateAction } from '@commercetools/platform-sdk';
+import { Cart, DiscountCodeInfo, LineItem, MyCartUpdateAction } from '@commercetools/platform-sdk';
 import { createNewCart, getActiveCart, getDiscountCode, updateCart } from '../../services/API';
 import Router from '../../services/Router';
 import Page from '../Page';
@@ -28,6 +28,27 @@ const getPromoTicketHtml = (code: string, codeName: string): string => {
   return `<strong>${code}</strong> <span>applied</span> <span class="small">(${codeName})</span>`;
 };
 
+const getCartFromStore = (): Cart => {
+  const { customerCart } = Store;
+  if (!customerCart) {
+    throw new Error('Cart has not been created yet');
+  }
+  return customerCart;
+};
+
+const getActiveDiscountId = (discountCodes: DiscountCodeInfo[]): string => {
+  const discountCodeInfo = discountCodes.find((code) => code.state === 'MatchesCart');
+  if (!discountCodeInfo) {
+    throw new Error('No active Promo Codes');
+  }
+  return discountCodeInfo.discountCode.id;
+};
+
+enum ClassListActions {
+  DISABLE = 'add',
+  ENABLE = 'remove',
+}
+
 const ToastMessage = {
   CODE_APPLIED: 'Your Promo Code is applied',
   CODE_REMOVED: 'Your Promo Code is removed',
@@ -37,8 +58,6 @@ const ToastMessage = {
 const PromoCodes = ['AUTUMN', 'SAVE15'];
 
 export default class CartPage extends Page {
-  private cart!: Cart;
-
   private promoCodeField!: PromoCodeField;
 
   private updateCallback!: () => void;
@@ -65,7 +84,6 @@ export default class CartPage extends Page {
     getActiveCart()
       .then((body) => {
         Store.customerCart = body;
-        this.cart = body;
         this.render();
       })
       .catch(() => {
@@ -73,77 +91,70 @@ export default class CartPage extends Page {
       });
   }
 
+  private createCart(): void {
+    createNewCart()
+      .then((body) => {
+        Store.customerCart = body;
+        this.render();
+      })
+      .catch(console.error);
+  }
+
   protected setCallback(): void {
     const { CLEAR_BTN, APPLY_BTN, REMOVE_PROMO } = CssClasses;
-    this.$(classSelector(CLEAR_BTN))?.addEventListener('click', CartPage.clearCart.bind(this));
-    this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.checkPromoCode.bind(this));
+    this.$(classSelector(CLEAR_BTN))?.addEventListener('click', () => new ClearDialog().show());
+    this.$(classSelector(APPLY_BTN))?.addEventListener('click', this.applyPromoCode.bind(this));
     this.$(classSelector(REMOVE_PROMO))?.addEventListener('click', () => {
-      this.removeDiscountCode()
+      CartPage.removeDiscountCode()
         .then(() => {
           this.hidePromoCodeTicket();
           this.render();
         })
         .catch(console.error);
     });
-    this.updateCallback = this.updateCart.bind(this);
-    this.removeCallback = this.loadCart.bind(this);
+    this.updateCallback = this.setTotalPrice.bind(this);
+    this.removeCallback = this.render.bind(this);
     window.addEventListener('quantitychange', this.updateCallback);
     window.addEventListener('itemdelete', this.removeCallback);
   }
 
-  private updateCart(): void {
-    const { customerCart } = Store;
-    this.cart = customerCart || this.cart;
-    this.setTotalPrice();
-  }
-
   private render(): void {
-    if (!this.cart.totalLineItemQuantity) {
+    const { totalLineItemQuantity, lineItems, discountCodes } = getCartFromStore();
+    if (!totalLineItemQuantity) {
       this.renderEmptyCart();
     } else {
-      this.renderLineItems(this.cart.lineItems);
+      this.renderLineItems(lineItems);
+    }
+    if (discountCodes.length) {
+      this.showPromoCodeTicket(discountCodes).then().catch(console.error);
     }
     this.setTotalPrice();
   }
 
   private renderLineItems(lineItems: LineItem[]): void {
-    const { CARTS, EMPTY_CART } = CssClasses;
-    const carts = this.$(classSelector(CARTS));
-    carts?.replaceChildren(...lineItems.map((lineItem: LineItem) => new CartCard(lineItem)));
-    carts?.classList.remove(EMPTY_CART);
+    const { CARDS, EMPTY_CART } = CssClasses;
+    const cards = this.$(classSelector(CARDS));
+    cards?.replaceChildren(...lineItems.map((lineItem: LineItem) => new CartCard(lineItem)));
+    cards?.classList.remove(EMPTY_CART);
 
-    this.enableButtons();
+    this.changeButtonState(ClassListActions.ENABLE);
   }
 
   private renderEmptyCart(): void {
-    const { CARTS, EMPTY_CART } = CssClasses;
-    const carts = this.$(classSelector(CARTS));
-    while (carts?.firstElementChild) {
-      carts.firstElementChild.remove();
+    const { CARDS, EMPTY_CART } = CssClasses;
+    const cards = this.$(classSelector(CARDS));
+    while (cards?.firstElementChild) {
+      cards.firstElementChild.remove();
     }
-    carts?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
-    carts?.classList.add(EMPTY_CART);
+    cards?.insertAdjacentHTML('afterbegin', HTML.EMPTY);
+    cards?.classList.add(EMPTY_CART);
 
-    this.disableButtons();
+    this.changeButtonState(ClassListActions.DISABLE);
     this.promoCodeField.disableInput();
+    this.promoCodeField.hideWarning();
   }
 
-  private createCart(): void {
-    createNewCart()
-      .then((body) => {
-        Store.customerCart = body;
-        this.cart = body;
-        this.render();
-      })
-      .catch(console.error);
-  }
-
-  private static clearCart(): void {
-    const modal = new ClearDialog();
-    modal.show();
-  }
-
-  private checkPromoCode(): void {
+  private applyPromoCode(): void {
     const promoCode = this.promoCodeField.getInputValue();
     if (!PromoCodes.includes(promoCode)) {
       const message: WarningMessage = {
@@ -154,7 +165,7 @@ export default class CartPage extends Page {
       this.promoCodeField.displayWarning();
       return;
     }
-    this.addDiscountCode(promoCode)
+    CartPage.addDiscountCode(promoCode)
       .then(() => {
         this.promoCodeField.setInputValue('');
         this.render();
@@ -162,54 +173,38 @@ export default class CartPage extends Page {
       .catch(console.error);
   }
 
-  private async addDiscountCode(code: string): Promise<void> {
-    if (!Store.customerCart) {
-      showToastMessage(ToastMessage.ERROR, false);
-      return;
-    }
-    const { ADD_DISCOUNT_CODE } = UpdateActions;
-    const { id, version } = Store.customerCart;
-    const actions: MyCartUpdateAction[] = [{ action: ADD_DISCOUNT_CODE, code }];
+  private static async addDiscountCode(code: string): Promise<void> {
+    const cart = getCartFromStore();
+    const { ADD_DISCOUNT_CODE: action } = UpdateActions;
+    const { id, version } = cart;
+    const actions: MyCartUpdateAction[] = [{ action, code }];
     const updatedCart = await updateCart(id, { version, actions });
     Store.customerCart = updatedCart;
-    this.cart = updatedCart;
     showToastMessage(ToastMessage.CODE_APPLIED, true);
   }
 
-  private async removeDiscountCode(): Promise<void> {
-    if (!Store.customerCart) {
-      showToastMessage(ToastMessage.ERROR, false);
-      return;
-    }
-    const { REMOVE_DISCOUNT_CODE } = UpdateActions;
-    const action = REMOVE_DISCOUNT_CODE;
-    const { id, discountCodes, version } = Store.customerCart;
-    const discountObject = discountCodes.find((code) => code.state === 'MatchesCart');
-    const discountCodeId = discountObject?.discountCode.id;
-    if (!discountCodeId) {
-      return;
-    }
+  private static async removeDiscountCode(): Promise<void> {
+    const cart = getCartFromStore();
+    const { REMOVE_DISCOUNT_CODE: action } = UpdateActions;
+    const { id, version, discountCodes } = cart;
+    const discountCodeId = getActiveDiscountId(discountCodes);
     const actions: MyCartUpdateAction[] = [{ action, discountCode: { typeId: 'discount-code', id: discountCodeId } }];
     const updatedCart = await updateCart(id, { version, actions });
     Store.customerCart = updatedCart;
-    this.cart = updatedCart;
     showToastMessage(ToastMessage.CODE_REMOVED, true);
   }
 
   private setTotalPrice(): void {
+    const cart = getCartFromStore();
     const { PRICE, SUMMARY } = CssClasses;
     const {
       totalPrice: { centAmount: totalPrice },
       totalLineItemQuantity,
       discountCodes,
-    } = this.cart;
+    } = cart;
     const priceBox = new PriceBox();
     if (discountCodes.length) {
-      const discountObject = discountCodes.find((code) => code.state === 'MatchesCart');
-      this.showPromoCodeTicket(discountObject?.discountCode.id as string)
-        .then()
-        .catch(console.error);
-      const discountPrice = this.getDiscountPrice();
+      const discountPrice = CartPage.getDiscountPrice(cart);
       priceBox.setPrice(discountPrice);
       priceBox.setDiscounted(totalPrice);
     } else {
@@ -223,8 +218,8 @@ export default class CartPage extends Page {
     });
   }
 
-  private getDiscountPrice(): number {
-    const { lineItems } = this.cart;
+  private static getDiscountPrice(cart: Cart): number {
+    const { lineItems } = cart;
     const priceBeforeDiscount = lineItems.reduce((total, current) => {
       const value = current.price.discounted
         ? current.price.discounted.value.centAmount
@@ -235,39 +230,29 @@ export default class CartPage extends Page {
     return priceBeforeDiscount;
   }
 
-  private disableButtons(): void {
+  private changeButtonState(action: ClassListActions): void {
     const { SUBMIT_BTN, BUTTON_CONTAINER, NOT_ALLOWED, DISABLED } = CssClasses;
-    this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList.add(DISABLED));
-    this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.add(NOT_ALLOWED));
+    this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList[`${action}`](DISABLED));
+    this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList[`${action}`](NOT_ALLOWED));
   }
 
-  private enableButtons(): void {
-    const { SUBMIT_BTN, BUTTON_CONTAINER, NOT_ALLOWED, DISABLED } = CssClasses;
-    this.$$(classSelector(SUBMIT_BTN)).forEach((button) => button.classList.remove(DISABLED));
-    this.$$(classSelector(BUTTON_CONTAINER)).forEach((container) => container.classList.remove(NOT_ALLOWED));
-  }
-
-  private async showPromoCodeTicket(discountCodeId: string): Promise<void> {
+  private async showPromoCodeTicket(discountCodes: DiscountCodeInfo[]): Promise<void> {
+    const id = getActiveDiscountId(discountCodes);
+    const promoCode = await getDiscountCode(id);
     const { HIDDEN, PROMO_TICKET, TICKET } = CssClasses;
     this.$(classSelector(PROMO_TICKET))?.classList.remove(HIDDEN);
-    const promoCode = await getDiscountCode(discountCodeId);
-    if (!promoCode.name) {
-      return;
-    }
-    const {
-      name: { [LANG]: name },
-      code,
-    } = promoCode;
+    const { name: { [LANG]: name } = {}, code } = promoCode;
     const htmlText = getPromoTicketHtml(code, name);
     const ticket = this.$(classSelector(TICKET));
     while (ticket?.firstElementChild) {
       ticket.firstElementChild.remove();
     }
-    this.$(classSelector(CssClasses.TICKET))?.insertAdjacentHTML('afterbegin', htmlText);
+    ticket?.insertAdjacentHTML('afterbegin', htmlText);
   }
 
   private hidePromoCodeTicket(): void {
-    this.$(classSelector(CssClasses.PROMO_TICKET))?.classList.add(CssClasses.HIDDEN);
+    const { PROMO_TICKET, HIDDEN } = CssClasses;
+    this.$(classSelector(PROMO_TICKET))?.classList.add(HIDDEN);
   }
 
   private disconnectedCallback(): void {
