@@ -1,4 +1,4 @@
-import { LineItem, Image, MyCartUpdateAction, DiscountedLineItemPrice, Attribute } from '@commercetools/platform-sdk';
+import { LineItem, MyCartUpdateAction, Attribute } from '@commercetools/platform-sdk';
 import './cart-card.scss';
 import html from './template.html';
 import Store from '../../services/Store';
@@ -14,19 +14,19 @@ import UpdateActions from '../../enums/update-actions';
 
 const LOADER_TEXT = 'Delete';
 
-const CssClasses = {
-  CART: 'cart-card',
-  NAME: 'cart-card__name',
-  IMAGE: 'cart-card__image',
-  PRICE: 'price__main',
-  AMOUNT: 'cart-card__amount',
-  TOTAL: 'cart-card__total-price',
-  REMOVE: 'cart-card__remove',
-  PROMO: 'price__promo',
-  DISCOUNTED_RPICE: 'price__discounted',
-  HIDDEN: 'hidden',
-  NOT_ACTUAL: 'not-actual',
-};
+enum CssClasses {
+  CART = 'cart-card',
+  NAME = 'cart-card__name',
+  IMAGE = 'cart-card__image',
+  PRICE = 'price__main',
+  AMOUNT = 'cart-card__amount',
+  TOTAL = 'cart-card__total-price',
+  REMOVE = 'cart-card__remove',
+  PROMO = 'price__promo',
+  DISCOUNTED_RPICE = 'price__discounted',
+  HIDDEN = 'hidden',
+  NOT_ACTUAL = 'not-actual',
+}
 
 const ToastMessage = {
   ERROR: 'Something went wrong',
@@ -43,7 +43,7 @@ const nameFromAttributes = (attributes?: Attribute[]): string => {
 };
 
 export default class CartCard extends BaseComponent {
-  private windowCallback: (() => void) | undefined;
+  private windowCallback!: (event: Event) => void;
 
   constructor(protected lineItem: LineItem) {
     super(html);
@@ -61,47 +61,46 @@ export default class CartCard extends BaseComponent {
 
     const {
       name: { [LANG]: name },
-      variant: { images, prices = [], attributes },
-      totalPrice: { centAmount },
-      discountedPricePerQuantity,
+      variant: { attributes },
     } = this.lineItem;
 
     const variantName = nameFromAttributes(attributes);
     const itemName = name + (variantName ? ` (${variantName})` : '');
 
-    if (discountedPricePerQuantity.length) {
-      this.setDiscountedPrice(discountedPricePerQuantity[0].discountedPrice);
-    }
-    const {
-      value: { centAmount: price = 0 },
-      discounted: { value: { centAmount: discounted = 0 } = {} } = {},
-    } = prices[0] || {};
-
     this.insertHtml(classSelector(NAME), itemName);
-    this.insertImages(images);
-    this.setPrice(price, discounted);
-    this.setTotalPrice(centAmount);
+    this.insertImages();
+    this.setPrice();
+    this.setTotalPrice();
     this.addItemCounter();
+    if (this.lineItem.discountedPricePerQuantity.length) {
+      this.setDiscountedPrice();
+    }
   }
 
   private setCallback(): void {
-    const image = <HTMLDivElement>this.$(classSelector(CssClasses.IMAGE));
-    const name = <HTMLDivElement>this.$(classSelector(CssClasses.NAME));
-    const remove = <HTMLDivElement>this.$(classSelector(CssClasses.REMOVE));
-    [image, name].forEach((el) =>
-      el.addEventListener('click', () => {
-        window.location.href = `#product/${this.lineItem.productKey}`;
-      })
+    const { IMAGE, NAME, REMOVE } = CssClasses;
+    const image = this.$(classSelector(IMAGE));
+    const name = this.$(classSelector(NAME));
+    [image, name].forEach(
+      (element) =>
+        element?.addEventListener('click', () => {
+          window.location.href = `#product/${this.lineItem.productKey}`;
+        })
     );
-    remove.addEventListener('click', () => {
-      CartCard.removeLineItem(this.lineItem).then().catch(console.error);
+
+    this.$(classSelector(REMOVE))?.addEventListener('click', () => {
+      this.removeLineItem().then().catch(console.error);
     });
 
     this.windowCallback = this.updateLineItem.bind(this);
     window.addEventListener('quantitychange', this.windowCallback);
   }
 
-  protected insertImages(images?: Image[]): void {
+  protected insertImages(): void {
+    const {
+      variant: { images },
+    } = this.lineItem;
+
     if (!images || !images.length) {
       return;
     }
@@ -112,36 +111,47 @@ export default class CartCard extends BaseComponent {
     this.$(classSelector(CssClasses.IMAGE))?.replaceChildren(image);
   }
 
-  protected setPrice(price: number, discounted: number): void {
-    const priceContainer = this.$(classSelector(CssClasses.PRICE));
+  protected setPrice(): void {
     const priceBox = new PriceBox();
+    const {
+      price: {
+        value: { centAmount: price = 0 },
+        discounted: { value: { centAmount: discounted = 0 } = {} } = {},
+      },
+    } = this.lineItem;
+
     priceBox.setPrice(price);
     priceBox.setDiscounted(discounted);
 
-    priceContainer?.replaceChildren(priceBox);
+    this.$(classSelector(CssClasses.PRICE))?.replaceChildren(priceBox);
   }
 
-  protected setTotalPrice(totalPrice: number): void {
-    const priceContainer = this.$(classSelector(CssClasses.TOTAL));
+  protected setTotalPrice(): void {
     const priceBox = new PriceBox();
-    priceBox.setPrice(totalPrice);
-
-    priceContainer?.replaceChildren(priceBox);
-  }
-
-  protected setDiscountedPrice(discountedPrice: DiscountedLineItemPrice): void {
-    const promoContainer = this.$(classSelector(CssClasses.PROMO));
-    const discountContainer = this.$(classSelector(CssClasses.DISCOUNTED_RPICE));
-    const priceContainer = this.$(classSelector(CssClasses.PRICE));
     const {
-      value: { centAmount: price },
-    } = discountedPrice;
+      totalPrice: { centAmount },
+    } = this.lineItem;
+
+    priceBox.setPrice(centAmount);
+
+    this.$(classSelector(CssClasses.TOTAL))?.replaceChildren(priceBox);
+  }
+
+  protected setDiscountedPrice(): void {
+    const { PROMO, DISCOUNTED_RPICE, PRICE, HIDDEN, NOT_ACTUAL } = CssClasses;
     const priceBox = new PriceBox();
+    const [discountedPrice] = this.lineItem.discountedPricePerQuantity;
+    const {
+      discountedPrice: {
+        value: { centAmount: price = 0 },
+      },
+    } = discountedPrice;
+
     priceBox.setPrice(price);
 
-    discountContainer?.replaceChildren(priceBox);
-    promoContainer?.classList.remove(CssClasses.HIDDEN);
-    priceContainer?.classList.add(CssClasses.NOT_ACTUAL);
+    this.$(classSelector(DISCOUNTED_RPICE))?.replaceChildren(priceBox);
+    this.$(classSelector(PROMO))?.classList.remove(HIDDEN);
+    this.$(classSelector(PRICE))?.classList.add(NOT_ACTUAL);
   }
 
   protected addItemCounter(): void {
@@ -150,14 +160,21 @@ export default class CartCard extends BaseComponent {
     counterContainer?.replaceChildren(itemCounter);
   }
 
-  protected updateLineItem(): void {
+  protected updateLineItem(event: Event): void {
+    if (!(event instanceof CustomEvent)) {
+      return;
+    }
     const { customerCart } = Store;
-    const lineItem = <LineItem>customerCart?.lineItems.find((line) => line.id === this.lineItem.id);
-    this.lineItem = lineItem;
-    this.setTotalPrice(this.lineItem.totalPrice.centAmount);
+    if (!customerCart) {
+      throw new Error(`Customer cart is 'undefined'`);
+    }
+    if (event.detail === this.lineItem.id) {
+      this.lineItem = customerCart.lineItems.find((line) => line.id === this.lineItem.id) || this.lineItem;
+      this.setTotalPrice();
+    }
   }
 
-  protected static async removeLineItem(lineItem: LineItem): Promise<void> {
+  protected async removeLineItem(): Promise<void> {
     if (!Store.customerCart) {
       showToastMessage(ToastMessage.ERROR, false);
       return;
@@ -165,7 +182,7 @@ export default class CartCard extends BaseComponent {
     createLoader(LOADER_TEXT);
     const { CHANGE_LINE_ITEM_QUANTITY } = UpdateActions;
     const { version, id } = Store.customerCart;
-    const lineItemId = lineItem.id;
+    const lineItemId = this.lineItem.id;
     const actions: MyCartUpdateAction[] = [{ action: CHANGE_LINE_ITEM_QUANTITY, lineItemId, quantity: 0 }];
     const updatedCart = await updateCart(id, { version, actions });
     Store.customerCart = updatedCart;
@@ -174,6 +191,6 @@ export default class CartCard extends BaseComponent {
   }
 
   private disconnectedCallback(): void {
-    window.removeEventListener('quantitychange', this.windowCallback as () => void);
+    window.removeEventListener('quantitychange', this.windowCallback);
   }
 }

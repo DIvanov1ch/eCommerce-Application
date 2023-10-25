@@ -5,18 +5,26 @@ import Page from '../Page';
 import CssClasses from './css-classes';
 import { registerCustomer } from '../../services/API';
 import InputID from '../../enums/input-id';
-import successIcon from '../../assets/icons/success.svg';
-import errorIcon from '../../assets/icons/error.svg';
 import { ServerErrors, errorMessages } from '../../types/errors';
 import { classSelector, idSelector, pause } from '../../utils/create-element';
 import Store from '../../services/Store';
 import NewUser from '../../services/NewUser';
-import AddressType from '../../enums/address-type';
 import Router from '../../services/Router';
-import { Country } from '../../config';
-import { disableInput, enableInput, getCheckboxState, getInputValue } from '../../utils/service-functions';
-import Validator from '../../services/Validator';
+import { disableInput, enableInput, getCheckboxState } from '../../utils/service-functions';
 import loginUser from '../../utils/login';
+import NameField from '../../components/InputField/NameField';
+import EmailField from '../../components/InputField/EmailField';
+import PasswordField from '../../components/InputField/PasswordField';
+import DateOfBirthField from '../../components/InputField/DateOfBirthField';
+import StreetField from '../../components/InputField/StreetField';
+import CityField from '../../components/InputField/CityField';
+import PostalCodeField from '../../components/InputField/PostalCodeField';
+import CountryField from '../../components/InputField/CountryField';
+import FormValidator from '../../services/FormValidator';
+import throwError from '../../utils/throw-error';
+import { TypeOfAddress } from '../../types';
+import InputField from '../../components/InputField';
+import showToastMessage from '../../utils/show-toast-message';
 
 Router.registerRoute('registration', 'registration-page');
 
@@ -28,10 +36,20 @@ const HTML = {
   SUCCESS: `<p>You will be redirected to <a href="#">main page</a> in ${TIMER_HTML} sec...</p>`,
 };
 
-export default class RegistrationPage extends Page {
-  private isSignUp: boolean = false;
+const ResponseMessage = {
+  ServerError: 'Something went wrong. Try again later',
+  MissingField: 'Please fill out all required fields and try again',
+  SuccessfulRegistration: `Thanks for signing up. Your account has been created.`,
+};
 
-  private validator: Validator | undefined = undefined;
+export default class RegistrationPage extends Page {
+  private personalDetails: InputField[] = [];
+
+  private billingAddress: InputField[] = [];
+
+  private shippingAddress: InputField[] = [];
+
+  private validator!: FormValidator;
 
   private customer = new NewUser();
 
@@ -47,215 +65,171 @@ export default class RegistrationPage extends Page {
       return;
     }
     super.connectedCallback();
+    this.renderPersonalDetails();
+    this.renderAddress('shipping');
+    this.renderAddress('billing');
     this.setCallback();
-    this.createValidator();
+    this.validator = new FormValidator(this.$(classSelector(CssClasses.FORM)) || this);
+  }
+
+  private createPersonalDetails(): void {
+    const firstNameField = new NameField('firstName');
+    const lastNameField = new NameField('lastName');
+    const emailField = new EmailField();
+    const passwordField = new PasswordField();
+    const dateOfBirthField = new DateOfBirthField();
+    this.personalDetails.push(firstNameField, lastNameField, emailField, passwordField, dateOfBirthField);
+  }
+
+  private renderPersonalDetails(): void {
+    this.createPersonalDetails();
+    const { PERSONAL_DETAILS } = CssClasses;
+    const container = this.$(classSelector(PERSONAL_DETAILS));
+    if (container === null) {
+      throwError(new Error(`${PERSONAL_DETAILS} is 'null`));
+      return;
+    }
+    this.personalDetails.forEach((component) => {
+      container.insertAdjacentElement('beforeend', component);
+    });
+  }
+
+  private createAddress(typeOfAddress: TypeOfAddress): void {
+    const streetField = new StreetField(typeOfAddress);
+    const cityField = new CityField(typeOfAddress);
+    const postalCodeField = new PostalCodeField(typeOfAddress);
+    const countryField = new CountryField(typeOfAddress);
+    this[`${typeOfAddress}Address`].push(streetField, cityField, postalCodeField, countryField);
+  }
+
+  private renderAddress(typeOfAddress: TypeOfAddress): void {
+    this.createAddress(typeOfAddress);
+    const { SHIPPING_ADDRESS, BILLING_ADDRESS } = CssClasses;
+    const selector = typeOfAddress === 'billing' ? BILLING_ADDRESS : SHIPPING_ADDRESS;
+    const container = this.$(classSelector(selector));
+    this[`${typeOfAddress}Address`].forEach((field) => {
+      container?.insertAdjacentElement('beforeend', field);
+    });
   }
 
   private setCallback(): void {
-    const { CHECKBOX, LOGIN_BTN, SELECT, OVERLAY, SUBMIT_BUTTON } = CssClasses;
+    const { CHECKBOX, LOGIN_BTN, SUBMIT_BUTTON } = CssClasses;
 
-    const submitButton = <HTMLInputElement>this.$(classSelector(SUBMIT_BUTTON));
-    submitButton.addEventListener('click', this.submit.bind(this));
+    const submitButton = this.$<'input'>(classSelector(SUBMIT_BUTTON));
+    submitButton?.addEventListener('click', this.submit.bind(this));
 
-    const sameAddressCheckbox = <HTMLInputElement>this.$(idSelector(CHECKBOX));
-    sameAddressCheckbox.addEventListener('change', this.setShippingAsBilling.bind(this));
+    const shippingAsBillingCheckbox = this.$<'input'>(idSelector(CHECKBOX));
+    shippingAsBillingCheckbox?.addEventListener('change', this.setShippingAsBilling.bind(this));
 
-    const loginButton = <HTMLInputElement>this.$(classSelector(LOGIN_BTN));
-    loginButton.addEventListener('click', () => {
+    const loginButton = this.$<'input'>(classSelector(LOGIN_BTN));
+    loginButton?.addEventListener('click', () => {
       window.location.href = '#login';
     });
-
-    const countryFileds = <HTMLInputElement[]>this.$$('[name="country"]');
-    countryFileds.forEach((field) => {
-      field.addEventListener('focus', this.showCountryList.bind(this));
-      field.addEventListener('input', this.showCountryList.bind(this));
-    });
-
-    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
-    countrySelects.forEach((select) => select.addEventListener('click', this.hideCountryList.bind(this)));
-
-    const overlay = this.$(classSelector(OVERLAY));
-    overlay?.addEventListener('click', this.closeModalWindow.bind(this));
-
-    this.addEventListener('click', this.closeCountryList.bind(this));
-  }
-
-  private createValidator(): void {
-    const { INPUT, SUBMIT_BUTTON } = CssClasses;
-    const inputs = <HTMLInputElement[]>this.$$(classSelector(INPUT));
-    const submitBtn = <HTMLInputElement>this.$(classSelector(SUBMIT_BUTTON));
-    this.validator = new Validator(inputs, submitBtn);
-  }
-
-  private showCountryList(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    if (!target.value || target.value.trim() !== 'United States') {
-      const selector = target.id;
-      const countrySelect = this.$(`${classSelector(CssClasses.SELECT)}${classSelector(selector)}`);
-      if (countrySelect) {
-        countrySelect.classList.remove(CssClasses.HIDDEN);
-        countrySelect.style.top = `${target.getBoundingClientRect().bottom + window.scrollY}px`;
-      }
-    }
-  }
-
-  private hideCountryList(event: Event): void {
-    const target = event.target as HTMLDivElement;
-    const selector = Object.values(InputID).find((id) => target.classList.contains(id));
-    const field = <HTMLInputElement>this.$(`#${selector}`);
-    if (field) {
-      field.value = target.textContent as string;
-      field.dispatchEvent(new Event('input'));
-    }
-    target.classList.add(CssClasses.HIDDEN);
-  }
-
-  private handleErrorResponse(error: ErrorResponse): void {
-    if (Object.values(ServerErrors).includes(error.statusCode)) {
-      const message = 'Something went wrong. Try again later';
-      this.showRegistrationResult(message);
-      return;
-    }
-    if (error.message === errorMessages.dataError) {
-      const message = 'Please fill out all required fields and try again';
-      this.showRegistrationResult(message);
-      return;
-    }
-    if (error.message === errorMessages.emailError) {
-      const email = this.$(idSelector(InputID.EMAIL));
-      email?.classList.add(CssClasses.ERROR);
-    }
-    this.showRegistrationResult(error.message);
-  }
-
-  private showRegistrationResult(message: string): void {
-    const { OVERLAY, ICON, MESSAGE, HIDDEN } = CssClasses;
-    const overlay = this.$(classSelector(OVERLAY));
-    const iconBox = <HTMLImageElement>this.$(classSelector(ICON));
-    const messageBox = <HTMLDivElement>this.$(classSelector(MESSAGE));
-    if (iconBox && messageBox) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      iconBox.src = this.isSignUp ? successIcon : errorIcon;
-      messageBox.textContent = message;
-      overlay?.classList.remove(HIDDEN);
-      document.body.classList.add(CssClasses.HAS_MODAL);
-    }
-  }
-
-  private static setAddress(addressType: AddressType): BaseAddress {
-    const STREET = InputID[`${addressType}_STREET`];
-    const CITY = InputID[`${addressType}_CITY`];
-    const POSTAL_CODE = InputID[`${addressType}_CODE`];
-    const address: BaseAddress = {
-      streetName: getInputValue(idSelector(STREET)),
-      city: getInputValue(idSelector(CITY)),
-      postalCode: getInputValue(idSelector(POSTAL_CODE)),
-      country: Country.UnitedStates,
-    };
-    return address;
-  }
-
-  private setCustomerInformation(): void {
-    const { FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, DATE_OF_BIRTH, DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
-    this.customer.firstName = getInputValue(idSelector(FIRST_NAME));
-    this.customer.lastName = getInputValue(idSelector(LAST_NAME));
-    this.customer.email = getInputValue(idSelector(EMAIL));
-    this.customer.password = getInputValue(idSelector(PASSWORD));
-    this.customer.dateOfBirth = getInputValue(idSelector(DATE_OF_BIRTH));
-
-    const shippingAddress: BaseAddress = RegistrationPage.setAddress(AddressType.SHIPPING);
-    const billingAddress: BaseAddress = RegistrationPage.setAddress(AddressType.BILLING);
-    this.customer.addresses = [shippingAddress, billingAddress];
-    const indexOfShipping: number = this.customer.addresses.indexOf(shippingAddress);
-    let indexOfBilling: number = this.customer.addresses.indexOf(billingAddress);
-
-    const setAsDefaultShipping = getCheckboxState(idSelector(DEFAULT_SHIPPING));
-    const setAsDefaultBilling = getCheckboxState(idSelector(DEFAULT_BILLING));
-    this.customer.defaultShippingAddress = setAsDefaultShipping ? indexOfShipping : undefined;
-    this.customer.defaultBillingAddress = setAsDefaultBilling ? indexOfBilling : undefined;
-
-    if (this.isShippingAsBilling) {
-      this.customer.addresses = [shippingAddress];
-      indexOfBilling = indexOfShipping;
-      this.customer.defaultBillingAddress = setAsDefaultBilling ? indexOfBilling : undefined;
-    }
-    this.customer.shippingAddresses = [indexOfShipping];
-    this.customer.billingAddresses = [indexOfBilling];
-  }
-
-  private register(): void {
-    registerCustomer(this.customer)
-      .then((response) => {
-        this.isSignUp = true;
-        const { customer } = response.body;
-        if (customer.firstName && customer.lastName) {
-          const message = `Thanks for signing up, ${customer.firstName} ${customer.lastName}. Your account has been created.`;
-          this.showRegistrationResult(message);
-        }
-        this.logIn();
-      })
-      .catch((error: ErrorResponse) => {
-        this.isSignUp = false;
-        this.handleErrorResponse(error);
-      });
   }
 
   private submit(): void {
-    RegistrationPage.disableButtons();
-    this.setCustomerInformation();
+    const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
+    [SUBMIT_BUTTON, LOGIN_BTN].forEach((btn) => disableInput(classSelector(btn)));
+    this.setPersonalDetails();
+    this.setAddresses();
     this.register();
   }
 
   private setShippingAsBilling(event: Event): void {
-    this.isShippingAsBilling = true;
-    const { SHIPPING, BILLING } = CssClasses;
-    const shippingFileds = <HTMLInputElement[]>this.$$(classSelector(SHIPPING));
-    const billingFileds = <HTMLInputElement[]>this.$$(classSelector(BILLING));
-    const target = event.target as HTMLInputElement;
-    shippingFileds.forEach((field: HTMLInputElement, index: number): void => {
-      billingFileds[index].value = target.checked ? field.value : '';
-    });
-    billingFileds.forEach((field: HTMLInputElement): void => {
-      this.validator?.hideErrorMessage(field.id);
-      this.validator?.setSubmitButtonState();
-    });
-  }
-
-  private closeCountryList(event: Event): void {
-    const { SELECT, HIDDEN } = CssClasses;
-    const countrySelects = <HTMLDivElement[]>this.$$(classSelector(SELECT));
-    countrySelects.forEach((select) => {
-      if (
-        !select.classList.contains(HIDDEN) &&
-        !(event.target instanceof HTMLInputElement && event.target.name === 'country')
-      ) {
-        select.classList.add(HIDDEN);
-      }
-    });
-  }
-
-  private closeModalWindow(event: Event): void {
-    const target: HTMLDivElement = event.target as HTMLDivElement;
-    const { OVERLAY, POP_UP_ICON_BOX, ICON } = CssClasses;
-    if (
-      !target.classList.contains(OVERLAY) &&
-      !target.classList.contains(POP_UP_ICON_BOX) &&
-      !target.classList.contains(ICON)
-    ) {
+    const { target } = event;
+    if (!(target instanceof HTMLInputElement)) {
       return;
     }
-    this.hideModalWindow();
+
+    if (target.checked) {
+      this.isShippingAsBilling = true;
+      this.billingAddress.forEach((field, index) => {
+        field.setInputValue(this.shippingAddress[index].getInputValue());
+        field.disableInput();
+      });
+      this.shippingAddress.forEach((field, index) => {
+        field.pipe(this.billingAddress[index]);
+        field.checkValue();
+      });
+    } else {
+      this.isShippingAsBilling = false;
+      this.billingAddress.forEach((field) => {
+        field.enableInput();
+      });
+      this.shippingAddress.forEach((field) => {
+        field.unpipe();
+      });
+    }
+    this.validator.changeButtonState();
   }
 
-  private hideModalWindow(): void {
-    const { OVERLAY, HIDDEN, HAS_MODAL } = CssClasses;
-    const modal = this.$(classSelector(OVERLAY));
-    modal?.classList.add(HIDDEN);
-    document.body.classList.remove(HAS_MODAL);
-    RegistrationPage.enableButtons();
-    if (this.isSignUp) {
-      this.goToMainPage(HTML.SUCCESS).catch(console.error);
+  private setPersonalDetails(): void {
+    [
+      this.customer.firstName,
+      this.customer.lastName,
+      this.customer.email,
+      this.customer.password,
+      this.customer.dateOfBirth,
+    ] = this.personalDetails.map((field) => field.getInputValue());
+  }
+
+  private setAddresses(): void {
+    const { DEFAULT_SHIPPING, DEFAULT_BILLING } = InputID;
+
+    const billingAddress: BaseAddress = this.getAddress('billing');
+    const shippingAddress: BaseAddress = this.getAddress('shipping');
+    this.customer.addresses = this.isShippingAsBilling ? [shippingAddress] : [shippingAddress, billingAddress];
+
+    const indexOfShipping = this.customer.addresses.indexOf(shippingAddress);
+    const indexOfBilling = this.isShippingAsBilling ? indexOfShipping : this.customer.addresses.indexOf(billingAddress);
+    const isDefaultShipping = getCheckboxState(idSelector(DEFAULT_SHIPPING));
+    const isDefaultBilling = getCheckboxState(idSelector(DEFAULT_BILLING));
+
+    this.customer.defaultShippingAddress = isDefaultShipping ? indexOfShipping : undefined;
+    this.customer.defaultBillingAddress = isDefaultBilling ? indexOfBilling : undefined;
+
+    this.customer.shippingAddresses = [indexOfShipping];
+    this.customer.billingAddresses = [indexOfBilling];
+  }
+
+  private getAddress(typeOfAddress: TypeOfAddress): BaseAddress {
+    const [streetName, city, postalCode, countryValue] = this[`${typeOfAddress}Address`].map((field) =>
+      field.getInputValue()
+    );
+    const country = countryValue.slice(-3, -1);
+    const address: BaseAddress = { streetName, city, postalCode, country };
+    return address;
+  }
+
+  private register(): void {
+    registerCustomer(this.customer)
+      .then(() => {
+        showToastMessage(ResponseMessage.SuccessfulRegistration, true);
+        this.goToMainPage(HTML.SUCCESS).catch(console.error);
+        this.logIn();
+      })
+      .catch((error: ErrorResponse) => {
+        this.handleErrorResponse(error);
+        const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
+        [SUBMIT_BUTTON, LOGIN_BTN].forEach((btn) => enableInput(classSelector(btn)));
+      });
+  }
+
+  private handleErrorResponse(error: ErrorResponse): void {
+    let message = '';
+    if (Object.values(ServerErrors).includes(error.statusCode)) {
+      message = ResponseMessage.ServerError;
     }
+    if (error.message === errorMessages.dataError) {
+      message = ResponseMessage.MissingField;
+    }
+    if (error.message === errorMessages.emailError) {
+      message = error.message;
+      const emailField = this.personalDetails.find((field) => field instanceof EmailField);
+      emailField?.setWarning({ emptyField: '', invalidValue: message });
+      emailField?.displayWarning();
+    }
+    showToastMessage(message, false);
   }
 
   private logIn(): void {
@@ -269,17 +243,5 @@ export default class RegistrationPage extends Page {
     if (this.isConnected) {
       window.location.assign('#');
     }
-  }
-
-  private static disableButtons(): void {
-    const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
-    disableInput(classSelector(SUBMIT_BUTTON));
-    disableInput(classSelector(LOGIN_BTN));
-  }
-
-  private static enableButtons(): void {
-    const { SUBMIT_BUTTON, LOGIN_BTN } = CssClasses;
-    enableInput(classSelector(SUBMIT_BUTTON));
-    enableInput(classSelector(LOGIN_BTN));
   }
 }

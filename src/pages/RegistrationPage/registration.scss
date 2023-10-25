@@ -22,71 +22,6 @@
   margin: 0 0 15px 0;
 }
 
-.input-module,
-.registration__addresses {
-  margin-bottom: 15px;
-}
-
-.input-module__label {
-  font-weight: 600;
-  padding-left: 2px;
-}
-
-.input-module__input-field {
-  background-color: #fff;
-  height: 28px;
-  padding: 3px 7px;
-  border-radius: 3px;
-  border: 1px solid #a6a6a6;
-  line-height: normal;
-  width: 100%;
-}
-
-.input-module__input-field:focus {
-  background-color: #f7feff;
-  border-color: #007185;
-  box-shadow:
-    0 0 0 3px #c8f3fa,
-    0 1px 2px rgba(15, 17, 17, 0.15) inset;
-}
-
-.input-module__input-field.field-error:focus {
-  background-color: #f7feff;
-  border-color: #cc0c39;
-  box-shadow:
-    0 0 0 1px #cc0c39 inset,
-    0 0 0 3px #facece;
-}
-
-.field-error {
-  border-color: #cc0c39;
-  box-shadow: 0 0 0 1px #cc0c39 inset;
-}
-
-.input-module__error-box {
-  display: flex;
-}
-
-.error-box__icon {
-  width: 15px;
-  height: 15px;
-  margin: 2px;
-  align-self: center;
-}
-
-.error-box__content {
-  color: red;
-  margin-right: 10px;
-  margin-left: 5px;
-  font-size: 14px;
-  align-self: center;
-  letter-spacing: 0.02rem;
-}
-
-.hidden {
-  display: none;
-}
-
 .button-container {
   width: 100%;
 }
@@ -122,57 +57,16 @@
   opacity: 1;
 }
 
-.registration__pop-up {
-  width: 300px;
-  height: 300px;
-  border: 2px solid #007185;
-  border-radius: 10px;
-  margin: 0 auto;
-  background-color: whitesmoke;
-  padding: 15px;
-  margin: 96px auto;
-}
-
-.pop-up__container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.pop-up__icon-box,
-.pop-up__message {
-  margin: 20px;
-  text-align: center;
-}
-
-.pop-up__icon {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
-}
-
-.pop-up__message {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.pop-up__icon:hover {
-  opacity: 0.8;
-}
-
-.pop-up__icon:active {
-  opacity: 0.9;
-  transform: scale(0.9);
-}
-
-.registration__addresses-container {
+.registration__address-container {
   display: flex;
   flex-direction: column;
 }
 
-.registration__addresses-title {
+.registration__address {
+  margin-bottom: 15px;
+}
+
+.registration__address-title {
   text-align: center;
   align-self: center;
   font-weight: 600;
@@ -194,22 +88,6 @@
   content: '';
 }
 
-.addresses__country-select {
-  width: 286px;
-  padding: 3px 7px;
-  height: 28px;
-  z-index: 10;
-  border: 1px solid #a6a6a6;
-  border-radius: 3px;
-  position: absolute;
-  background-color: #fff;
-  cursor: pointer;
-}
-
-.addresses__country-select:hover {
-  background-color: #ddd;
-}
-
-.addresses__country-select:active {
-  background-color: #eceaea;
+.hidden {
+  display: none;
 }

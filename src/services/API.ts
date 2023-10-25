@@ -21,6 +21,7 @@ import {
   Cart,
   MyCartUpdate,
   LineItemDraft,
+  DiscountCode,
 } from '@commercetools/platform-sdk';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 import {
@@ -33,11 +34,11 @@ import {
   AUTH_HOST,
   CATEGORIES_LIMIT,
   PRODUCTS_PER_PAGE,
+  Country,
 } from '../config';
 import TokenClient from './Token';
 import { FilterSortingSearchQueries } from '../types/Catalog';
 import Store from './Store';
-// import { errorsClient } from '../types/errors';
 
 const projectKey = PROJECT_KEY;
 const scopes = [API_SCOPES.map((scope) => `${scope}:${PROJECT_KEY}`).join(' ')];
@@ -143,9 +144,8 @@ const registerCustomer = async (body: CustomerDraft): Promise<ClientResponse<Cus
 };
 
 const logout = (): void => {
-  if (Store.customerCart) {
-    Store.customerCart = undefined;
-  }
+  Store.customerCart = undefined;
+  Store.customer = undefined;
   tokenClient.delete();
 };
 
@@ -224,7 +224,7 @@ const createNewCart = async (lineItems: LineItemDraft[] | undefined = undefined)
       .post({
         body: {
           currency: 'USD',
-          country: 'US',
+          country: Country.UnitedStates,
           lineItems,
         },
       })
@@ -242,6 +242,11 @@ const updateCart = async (id: string, body: MyCartUpdate): Promise<Cart> => {
   return (await apiRoot.me().carts().withId({ ID: id }).post({ body }).execute()).body;
 };
 
+const getDiscountCode = async (id: string): Promise<DiscountCode> => {
+  const apiRoot = getApiRoot(getAnonymousFlowClient());
+  return (await apiRoot.discountCodes().withId({ ID: id }).get().execute()).body;
+};
+
 export {
   login,
   registerCustomer,
@@ -257,4 +262,5 @@ export {
   getCustomer,
   getCartByCustomerId,
   updateCart,
+  getDiscountCode,
 };

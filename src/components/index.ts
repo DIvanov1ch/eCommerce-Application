@@ -20,6 +20,17 @@ import CartCard from './CartCard';
 import TeamMember from './TeamMember';
 import ItemCounter from './ItemCounter';
 import ClearDialog from './ClearDialog';
+import InputField from './InputField';
+import CityField from './InputField/CityField';
+import NameField from './InputField/NameField';
+import EmailField from './InputField/EmailField';
+import PasswordField from './InputField/PasswordField';
+import DateOfBirthField from './InputField/DateOfBirthField';
+import StreetField from './InputField/StreetField';
+import PostalCodeField from './InputField/PostalCodeField';
+import CountryField from './InputField/CountryField';
+import AddressLine from './AddressLine';
+import PromoCodeField from './InputField/PromoCodeField';
 
 const Components = {
   'page-header': PageHeader,
@@ -44,6 +55,17 @@ const Components = {
   'team-member': TeamMember,
   'item-counter': ItemCounter,
   'clear-dialog': ClearDialog,
+  'input-field': InputField,
+  'city-field': CityField,
+  'name-field': NameField,
+  'email-field': EmailField,
+  'password-field': PasswordField,
+  'date-of-birth-field': DateOfBirthField,
+  'street-field': StreetField,
+  'postal-code-field': PostalCodeField,
+  'country-field': CountryField,
+  'address-line': AddressLine,
+  'promo-code-field': PromoCodeField,
 };
 
 Object.entries(Components).forEach(([elementName, elementClass]) => {

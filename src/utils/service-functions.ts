@@ -1,36 +1,54 @@
-export function setInputValue(selector: string, value = ''): void {
-  const input = <HTMLInputElement>document.querySelector(selector);
-  input.value = value;
-}
+import { TextContentParams } from '../types';
+import throwError from './throw-error';
 
-export function getInputValue(selector: string): string {
-  const input = <HTMLInputElement>document.querySelector(selector);
-  return input.value;
-}
-
-export function setElementTextContent(selector: string, container: HTMLElement, textContent = ''): void {
+export function setElementTextContent(params: TextContentParams): void {
+  const { container, selector, content } = params;
   const element = container.querySelector(selector);
-  if (element) {
-    element.textContent = textContent;
+  if (element !== null) {
+    element.textContent = content;
   }
 }
 
 export function makeCheckboxChecked(selector: string): void {
-  const checkbox = <HTMLInputElement>document.querySelector(selector);
+  const checkbox = document.querySelector<HTMLInputElement>(selector);
+  if (checkbox === null) {
+    throwError(new Error(`${selector} is 'null'`));
+    return;
+  }
   checkbox.checked = true;
 }
 
+export function makeCheckboxUnchecked(selector: string): void {
+  const checkbox = document.querySelector<HTMLInputElement>(selector);
+  if (checkbox === null) {
+    throwError(new Error(`${selector} is 'null'`));
+    return;
+  }
+  checkbox.checked = false;
+}
+
 export function getCheckboxState(selector: string): boolean {
-  const checkbox = <HTMLInputElement>document.querySelector(selector);
+  const checkbox = document.querySelector<HTMLInputElement>(selector);
+  if (checkbox === null) {
+    throw new Error(`${selector} is 'null'`);
+  }
   return checkbox.checked;
 }
 
 export function disableInput(selector: string): void {
-  const submitInput = <HTMLInputElement>document.querySelector(selector);
+  const submitInput = document.querySelector<HTMLInputElement>(selector);
+  if (submitInput === null) {
+    throwError(new Error(`${selector} is 'null'`));
+    return;
+  }
   submitInput.disabled = true;
 }
 
 export function enableInput(selector: string): void {
-  const submitInput = <HTMLInputElement>document.querySelector(selector);
+  const submitInput = document.querySelector<HTMLInputElement>(selector);
+  if (submitInput === null) {
+    throwError(new Error(`${selector} is 'null'`));
+    return;
+  }
   submitInput.disabled = false;
 }

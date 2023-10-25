@@ -1,11 +1,13 @@
-import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
+import { Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import { classSelector } from '../../utils/create-element';
 import BaseComponent from '../BaseComponent';
 import html from './template.html';
 import { updateCustomer } from '../../services/API';
 import Store from '../../services/Store';
 import showToastMessage from '../../utils/show-toast-message';
-import Validator from '../../services/Validator';
+import throwError from '../../utils/throw-error';
+import './popup.scss';
+import FormValidator from '../../services/FormValidator';
 
 enum CssClasses {
   OVERLAY = 'pop-up__overlay',
@@ -23,9 +25,9 @@ const ToastMessage = {
 };
 
 export default class PopupMenu extends BaseComponent {
-  protected validator: Validator | undefined = undefined;
+  protected validator!: FormValidator;
 
-  protected version: number;
+  protected customer!: Customer;
 
   protected actions: MyCustomerUpdateAction[] = [];
 
@@ -34,10 +36,14 @@ export default class PopupMenu extends BaseComponent {
   constructor(
     private template: string,
     private submitButtonValue: string,
-    private isButtonDisabled: boolean
+    private isButtonDisabled = false
   ) {
     super(html);
-    this.version = Store.customer?.version as number;
+    if (!Store.customer) {
+      throwError(new Error('Customer does not exist'));
+      return;
+    }
+    this.customer = Store.customer;
   }
 
   protected connectedCallback(): void {
@@ -49,12 +55,13 @@ export default class PopupMenu extends BaseComponent {
     const main = this.$(classSelector(MAIN));
     main?.insertAdjacentHTML('beforeend', this.template);
 
-    const submitButton = this.getSubmitButton();
-    submitButton.value = this.submitButtonValue;
-    submitButton.disabled = this.isButtonDisabled;
-    submitButton.addEventListener('click', this.submit.bind(this));
-
+    this.setSubmitButtonParams();
     this.addEventListener('click', this.closeModalWindow.bind(this));
+  }
+
+  public insertElements(elements: Element[], cssClass: string = CssClasses.MAIN): void {
+    const container = this.$(classSelector(cssClass));
+    elements.forEach((element) => container?.insertAdjacentElement('beforeend', element));
   }
 
   public show(): void {
@@ -68,10 +75,17 @@ export default class PopupMenu extends BaseComponent {
     document.body.classList.remove(CssClasses.HAS_MODAL);
   }
 
+  public showMessage(): void {
+    const message = this.isUpdateSuccessful ? ToastMessage.INFO_UPDATED : ToastMessage.ERROR;
+    showToastMessage(message, this.isUpdateSuccessful);
+    this.close();
+  }
+
   private closeModalWindow(event: Event): void {
-    const target = event.target as HTMLElement;
+    const { target } = event;
     const { OVERLAY, ICON_BOX, ICON } = CssClasses;
     if (
+      target instanceof HTMLElement &&
       !target.classList.contains(OVERLAY) &&
       !target.classList.contains(ICON_BOX) &&
       !target.classList.contains(ICON)
@@ -81,16 +95,21 @@ export default class PopupMenu extends BaseComponent {
     this.close();
   }
 
-  public getAllInputs(): HTMLInputElement[] {
-    return <HTMLInputElement[]>this.$$(classSelector(CssClasses.INPUT));
-  }
-
-  public getSubmitButton(): HTMLInputElement {
-    return <HTMLInputElement>this.$(classSelector(CssClasses.SUBMIT_BUTTON));
+  private setSubmitButtonParams(): void {
+    const { SUBMIT_BUTTON } = CssClasses;
+    const button = this.$<'input'>(classSelector(SUBMIT_BUTTON));
+    if (button === null) {
+      throwError(new Error(`${SUBMIT_BUTTON} is 'null'`));
+      return;
+    }
+    button.value = this.submitButtonValue;
+    button.disabled = this.isButtonDisabled;
+    button.addEventListener('click', this.submit.bind(this));
   }
 
   protected submit(): void {
-    const { version, actions } = this;
+    const { actions } = this;
+    const { version } = this.customer;
     updateCustomer({ version, actions })
       .then(({ body }) => {
         Store.customer = body;
@@ -101,11 +120,5 @@ export default class PopupMenu extends BaseComponent {
         this.isUpdateSuccessful = false;
         this.showMessage();
       });
-  }
-
-  public showMessage(): void {
-    const message = this.isUpdateSuccessful ? ToastMessage.INFO_UPDATED : ToastMessage.ERROR;
-    showToastMessage(message, this.isUpdateSuccessful);
-    this.close();
   }
 }

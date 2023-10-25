@@ -1,13 +1,12 @@
-import { Customer, MyCustomerUpdateAction } from '@commercetools/platform-sdk';
-import Store from '../../services/Store';
-import { getInputValue, setInputValue } from '../../utils/service-functions';
+import { MyCustomerUpdateAction } from '@commercetools/platform-sdk';
 import PopupMenu from '../PopupMenu';
 import html from './template.html';
-import InputID from '../../enums/input-id';
-import { idSelector } from '../../utils/create-element';
 import UpdateActions from '../../enums/update-actions';
 import showToastMessage from '../../utils/show-toast-message';
-import Validator from '../../services/Validator';
+import FormValidator from '../../services/FormValidator';
+import NameField from '../InputField/NameField';
+import EmailField from '../InputField/EmailField';
+import DateOfBirthField from '../InputField/DateOfBirthField';
 
 const SubmitBtnValue = {
   SAVE: 'Save',
@@ -19,6 +18,14 @@ const ToastMessage = {
 };
 
 export default class EditProfile extends PopupMenu {
+  private firstName = new NameField('firstName');
+
+  private lastName = new NameField('lastName');
+
+  private email = new EmailField();
+
+  private dateOfBirth = new DateOfBirthField();
+
   constructor() {
     super(html, SubmitBtnValue.SAVE, true);
   }
@@ -26,29 +33,25 @@ export default class EditProfile extends PopupMenu {
   protected connectedCallback(): void {
     super.connectedCallback();
 
-    const inputs = this.getAllInputs();
-    const submitButton = this.getSubmitButton();
-    this.validator = new Validator(inputs, submitButton);
-
-    EditProfile.fillTemplate();
+    this.render();
+    this.validator = new FormValidator(this);
   }
 
-  private static fillTemplate(): void {
-    const { firstName, lastName, dateOfBirth, email } = Store.customer as Customer;
-    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
-    setInputValue(idSelector(FIRST_NAME), firstName);
-    setInputValue(idSelector(LAST_NAME), lastName);
-    setInputValue(idSelector(DATE_OF_BIRTH), dateOfBirth);
-    setInputValue(idSelector(EMAIL), email);
+  private render(): void {
+    this.insertElements([this.firstName, this.lastName, this.email, this.dateOfBirth]);
+    const { firstName, lastName, email, dateOfBirth } = this.customer;
+    this.firstName.setInputValue(firstName);
+    this.lastName.setInputValue(lastName);
+    this.email.setInputValue(email);
+    this.dateOfBirth.setInputValue(dateOfBirth);
   }
 
   protected setRequestBody(): void {
-    const { firstName, lastName, dateOfBirth, email } = Store.customer as Customer;
-    const { FIRST_NAME, LAST_NAME, DATE_OF_BIRTH, EMAIL } = InputID;
-    const newFirstName = getInputValue(idSelector(FIRST_NAME));
-    const newLastName = getInputValue(idSelector(LAST_NAME));
-    const newDateOfBirth = getInputValue(idSelector(DATE_OF_BIRTH));
-    const newEmail = getInputValue(idSelector(EMAIL));
+    const { firstName, lastName, email, dateOfBirth } = this.customer;
+    const newFirstName = this.firstName.getInputValue();
+    const newLastName = this.lastName.getInputValue();
+    const newEmail = this.email.getInputValue();
+    const newDateOfBirth = this.dateOfBirth.getInputValue();
     const actions: MyCustomerUpdateAction[] = [];
     if (newFirstName !== firstName) {
       actions.push({
